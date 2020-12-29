@@ -455,10 +455,6 @@ static enum power_state power_common_state(enum power_state state)
 #ifdef CONFIG_HIBERNATE
 		{
 			uint64_t target, now, wait;
-			if (extpower_is_present()) {
-				task_wait_event(-1);
-				break;
-			}
 
 			now = get_time().val;
 			target = last_shutdown_time + hibernate_delay * SECOND;
@@ -942,7 +938,7 @@ static int command_hibernation_delay(int argc, char **argv)
 
 	/* Print the current setting */
 	ccprintf("Hibernation delay: %d s\n", hibernate_delay);
-	if (state == POWER_G3 && !extpower_is_present()) {
+	if (state == POWER_G3) {
 		ccprintf("Time G3: %d s\n", time_g3);
 		ccprintf("Time left: %d s\n", hibernate_delay - time_g3);
 	}
@@ -968,7 +964,7 @@ host_command_hibernation_delay(struct host_cmd_handler_args *args)
 	if (p->seconds)
 		hibernate_delay = p->seconds;
 
-	if (state == POWER_G3 && !extpower_is_present())
+	if (state == POWER_G3)
 		r->time_g3 = time_g3;
 	else
 		r->time_g3 = 0;

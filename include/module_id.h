@@ -56,7 +56,8 @@ enum module_id {
 	MODULE_USB_SWITCH,
 	MODULE_VBOOT,
 	MODULE_WOV,
-
+    MODULE_HOST_UART,
+    
 	/* Module count; not an actual module */
 	MODULE_COUNT
 };
