@@ -774,7 +774,7 @@ static void lpc_init(void)
 	/* Initialize Hardware for UART Host */
 #ifdef CONFIG_UART_HOST
 	/* Init COMx LPC UART */
-	/* FMCLK have to using 50MHz */
+	/* FMCLK Freq have to using 50MHz */
 	NPCX_DEVALT(0xB) = 0xFF;
 	/* Make sure Host Access unlock */
 	CLEAR_BIT(NPCX_LKSIOHA, 2);
