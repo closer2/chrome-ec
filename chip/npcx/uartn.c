@@ -235,20 +235,40 @@ static void uartn_config(uint8_t uart_num)
 	wui = uart_wui[uart_num];
 	SET_BIT(NPCX_WKEDG(wui.table, wui.group), wui.bit);
 #endif
-	/*
-	 * If apb2's clock is not 15MHz, we need to find the other optimized
-	 * values of UPSR and UBAUD for baud rate 115200.
-	 */
-#if (NPCX_APB_CLOCK(2) != 15000000)
+
+#ifdef CONFIG_UART_HOST
+/*
+ * If apb2's clock is not 20MHz, we need to find the other optimized
+ * values of UPSR and UBAUD for baud rate 115200.
+ */
+#if (NPCX_APB_CLOCK(2) != 20000000)
 #error "Unsupported apb2 clock for UART!"
 #endif
 
 	/*
+	 * BR = APB2_CLK/(16 x (UDIV10-0 + 1) x P) P:UPSR
+	 * Fix baud rate to 115200. If this value is modified, please also
+	 * modify the delay in uart_set_pad and uart_reset_default_pad_panic.
+	 */
+	NPCX_UPSR(uart_num) = 0x30;
+	NPCX_UBAUD(uart_num) = 0x02;
+
+#else
+/*
+ * If apb2's clock is not 15MHz, we need to find the other optimized
+ * values of UPSR and UBAUD for baud rate 115200.
+ */
+#if (NPCX_APB_CLOCK(2) != 15000000)
+#error "Unsupported apb2 clock for UART!"
+#endif
+	/*
+	 * BR = APB2_CLK/(16 x (UDIV10-0 + 1) x P) P:UPSR
 	 * Fix baud rate to 115200. If this value is modified, please also
 	 * modify the delay in uart_set_pad and uart_reset_default_pad_panic.
 	 */
 	NPCX_UPSR(uart_num) = 0x38;
 	NPCX_UBAUD(uart_num) = 0x01;
+#endif
 
 	/*
 	 * 8-N-1, FIFO enabled.  Must be done after setting

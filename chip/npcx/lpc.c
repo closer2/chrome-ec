@@ -616,6 +616,15 @@ void host_register_init(void)
 	/* Enable Core-to-Host Modules Access */
 	SET_BIT(NPCX_SIBCTRL, NPCX_SIBCTRL_CSAE);
 
+#ifdef CONFIG_UART_HOST
+	/* enable serial_port*/
+	sib_write_reg(SIO_OFFSET, 0x07, 0x03);
+	sib_write_reg(SIO_OFFSET, 0x30, 0x01);
+    /* Bank Select Enable */
+    sib_write_reg(SIO_OFFSET, 0xF0,
+			sib_read_reg(SIO_OFFSET, 0xF0) | 0x82);
+#endif    
+
 	/* enable ACPI*/
 	sib_write_reg(SIO_OFFSET, 0x07, 0x11);
 	sib_write_reg(SIO_OFFSET, 0x30, 0x01);

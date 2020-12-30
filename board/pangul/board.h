@@ -95,7 +95,7 @@
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
-
+#define CONFIG_UART_HOST                    /* Turn on serial port */
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
 #define CONFIG_VBOOT_HASH
