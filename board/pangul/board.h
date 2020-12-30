@@ -119,7 +119,8 @@
 #define CONFIG_EXTPOWER_DEBOUNCE_MS 200
 #define CONFIG_EXTPOWER_GPIO*/
 #undef CONFIG_EXTPOWER                      /* This board is desktop, NO AC status, undefine it*/
-
+#undef  CONFIG_FANS
+#define CONFIG_FANS 2 
 
 
 
@@ -300,10 +301,26 @@
 #include "power/renoir.h"
 #include "registers.h"
 
+/* TODO: need confirm with real hardware */
+enum pwm_channel {
+    PWM_CH_CPU_FAN = 0,
+    PWM_CH_SYS_FAN,
+    PWM_CH_SPKR,
+    PWM_CH_COUNT
+};
+
 enum fan_channel {
 	FAN_CH_0 = 0,
+    FAN_CH_1,
 	/* Number of FAN channels */
 	FAN_CH_COUNT,
+};
+
+enum mft_channel {
+	MFT_CH_0, /* TA1 */
+    MFT_CH_1, /* TA2 */
+	/* Number of MFT channels */
+	MFT_CH_COUNT
 };
 
 #ifdef VARIANT_ZORK_TREMBYLE
@@ -334,12 +351,6 @@ enum adc_channel {
 	ADC_TEMP_SENSOR_CHARGER,
 	ADC_TEMP_SENSOR_SOC,
 	ADC_CH_COUNT
-};
-
-/* TODO: need confirm with real hardware */
-enum pwm_channel {
-        PWM_CH_KBLIGHT = 0,
-        PWM_CH_COUNT
 };
 
 /* TODO: need confirm with real hardware */

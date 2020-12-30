@@ -206,15 +206,70 @@ const struct i2c_port_t i2c_ports[] = {
 };
 const unsigned int i2c_ports_used = ARRAY_SIZE(i2c_ports);
 
+
+/******************************************************************************/
+/* PWM channels. Must be in the exactly same order as in enum pwm_channel. pwm_init. */
 const struct pwm_t pwm_channels[] = {
-	[PWM_CH_KBLIGHT] = {
-		.channel = 3,
+    [PWM_CH_CPU_FAN] = { 
+        .channel = 0,
+        .flags = PWM_CONFIG_OPEN_DRAIN,
+        .freq = 25000,
+    },
+
+    [PWM_CH_SYS_FAN] = { 
+		.channel = 1,
+		.flags = PWM_CONFIG_OPEN_DRAIN,
+		.freq = 25000,
+    },
+
+	[PWM_CH_SPKR] = {
+		.channel = 6,
 		.flags = PWM_CONFIG_DSLEEP,
 		.freq = 100,
 	},
 };
 BUILD_ASSERT(ARRAY_SIZE(pwm_channels) == PWM_CH_COUNT);
+/******************************************************************************/
+/* Physical fans. These are logically separate from pwm_channels. */
+const struct fan_conf fan_conf_0 = {
+	.flags = FAN_USE_RPM_MODE,
+	.ch = MFT_CH_0,	/* Use MFT id to control fan */
+	.pgood_gpio = -1,
+	.enable_gpio = -1,
+};
 
+const struct fan_conf fan_conf_1 = {
+	.flags = FAN_USE_RPM_MODE,
+	.ch = MFT_CH_1,	/* Use MFT id to control fan */
+	.pgood_gpio = -1,
+	.enable_gpio = -1,
+};
+
+const struct fan_rpm fan_rpm_0 = {
+	.rpm_min = 1000,
+	.rpm_start = 1000,
+	.rpm_max = 5200,
+};
+
+const struct fan_rpm fan_rpm_1 = {
+	.rpm_min = 1000,
+	.rpm_start = 1000,
+	.rpm_max = 4300,
+};
+
+const struct fan_t fans[] = {
+	[FAN_CH_0] = { .conf = &fan_conf_0, .rpm = &fan_rpm_0, },
+    [FAN_CH_1] = { .conf = &fan_conf_1, .rpm = &fan_rpm_1, },
+};
+BUILD_ASSERT(ARRAY_SIZE(fans) == FAN_CH_COUNT);
+
+/******************************************************************************/
+/* MFT channels. These are logically separate from pwm_channels. */
+const struct mft_t mft_channels[] = {
+	[MFT_CH_0] = { NPCX_MFT_MODULE_1, TCKC_LFCLK, PWM_CH_SYS_FAN},
+    [MFT_CH_1] = { NPCX_MFT_MODULE_2, TCKC_LFCLK, PWM_CH_CPU_FAN},
+};
+BUILD_ASSERT(ARRAY_SIZE(mft_channels) == MFT_CH_COUNT);
 /*
  * We use 11 as the scaling factor so that the maximum mV value below (2761)
  * can be compressed to fit in a uint8_t.

@@ -645,10 +645,10 @@ void host_register_init(void)
 	/* Setting PMC2 */
 	/* LDN register = 0x12(PMC2) */
 	sib_write_reg(SIO_OFFSET, 0x07, 0x12);
-	/* CMD port is 0x200 */
+	/* Data port is 0x200 */
 	sib_write_reg(SIO_OFFSET, 0x60, 0x02);
 	sib_write_reg(SIO_OFFSET, 0x61, 0x00);
-	/* Data port is 0x204 */
+	/* CMD/Status port is 0x204 */
 	sib_write_reg(SIO_OFFSET, 0x62, 0x02);
 	sib_write_reg(SIO_OFFSET, 0x63, 0x04);
 	/* enable PMC2 */
