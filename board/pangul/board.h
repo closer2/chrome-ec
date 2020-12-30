@@ -339,25 +339,23 @@ enum sensor_id {
 };
 
 /* TODO: need confirm with real hardware */
-/* enum adc_channel {
-        ADC_TEMP_SENSOR_CHARGER,
-        ADC_TEMP_SENSOR_SOC,
-        ADC_VBUS,
-        ADC_SKU_ID1,
-        ADC_SKU_ID2,
-        ADC_CH_COUNT
-}; */
 enum adc_channel {
-	ADC_TEMP_SENSOR_CHARGER,
-	ADC_TEMP_SENSOR_SOC,
+    ADC_SENSOR_SOC_NEAR = 0,
+    ADC_SENSOR_SSD_NEAR,
+    ADC_SENSOR_PCIEX16_NEAR,
+    ADC_SENSOR_ENVIRONMENT,
+    ADC_SENSOR_MEMORY_NEAR,
 	ADC_CH_COUNT
 };
 
 /* TODO: need confirm with real hardware */
 enum temp_sensor_id {
-        TEMP_SENSOR_CHARGER = 0,
-        TEMP_SENSOR_SOC,
-        TEMP_SENSOR_CPU,
+        TEMP_SENSOR_SOC_CORE = 0,
+        TEMP_SENSOR_SOC_NEAR,
+        TEMP_SENSOR_SSD_NEAR,
+        TEMP_SENSOR_PCIEX16_NEAR,
+        TEMP_SENSOR_ENVIRONMENT,
+        TEMP_SENSOR_MEMORY_NEAR,
         TEMP_SENSOR_COUNT
 };
 

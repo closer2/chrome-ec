@@ -86,16 +86,25 @@ int board_get_temp(int idx, int *temp_k)
 
 	/* idx is the sensor index set in board temp_sensors[] */
 	switch (idx) {
-	case TEMP_SENSOR_CHARGER:
-		channel = ADC_TEMP_SENSOR_CHARGER;
-		break;
-	case TEMP_SENSOR_SOC:
+    case TEMP_SENSOR_SOC_CORE:
 		/* thermistor is not powered in G3 */
 		if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
 			return EC_ERROR_NOT_POWERED;
 
-		channel = ADC_TEMP_SENSOR_SOC;
+		channel = ADC_SENSOR_SOC_NEAR;
+		break;    
+    case TEMP_SENSOR_SSD_NEAR:
+		channel = ADC_SENSOR_SSD_NEAR;
 		break;
+    case TEMP_SENSOR_PCIEX16_NEAR:
+		channel = ADC_SENSOR_PCIEX16_NEAR;
+		break;
+    case TEMP_SENSOR_ENVIRONMENT:
+		channel = ADC_SENSOR_ENVIRONMENT;
+		break;
+    case TEMP_SENSOR_MEMORY_NEAR:
+		channel = ADC_SENSOR_MEMORY_NEAR;
+		break;  
 	default:
 		return EC_ERROR_INVAL;
 	}
@@ -110,16 +119,37 @@ int board_get_temp(int idx, int *temp_k)
 }
 
 const struct adc_t adc_channels[] = {
-	[ADC_TEMP_SENSOR_CHARGER] = {
-		.name = "CHARGER",
-		.input_ch = NPCX_ADC_CH2,
+	[ADC_SENSOR_SOC_NEAR] = {
+		.name = "SOC Near",
+		.input_ch = NPCX_ADC_CH0,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-	[ADC_TEMP_SENSOR_SOC] = {
-		.name = "SOC",
-		.input_ch = NPCX_ADC_CH3,
+    [ADC_SENSOR_SSD_NEAR] = {
+		.name = "SSD Near",
+		.input_ch = NPCX_ADC_CH6,
+		.factor_mul = ADC_MAX_VOLT,
+		.factor_div = ADC_READ_MAX + 1,
+		.shift = 0,
+	},
+	[ADC_SENSOR_PCIEX16_NEAR] = {
+		.name = "PCIE16 Near",
+		.input_ch = NPCX_ADC_CH1,
+		.factor_mul = ADC_MAX_VOLT,
+		.factor_div = ADC_READ_MAX + 1,
+		.shift = 0,
+	},
+    [ADC_SENSOR_ENVIRONMENT] = {
+		.name = "Environment Near",
+		.input_ch = NPCX_ADC_CH7,
+		.factor_mul = ADC_MAX_VOLT,
+		.factor_div = ADC_READ_MAX + 1,
+		.shift = 0,
+	},
+    [ADC_SENSOR_MEMORY_NEAR] = {
+		.name = "Memory Near",
+		.input_ch = NPCX_ADC_CH1,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
@@ -128,54 +158,111 @@ const struct adc_t adc_channels[] = {
 BUILD_ASSERT(ARRAY_SIZE(adc_channels) == ADC_CH_COUNT);
 
 const struct temp_sensor_t temp_sensors[] = {
-	[TEMP_SENSOR_CHARGER] = {
-		.name = "Charger",
-		.type = TEMP_SENSOR_TYPE_BOARD,
-		.read = board_get_temp,
-		.idx = TEMP_SENSOR_CHARGER,
-	},
-	[TEMP_SENSOR_SOC] = {
-		.name = "SOC",
-		.type = TEMP_SENSOR_TYPE_BOARD,
-		.read = board_get_temp,
-		.idx = TEMP_SENSOR_SOC,
-	},
-	[TEMP_SENSOR_CPU] = {
-		.name = "CPU",
+	[TEMP_SENSOR_SOC_CORE] = {
+		.name = "CPU Core",
 		.type = TEMP_SENSOR_TYPE_CPU,
 		.read = sb_tsi_get_val,
-		.idx = 0,
+		.idx = TEMP_SENSOR_SOC_CORE,
+	},	
+	[TEMP_SENSOR_SOC_NEAR] = {
+		.name = "SOC Near",
+		.type = TEMP_SENSOR_TYPE_BOARD,
+		.read = board_get_temp,
+		.idx = TEMP_SENSOR_SOC_NEAR,
 	},
+    [TEMP_SENSOR_SSD_NEAR] = {
+        .name = "SSD Near",
+        .type = TEMP_SENSOR_TYPE_BOARD,
+        .read = board_get_temp,
+        .idx = TEMP_SENSOR_SSD_NEAR,
+    },
+    [TEMP_SENSOR_PCIEX16_NEAR] = {
+        .name = "PCIE16 Near",
+        .type = TEMP_SENSOR_TYPE_BOARD,
+        .read = board_get_temp,
+        .idx = TEMP_SENSOR_PCIEX16_NEAR,
+    },
+    [TEMP_SENSOR_ENVIRONMENT] = {
+        .name = "Environment Near",
+        .type = TEMP_SENSOR_TYPE_BOARD,
+        .read = board_get_temp,
+        .idx = TEMP_SENSOR_ENVIRONMENT,
+    },
+    [TEMP_SENSOR_MEMORY_NEAR] = {
+        .name = "Memory Near",
+        .type = TEMP_SENSOR_TYPE_BOARD,
+        .read = board_get_temp,
+        .idx = TEMP_SENSOR_MEMORY_NEAR,
+    },
 };
 BUILD_ASSERT(ARRAY_SIZE(temp_sensors) == TEMP_SENSOR_COUNT);
 
 __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
-	[TEMP_SENSOR_CHARGER] = {
+	[TEMP_SENSOR_SOC_CORE] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
 		},
 		.temp_host_release = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		}
+		},
+        .temp_fan_off = C_TO_K(25),
+	    .temp_fan_max = C_TO_K(45)
 	},
-	[TEMP_SENSOR_SOC] = {
+    [TEMP_SENSOR_SOC_NEAR] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
 		},
 		.temp_host_release = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		}
+		},
+        .temp_fan_off = C_TO_K(10),
+	    .temp_fan_max = C_TO_K(40)
 	},
-	[TEMP_SENSOR_CPU] = {
+	[TEMP_SENSOR_SSD_NEAR] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
 		},
 		.temp_host_release = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		}
+		},
+        .temp_fan_off = C_TO_K(35),
+	    .temp_fan_max = C_TO_K(50)
+	},
+	[TEMP_SENSOR_PCIEX16_NEAR] = {
+		.temp_host = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
+			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
+		},
+		.temp_host_release = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
+		},
+        .temp_fan_off = C_TO_K(10),
+	    .temp_fan_max = C_TO_K(40)
+	},
+	[TEMP_SENSOR_ENVIRONMENT] = {
+		.temp_host = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
+			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
+		},
+		.temp_host_release = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
+		},
+        .temp_fan_off = C_TO_K(25),
+	    .temp_fan_max = C_TO_K(45)
+	},
+	[TEMP_SENSOR_MEMORY_NEAR] = {
+		.temp_host = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
+			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
+		},
+		.temp_host_release = {
+			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
+		},
+        .temp_fan_off = C_TO_K(35),
+	    .temp_fan_max = C_TO_K(50)
 	},
 };
 BUILD_ASSERT(ARRAY_SIZE(thermal_params) == TEMP_SENSOR_COUNT);
