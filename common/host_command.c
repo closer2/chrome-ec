@@ -409,11 +409,13 @@ static const struct host_command *find_host_command(int command)
 
 static void host_command_init(void)
 {
+#ifdef CHROME_EC_MEMORY_MAP
 	/* Initialize memory map ID area */
 	host_get_memmap(EC_MEMMAP_ID)[0] = 'E';
 	host_get_memmap(EC_MEMMAP_ID)[1] = 'C';
 	*host_get_memmap(EC_MEMMAP_ID_VERSION) = 1;
 	*host_get_memmap(EC_MEMMAP_EVENTS_VERSION) = 1;
+#endif
 
 #ifdef CONFIG_HOSTCMD_EVENTS
 	host_set_single_event(EC_HOST_EVENT_INTERFACE_READY);

@@ -26,6 +26,29 @@ int temp_sensor_read(enum temp_sensor_id id, int *temp_ptr)
 	return sensor->read(sensor->idx, temp_ptr);
 }
 
+#ifndef CHROME_EC_MEMORY_MAP
+static void update_mapped_memory(void)
+{
+	int i, t;
+	uint8_t *mptr = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
+
+	for (i = 0; i < TEMP_SENSOR_COUNT; i++, mptr++) {
+		switch (temp_sensor_read(i, &t)) {
+		case EC_ERROR_NOT_POWERED:
+			*mptr = EC_TEMP_SENSOR_NOT_POWERED;
+			break;
+		case EC_ERROR_NOT_CALIBRATED:
+			*mptr = EC_TEMP_SENSOR_NOT_CALIBRATED;
+			break;
+		case EC_SUCCESS:
+			*mptr = K_TO_C(t);
+			break;
+		default:
+			*mptr = EC_TEMP_SENSOR_ERROR;
+		}
+	}
+}
+#else
 static void update_mapped_memory(void)
 {
 	int i, t;
@@ -57,9 +80,28 @@ static void update_mapped_memory(void)
 		}
 	}
 }
+#endif
+
 /* Run after other TEMP tasks, so sensors will have updated first. */
 DECLARE_HOOK(HOOK_SECOND, update_mapped_memory, HOOK_PRIO_TEMP_SENSOR_DONE);
 
+#ifndef CHROME_EC_MEMORY_MAP
+static void temp_sensor_init(void)
+{
+	int i;
+	uint8_t *base;
+
+	/*
+	 * Initialize memory-mapped data so that if a temperature value is read
+	 * before we actually poll the sensors, we don't return an impossible
+	 * or out-of-range value.
+	 */
+	base = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
+	for (i = 0; i < EC_TEMP_SENSOR_ENTRIES; ++i) {
+	    base[i] = EC_TEMP_SENSOR_NOT_PRESENT;
+	}
+}
+#else
 static void temp_sensor_init(void)
 {
 	int i;
@@ -92,6 +134,8 @@ static void temp_sensor_init(void)
 	/* Temp sensor data is present, with B range supported. */
 	*host_get_memmap(EC_MEMMAP_THERMAL_VERSION) = 2;
 }
+#endif
+
 DECLARE_HOOK(HOOK_INIT, temp_sensor_init, HOOK_PRIO_DEFAULT);
 
 /*****************************************************************************/

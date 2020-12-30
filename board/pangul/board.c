@@ -336,13 +336,11 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
 
 static void ec_oem_version_set(void)
 {
-    #if 0
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_VERSION_X);
 
     *(mptr+0) = BLD_EC_VERSION_X_HEX;
     *(mptr+1) = BLD_EC_VERSION_YZ_HEX;
     *(mptr+2) = BLD_EC_VERSION_TEST_HEX;
-    #endif
 }
 DECLARE_HOOK(HOOK_INIT, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 

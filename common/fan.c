@@ -509,7 +509,7 @@ static void pwm_fan_init(void)
 	}
 
 	/* Initialize memory-mapped data */
-	mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN);
+	mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
 	for (i = 0; i < EC_FAN_SPEED_ENTRIES; i++)
 		mapped[i] = EC_FAN_SPEED_NOT_PRESENT;
 }
@@ -517,7 +517,7 @@ DECLARE_HOOK(HOOK_INIT, pwm_fan_init, HOOK_PRIO_DEFAULT);
 
 static void pwm_fan_second(void)
 {
-	uint16_t *mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN);
+	uint16_t *mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
 	uint16_t rpm;
 	int stalled = 0;
 	int fan;

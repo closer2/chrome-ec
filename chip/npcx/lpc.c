@@ -395,7 +395,7 @@ void lpc_update_host_event_status(void)
 		SET_BIT(NPCX_HIPMST(PMC_ACPI), NPCX_HIPMST_ST1);
 	} else
 		CLEAR_BIT(NPCX_HIPMST(PMC_ACPI), NPCX_HIPMST_ST1);
-
+    
 	/* Copy host events to mapped memory */
 	*(host_event_t *)host_get_memmap(EC_MEMMAP_HOST_EVENTS) =
 				lpc_get_host_events();
@@ -786,7 +786,7 @@ static void lpc_init(void)
 	NPCX_WIN_BASE(1) = (uint32_t)shm_memmap;
 	/* Write protect of Share memory */
 	NPCX_WIN_WR_PROT(1) = 0xFF;
-
+    
 	/* We support LPC args and version 3 protocol */
 	*(lpc_get_memmap_range() + EC_MEMMAP_HOST_CMD_FLAGS) =
 			EC_HOST_CMD_FLAG_LPC_ARGS_SUPPORTED |

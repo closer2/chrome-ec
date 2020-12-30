@@ -6,8 +6,8 @@
 # Host tools build
 #
 
-host-util-bin=ectool lbplay stm32mon ec_sb_firmware_update lbcc \
-	ec_parse_panicinfo cbi-util iteflash
+# host-util-bin=ectool lbplay stm32mon ec_sb_firmware_update lbcc \
+#	ec_parse_panicinfo cbi-util iteflash
 build-util-art+=util/export_taskinfo.so
 ifeq ($(CHIP),npcx)
 build-util-bin=ecst
@@ -31,13 +31,13 @@ comm-objs=$(util-lock-objs:%=lock/%) comm-host.o comm-dev.o
 comm-objs+=comm-lpc.o comm-i2c.o misc_util.o
 
 iteflash-objs = iteflash.o usb_if.o
-ectool-objs=ectool.o ectool_keyscan.o ec_flash.o ec_panicinfo.o $(comm-objs)
-ectool_servo-objs=$(ectool-objs) comm-servo-spi.o
+# ectool-objs=ectool.o ectool_keyscan.o ec_flash.o ec_panicinfo.o $(comm-objs)
+# ectool_servo-objs=$(ectool-objs) comm-servo-spi.o
 ec_sb_firmware_update-objs=ec_sb_firmware_update.o $(comm-objs) misc_util.o
 ec_sb_firmware_update-objs+=powerd_lock.o
 lbplay-objs=lbplay.o $(comm-objs)
 
-util/ectool.c: $(out)/ec_version.h
+# util/ectool.c: $(out)/ec_version.h
 
 ec_parse_panicinfo-objs=ec_parse_panicinfo.o ec_panicinfo.o
 

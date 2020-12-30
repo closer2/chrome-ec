@@ -74,14 +74,18 @@ DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, switch_update, HOOK_PRIO_DEFAULT);
 
 static void switch_init(void)
 {
+#ifdef CHROME_EC_MEMORY_MAP
 	/* Set up memory-mapped switch positions */
 	memmap_switches = host_get_memmap(EC_MEMMAP_SWITCHES);
 	*memmap_switches = 0;
+#endif
 
 	switch_update();
 
+#ifdef CHROME_EC_MEMORY_MAP
 	/* Switch data is now present */
 	*host_get_memmap(EC_MEMMAP_SWITCHES_VERSION) = 1;
+#endif
 
 #ifdef CONFIG_SWITCH_DEDICATED_RECOVERY
 	/* Enable interrupts, now that we've initialized */
@@ -107,6 +111,7 @@ void switch_interrupt(enum gpio_signal signal)
 }
 
 #ifdef CONFIG_CMD_MMAPINFO
+#ifdef CHROME_EC_MEMORY_MAP
 static int command_mmapinfo(int argc, char **argv)
 {
 	uint8_t *memmap_switches = host_get_memmap(EC_MEMMAP_SWITCHES);
@@ -130,4 +135,5 @@ static int command_mmapinfo(int argc, char **argv)
 DECLARE_CONSOLE_COMMAND(mmapinfo, command_mmapinfo,
 			NULL,
 			"Print memmap switch state");
+#endif
 #endif
