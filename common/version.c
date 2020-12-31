@@ -30,7 +30,8 @@ const struct image_data __keep current_image_data
 BUILD_ASSERT(sizeof(CROS_EC_VERSION32) <= 32);
 
 const char build_info[] __keep __attribute__((section(".rodata.buildinfo"))) =
-	VERSION " " DATE " " BUILDER;
+	VERSION " EC_Version_XYZ=" BLD_EC_VERSION_X BLD_EC_VERSION_YZ 
+	    " [" BLD_EC_VERSION_TEST "]";
 
 static int get_num_commits(const struct image_data *data)
 {
