@@ -781,6 +781,19 @@ int system_get_board_version(void)
 #endif
 }
 
+int system_get_project_version(void)
+{
+#if defined(CONFIG_BOARD_VERSION_GPIO)
+	return
+		(!!gpio_get_level(GPIO_PROJECT_VERSION1) << 0) |
+		(!!gpio_get_level(GPIO_PROJECT_VERSION2) << 1) |
+		(!!gpio_get_level(GPIO_PROJECT_VERSION3) << 2);
+#else
+	return 0;
+#endif
+}
+
+
 __attribute__((weak))	   /* Weird chips may need their own implementations */
 const char *system_get_build_info(void)
 {
@@ -1176,10 +1189,18 @@ static void print_build_string(void)
 static int command_version(int argc, char **argv)
 {
 	int board_version;
+    int project_version;
 
 	ccprintf("Chip:    %s %s %s\n", system_get_chip_vendor(),
 		 system_get_chip_name(), system_get_chip_revision());
 
+
+    project_version = system_get_project_version();
+	if (project_version < 0)
+		ccprintf("Project:   Error %d\n", -project_version);
+	else
+		ccprintf("Project:   %d\n", project_version);
+    
 	board_version = system_get_board_version();
 	if (board_version < 0)
 		ccprintf("Board:   Error %d\n", -board_version);
@@ -1539,14 +1560,22 @@ host_command_get_board_version(struct host_cmd_handler_args *args)
 {
 	struct ec_response_board_version *r = args->response;
 	int board_version;
+    int project_version;
 
-	board_version = system_get_board_version();
+	project_version = system_get_project_version();
+	if (project_version < 0) {
+		CPRINTS("Failed (%d) getting project version", -project_version);
+		return EC_RES_ERROR;
+	}
+
+    board_version = system_get_board_version();
 	if (board_version < 0) {
 		CPRINTS("Failed (%d) getting board version", -board_version);
 		return EC_RES_ERROR;
 	}
 
-	r->board_version = board_version;
+	r->project_version = project_version;
+    r->board_version = board_version;
 	args->response_size = sizeof(*r);
 
 	return EC_RES_SUCCESS;

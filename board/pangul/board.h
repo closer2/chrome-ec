@@ -23,11 +23,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "03"
+#define BLD_EC_VERSION_TEST     "04"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x03
+#define BLD_EC_VERSION_TEST_HEX 0x04
 
 
 /*------------------------------------------------------------------------------
@@ -90,6 +90,9 @@
 
 #undef CONFIG_LID_SWITCH                    /* no lid switch */
 
+#define CONFIG_BOARD_VERSION_GPIO           /* For board version define*/
+
+
 #define CONFIG_FLASH_LOG_OEM                /* For flash write log function*/
 #define CONFIG_CMD_FLASH                    /* For flash console command function*/
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
@@ -97,6 +100,7 @@
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
 #undef  CONFIG_UART_HOST                    /* Turn on serial port */
+
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
 #define CONFIG_VBOOT_HASH
@@ -288,6 +292,14 @@
 #define GPIO_PCH_SYS_PWROK              GPIO_EC_FCH_PWROK
 #define GPIO_POWER_BUTTON_L             GPIO_EC_PWR_BTN_ODL
 #define GPIO_S5_PGOOD			        GPIO_SYSTEM_ALW_PG
+
+#define GPIO_BOARD_VERSION1             GPIO_EC_BRD_ID0
+#define GPIO_BOARD_VERSION2             GPIO_EC_BRD_ID1
+#define GPIO_BOARD_VERSION3             GPIO_EC_BRD_ID2
+#define GPIO_PROJECT_VERSION1           GPIO_EC_PROJECT_ID0
+#define GPIO_PROJECT_VERSION2           GPIO_EC_PROJECT_ID1
+#define GPIO_PROJECT_VERSION3           GPIO_EC_PROJECT_ID2
+
 
 /* We can select CONFIG_WP_ALWAYS for independent on gpio, Or
  * We can use UNIMPLEMENTED(WP_L), but they have different
