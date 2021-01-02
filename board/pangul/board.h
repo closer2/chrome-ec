@@ -23,11 +23,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "03"
+#define BLD_EC_VERSION_TEST     "04"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x03
+#define BLD_EC_VERSION_TEST_HEX 0x04
 
 
 /*------------------------------------------------------------------------------
@@ -113,7 +113,6 @@
 #define CONFIG_POWER_BUTTON_TO_PCH_CUSTOM   /* Board provides board_pwrbtn_to_pch function*/
 #define CONFIG_THROTTLE_AP                  /* Compile common code for throttling the CPU based on the temp sensors */
 #define CONFIG_CPU_PROCHOT_ACTIVE_LOW       /* On x86 systems, define this option if the CPU_PROCHOT signal is active low.*/
-
 
 /*#undef  CONFIG_EXTPOWER_DEBOUNCE_MS
 #define CONFIG_EXTPOWER_DEBOUNCE_MS 200

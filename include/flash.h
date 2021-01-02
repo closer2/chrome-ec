@@ -154,6 +154,17 @@ int flash_physical_write(int offset, int size, const char *data);
 int flash_physical_erase(int offset, int size);
 
 /**
+ * Erase physical flash.
+ *
+ * Offset and size must be a multiple of 0x1000
+ *
+ * @param offset	Flash offset to erase.
+ * @param size	        Number of bytes to erase.
+ */
+
+int eflash_debug_physical_erase(int offset, int size);
+
+/**
  * Read physical write protect setting for a flash bank.
  *
  * @param bank	        Bank index to check.

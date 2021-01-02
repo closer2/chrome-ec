@@ -17,6 +17,7 @@
 #include "system.h"
 #include "util.h"
 #include "vboot_hash.h"
+#include "power_button.h"
 
 /*
  * Contents of erased flash, as a 32-bit value.  Most platforms erase flash
@@ -1544,3 +1545,483 @@ DECLARE_HOST_COMMAND(EC_CMD_FLASH_SELECT,
 		     EC_VER_MASK(0));
 
 #endif /* CONFIG_FLASH_SELECT_REQUIRED */
+
+#if defined(CONFIG_FLASH_LOG_OEM)
+/*******************************************************************************
+*       NPCX796-512K eFlash layout    |
+*                                     | NPCX796FC, it has 512K of flash space 
+*      |--------| 0x8000              | as the code flash area. It's split
+*      |  64K   |                     | in two, one as the RO region and one as 
+*      |        |                     | the RW region. But the size of RO/RW
+*      |--------| 0x7000(RW=192K)     | regions is 192K, there are two 64K 
+*      |        |                     | reserved areas. 
+*      |        |                     |
+*      |        |                     | We use the 8K storage area to hold some 
+*      |        | RW                  | power on/off events, even if the power
+*      |        |                     | is lost, the data is not lost.
+*      |--------| 0x4000              |
+*      |  64K   |                     | Shutdown events are stored at 0x3C000
+*      |        |                     | in 4K storage area.
+*      |--------| 0x3000(RO=192K)     | PowerOn events are stored at 0x3D000
+*      |        |                     | in 4K storage area.
+*      |        |                     |
+*      |        |                     |
+*      |        | RO                  |
+*      |        |                     |
+*      |--------| 0x0000              |
+*
+*   shutdown cause :
+*       offset : 0x3C000    size : 1000(4K)
+*       The 128 bytes are divided into a page, there are 32 PAGES in 4K.
+*       page-0 for data header, page-1 ~ page31 for shutdown data
+*
+*   wakeup cause :
+*       offset : 0x3D000    size : 1000(4K)
+*       The 128 bytes are divided into a page, there are 32 PAGES in 4K.
+*       page-0 for data header, page-1 ~ page31 for shutdown data
+*
+*******************************************************************************/
+#define SHUTDOWN_RANGE_START    0x3C000 // shutdown cause start address
+#define SHUTDOWN_RANGE_SIZE     0x1000  // 4K
+#define SHUTDOWN_HEADER_OFFSET  SHUTDOWN_RANGE_START
+#define SHUTDOWN_HEADER_SIZE    0x80    // Don't modify
+#define SHUTDOWN_DATA_OFFSET    (SHUTDOWN_HEADER_OFFSET + SHUTDOWN_HEADER_SIZE)
+#define SHUTDOWN_DATA_SIZE      (SHUTDOWN_RANGE_SIZE - SHUTDOWN_HEADER_SIZE)
+#define SHUTDOWN_RANGE_END      (SHUTDOWN_RANGE_START + SHUTDOWN_RANGE_SIZE)
+
+#define WAKEUP_RANGE_START      SHUTDOWN_RANGE_END
+#define WAKEUP_RANGE_SIZE       SHUTDOWN_RANGE_SIZE
+#define WAKEUP_HEADER_OFFSET    WAKEUP_RANGE_START
+#define WAKEUP_HEADER_SIZE      SHUTDOWN_HEADER_SIZE
+#define WAKEUP_DATA_OFFSET      (WAKEUP_HEADER_OFFSET+WAKEUP_HEADER_SIZE)
+#define WAKEUP_DATA_SIZE        (WAKEUP_RANGE_SIZE - WAKEUP_HEADER_SIZE)
+#define WAKEUP_RANGE_END        (WAKEUP_RANGE_START + WAKEUP_RANGE_SIZE)
+
+#define DATA_PAGE_SIZE          SHUTDOWN_HEADER_SIZE
+#define DATA_PAGE_NUM           0x20
+#define LOG_SIZE                0x08    // Must be 8-byte/16-byte/32-byte aligned
+
+uint32_t shutdown_write_index;
+uint32_t wakeup_write_index;
+
+
+/*------------------------------------------------------------------------------
+* shutdown log ID define
+------------------------------------------------------------------------------*/
+#define LOG_ID_SHUTDOWN_0x01    0x01    // S0, SLP_S4/S5 pull down
+#define LOG_ID_SHUTDOWN_0x02    0x02    // S3, SLP_S4/S5 pull down
+#define LOG_ID_SHUTDOWN_0x03    0x03    // S0, SLP_S3 pull down
+#define LOG_ID_SHUTDOWN_0x04    0x04    // S0, SLP_S4 pull down
+#define LOG_ID_SHUTDOWN_0x05    0x05    // 
+#define LOG_ID_SHUTDOWN_0x06    0x06    // Power button 4s timeout
+#define LOG_ID_SHUTDOWN_0x07    0x07    // Power button 10s timeout
+#define LOG_ID_SHUTDOWN_0x08    0x08    // S0, HWPG pull down
+#define LOG_ID_SHUTDOWN_0x09    0x09    // Sx to S0, Power on WDT
+#define LOG_ID_SHUTDOWN_0x0A    0x0A    // Sx to S0, HWPG timeout WDT
+#define LOG_ID_SHUTDOWN_0x0B    0x0B    // Sx to S0, SUSB timeout WDT
+#define LOG_ID_SHUTDOWN_0x0C    0x0C    // Sx to S0, SUSC timeout WDT
+#define LOG_ID_SHUTDOWN_0x0D    0x0D    // Sx to S0, SLP_S5 timeout WDT
+#define LOG_ID_SHUTDOWN_0x0E    0x0E    //
+#define LOG_ID_SHUTDOWN_0x0F    0x0F    // Sx to S0, RSMRST timeout WDT
+#define LOG_ID_SHUTDOWN_0x10    0x10    // Sx to S0, PLTRST timeout WDT
+
+#define LOG_ID_SHUTDOWN_0x40    0x40    // Power button pressed
+#define LOG_ID_SHUTDOWN_0x41    0x41    // Power button released
+
+
+/*------------------------------------------------------------------------------
+* wakeup log ID define
+------------------------------------------------------------------------------*/
+#define LOG_ID_WAKEUP_0x01      0x01    // power button interrupt power on
+#define LOG_ID_WAKEUP_0x02      0x02    // power button polling power on
+#define LOG_ID_WAKEUP_0x03      0x03    // power button wakeup S3
+#define LOG_ID_WAKEUP_0x04      0x04    // S3, SLP_S3 pull up
+#define LOG_ID_WAKEUP_0x05      0x05    // S5, SLP_S4 pull up
+#define LOG_ID_WAKEUP_0x06      0x06    // S5, SLP_S5 pull up
+
+
+
+/**
+
+ * eFlash debug init
+ *
+ * Read header data makes it easy to find the next write location.
+ *
+ */
+static void eflash_debug_init(void)
+{
+    uint32_t data_index;
+    uint32_t page_index;
+    uint8_t eflash_data_header[256];
+
+    //------------------------------------------------------------------
+    // read shutdown data header, Look for pages that aren't full
+    if(flash_read(SHUTDOWN_HEADER_OFFSET,
+                        SHUTDOWN_HEADER_SIZE, eflash_data_header))
+    {
+        return;
+    }
+
+    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++)
+    {
+        if(0xFF == eflash_data_header[page_index])
+        {
+            break;
+        }
+    }
+
+    // Reads pages that are not full, Find the location that was not written
+    if(flash_read(SHUTDOWN_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
+                        DATA_PAGE_SIZE, eflash_data_header))
+    {
+        return;
+    }
+
+    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++)
+    {
+        if(0xFF == eflash_data_header[data_index])
+        {
+            shutdown_write_index = (uint32_t)(SHUTDOWN_HEADER_OFFSET +
+                                   (page_index*DATA_PAGE_SIZE) +
+                                   data_index);
+            
+            ccprintf(" BLD ====== page_index = [%x], shutdown_write_index = [%x]\n",
+                        page_index, shutdown_write_index);
+            break;
+        }
+    }
+
+    //------------------------------------------------------------------
+    // read wakeup data header, Look for pages that aren't full
+    if(flash_read(WAKEUP_HEADER_OFFSET,
+                        WAKEUP_HEADER_SIZE, eflash_data_header))
+    {
+        return;
+    }
+    
+    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++)
+    {
+        if(0xFF == eflash_data_header[page_index])
+        {
+            break;
+        }
+    }
+
+    // Reads pages that are not full, Find the location that was not written
+    if(flash_read(WAKEUP_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
+                        DATA_PAGE_SIZE, eflash_data_header))
+
+    {
+        return;
+    }
+
+    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++)
+    {
+        if(0xFF == eflash_data_header[data_index])
+        {
+            wakeup_write_index = (uint32_t)(WAKEUP_HEADER_OFFSET +
+                                   (page_index*DATA_PAGE_SIZE) +
+                                   data_index);
+            ccprintf(" BLD ====== page_index = [%x], wakeup_write_index = [%x]\n",
+                        page_index, wakeup_write_index);
+            break;
+        }
+    }
+}
+DECLARE_HOOK(HOOK_INIT, eflash_debug_init, HOOK_PRIO_DEFAULT);
+
+
+/**
+ * shutdown cause record
+ *
+ * write shutdown cause 16-bytes to eFlash, and look for the location of 
+ * the next write.
+ * Write header to 0xAA after a page(128-bytes) is full.
+ * Erase shutdown cause data when all the pages(32-pages) are full.
+ */
+static void shutdown_cause_record(const char *data)
+{
+    uint8_t  full_flag[8] = {0};
+    uint32_t eFlash_Data[8]={0};
+    uint32_t page_index;
+    uint32_t base_address;
+    uint32_t end_address;
+    uint32_t write_index;
+
+    // check shutdown cause write index
+    base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
+    end_address = (uint32_t)(SHUTDOWN_DATA_OFFSET+SHUTDOWN_DATA_SIZE);
+    if((shutdown_write_index<base_address) ||
+       (shutdown_write_index>=end_address))
+    {
+        eflash_debug_init();
+    }
+
+    if((shutdown_write_index<base_address) ||
+       (shutdown_write_index>=end_address))
+    {
+        ccprintf(" BLD ====== shutdown_write_index[%x] out of range !!!\n",
+                shutdown_write_index);
+        return;
+    }
+
+    // 8-byte alignment
+    if(shutdown_write_index & (LOG_SIZE-1))
+    {
+        write_index = LOG_SIZE - (shutdown_write_index&(LOG_SIZE-1));
+        shutdown_write_index += write_index;
+    }
+
+    ccprintf(" BLD ====== shutdown log [%02x %02x %02x %02x] -> [%x]\n",
+        data[0], data[1], data[2], data[3], shutdown_write_index);
+
+    // write shutdown cause
+    if(flash_write(shutdown_write_index, LOG_SIZE, data))
+    {
+        return;
+    }
+
+    // write page full flag
+    shutdown_write_index += LOG_SIZE;
+    if(!(shutdown_write_index&(DATA_PAGE_SIZE-1))) // 128-byte page full
+    {
+        full_flag[0] = 0xAA;
+        page_index = ((shutdown_write_index - base_address)/DATA_PAGE_SIZE);
+        
+        ccprintf(" BLD ====== shutdown page full, page_index = [%x]\n",
+                    page_index);
+
+        flash_write(SHUTDOWN_HEADER_OFFSET+page_index, 1, full_flag);
+    }
+
+    // All the pages are full
+    if(SHUTDOWN_RANGE_END == shutdown_write_index)
+    {
+        ccprintf(" BLD ====== shutdown range full, shutdown_write_index=[%x] erease start[%x] size[%x]\n",
+                    shutdown_write_index, SHUTDOWN_RANGE_START, SHUTDOWN_RANGE_SIZE);
+
+        // read last 4 log
+        flash_read((SHUTDOWN_RANGE_END-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+
+        // erase 4K
+        if(eflash_debug_physical_erase(SHUTDOWN_RANGE_START, SHUTDOWN_RANGE_SIZE))
+        {
+            shutdown_write_index = 0;
+        }
+        else
+        {
+            shutdown_write_index = SHUTDOWN_DATA_OFFSET;
+            // write last 4
+            flash_write(shutdown_write_index, (4*LOG_SIZE), (char *)eFlash_Data);
+            shutdown_write_index = SHUTDOWN_DATA_OFFSET+(4*LOG_SIZE);
+        }
+    }
+}
+
+/**
+ * wakeup cause record
+ *
+ * write wakeup cause 16-bytes to eFlash, and look for the location of 
+ * the next write.
+ * Write header to 0xAA after a page(128-bytes) is full.
+ * Erase wakeup cause data when all the pages(32-pages) are full.
+ */
+static void wakeup_cause_record(const char *data)
+{
+    uint8_t  full_flag[8] = {0};
+    uint32_t eFlash_Data[8]={0};
+    uint32_t page_index;
+    uint32_t base_address;
+    uint32_t end_address;
+    uint32_t write_index;
+
+    // check wakeup cause write index
+    base_address = (uint32_t)WAKEUP_DATA_OFFSET;
+    end_address = (uint32_t)(WAKEUP_DATA_OFFSET+WAKEUP_DATA_SIZE);
+    if((wakeup_write_index<base_address) ||
+       (wakeup_write_index>=end_address))
+    {
+        eflash_debug_init();
+    }
+
+    if((wakeup_write_index<base_address) ||
+       (wakeup_write_index>=end_address))
+    {
+        ccprintf(" BLD ====== wakeup_write_index out of range [%x]\n",
+                wakeup_write_index);
+        return;
+    }
+
+    // 8-byte alignment
+    if(wakeup_write_index & (LOG_SIZE-1))
+    {
+        write_index = LOG_SIZE - (wakeup_write_index&(LOG_SIZE-1));
+        wakeup_write_index += write_index;
+    }
+
+    ccprintf(" BLD ====== wakeup log [%02x %02x %02x %02x] -> [%x]\n",
+        data[0], data[1], data[2], data[3], wakeup_write_index);
+
+    // write wakeup cause
+    if(flash_write(wakeup_write_index, LOG_SIZE, data))
+    {
+        return;
+    }
+
+    // write page full flag
+    wakeup_write_index += LOG_SIZE;
+    if(!(wakeup_write_index&(DATA_PAGE_SIZE-1))) // 128-byte page full
+    {
+        full_flag[0] = 0xAA;
+        page_index = ((wakeup_write_index - base_address)/DATA_PAGE_SIZE);
+
+        ccprintf(" BLD ====== wakeup page full, page_index = [%x]\n",
+                    page_index);
+        
+        flash_write(WAKEUP_HEADER_OFFSET+page_index, 1, full_flag);
+    }
+
+    // All the pages are full
+    if(WAKEUP_RANGE_END == wakeup_write_index)
+    {
+        ccprintf(" BLD ====== wakeup range full, wakeup_write_index=[%x] erease start[%x] size[%x]\n",
+                    wakeup_write_index, WAKEUP_RANGE_START, WAKEUP_RANGE_SIZE);
+
+        // read last 4
+        flash_read((WAKEUP_RANGE_END-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+
+        // erase 4K
+        if(eflash_debug_physical_erase(WAKEUP_RANGE_START, WAKEUP_RANGE_SIZE))
+        {
+            wakeup_write_index = 0;
+        }
+        else
+        {
+            wakeup_write_index = WAKEUP_DATA_OFFSET;
+            // write last 4
+            flash_write(wakeup_write_index, (4*LOG_SIZE), (char *)eFlash_Data);
+            wakeup_write_index = WAKEUP_DATA_OFFSET+(4*LOG_SIZE);
+        }
+    }
+}
+
+static void power_button_record(void)
+{
+    struct ec_params_flash_log log_Data;
+    if(power_button_is_pressed())
+    {
+        log_Data.log_id = LOG_ID_SHUTDOWN_0x40; 
+        log_Data.log_timestamp = NPCX_TTC;
+    }
+    else
+    {
+        log_Data.log_id = LOG_ID_SHUTDOWN_0x41;
+        log_Data.log_timestamp = NPCX_TTC;
+    }
+
+    shutdown_cause_record((char *)(&log_Data));
+}
+DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE,
+                power_button_record, HOOK_PRIO_DEFAULT);
+
+static void s0_to_s3_record(void)
+{
+    struct ec_params_flash_log log_Data;
+
+    log_Data.log_id = LOG_ID_SHUTDOWN_0x03; 
+    log_Data.log_timestamp = NPCX_TTC;
+    shutdown_cause_record((char *)(&log_Data));
+}
+DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, s0_to_s3_record, HOOK_PRIO_DEFAULT);
+
+static void s3_to_s0_record(void)
+{
+    struct ec_params_flash_log log_Data;
+    
+    log_Data.log_id = LOG_ID_WAKEUP_0x04; 
+    log_Data.log_timestamp = NPCX_TTC;
+    wakeup_cause_record((char *)(&log_Data));
+}
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, s3_to_s0_record, HOOK_PRIO_DEFAULT);
+
+static void s0_to_s5_record(void)
+{
+    struct ec_params_flash_log log_Data;
+    
+    log_Data.log_id = LOG_ID_SHUTDOWN_0x04; 
+    log_Data.log_timestamp = NPCX_TTC;
+    shutdown_cause_record((char *)(&log_Data));
+
+}
+DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, s0_to_s5_record, HOOK_PRIO_DEFAULT);
+
+static void s5_to_s0_record(void)
+{
+    struct ec_params_flash_log log_Data;
+    
+    log_Data.log_id = LOG_ID_WAKEUP_0x06;
+    log_Data.log_timestamp = NPCX_TTC;
+    wakeup_cause_record((char *)(&log_Data));
+
+}
+DECLARE_HOOK(HOOK_CHIPSET_STARTUP, s5_to_s0_record, HOOK_PRIO_DEFAULT);
+
+
+static enum ec_status flash_command_write_log(struct host_cmd_handler_args *args)
+{
+    const struct ec_params_flash_log *p = args->params;
+    struct ec_params_flash_log log_Data;
+
+    log_Data.log_id = p->log_id;
+    log_Data.log_timestamp = NPCX_TTC;
+    shutdown_cause_record((char *)(&log_Data));
+    
+	return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_FLASH_LOG_SET_VALUE,
+		flash_command_write_log,
+		EC_VER_MASK(0));
+
+
+static int command_write_flash_log(int argc, char **argv)
+{
+    struct ec_params_flash_log log_Data;
+    
+    if (argc == 3)
+    {
+        char *e;
+        uint32_t t = strtoi(argv[2], &e, 0);
+        if (*e)
+            return EC_ERROR_PARAM2;
+
+        log_Data.log_id = t;
+        log_Data.log_timestamp = NPCX_TTC;
+
+        if(!strcasecmp(argv[1], "shutdown"))
+        {
+            shutdown_cause_record((char *)(&log_Data));
+        }
+        else if(!strcasecmp(argv[1], "wakeup"))
+        {
+            wakeup_cause_record((char *)(&log_Data));
+        }
+        else
+        {
+            return EC_ERROR_PARAM2;
+        }
+    }
+    else if (argc > 1)
+    {
+        return EC_ERROR_INVAL;
+    }
+
+    cprintf(CC_COMMAND, "wakeup_write_index=%x shutdown_write_index=%x\n", 
+                wakeup_write_index, shutdown_write_index);
+
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(flash_log, command_write_flash_log,
+        "[shutdown/wakeup <log_id>]",
+        "Write log_id to flash");
+
+#endif

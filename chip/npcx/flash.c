@@ -596,6 +596,60 @@ int flash_physical_erase(int offset, int size)
 	return rv;
 }
 
+int eflash_debug_physical_erase(int offset, int size)
+{
+	int rv = EC_SUCCESS;
+	/* check protection */
+	if (all_protected)
+		return EC_ERROR_ACCESS_DENIED;
+
+	/* Lock physical flash operations */
+	flash_lock_mapped_storage(1);
+
+	/* Disable tri-state */
+	TRISTATE_FLASH(0);
+
+	/* Alignment has been checked in upper layer */
+	for (; size > 0; size -= 0x1000,
+		offset += 0x1000) {
+		/* check protection */
+		if (flash_check_prot_range(offset, 0x1000)) {
+			rv = EC_ERROR_ACCESS_DENIED;
+			break;
+		}
+
+		/*
+		 * Reload the watchdog timer, so that erasing many flash pages
+		 * doesn't cause a watchdog reset.  May not need this now that
+		 * we're using msleep() below.
+		 */
+		watchdog_reload();
+
+		/* Enable write */
+		rv = flash_write_enable();
+		if (rv)
+			break;
+
+		/* Set erase address */
+		flash_set_address(offset);
+		/* Start erase */
+		flash_execute_cmd(CMD_SECTOR_ERASE, MASK_CMD_ADR);
+
+		/* Wait erase completed */
+		rv = flash_wait_ready();
+		if (rv)
+			break;
+	}
+
+	/* Enable tri-state */
+	TRISTATE_FLASH(1);
+
+	/* Unlock physical flash operations */
+	flash_lock_mapped_storage(0);
+
+	return rv;
+}
+
 int flash_physical_get_protect(int bank)
 {
 	uint32_t addr = bank * CONFIG_FLASH_BANK_SIZE;

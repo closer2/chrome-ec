@@ -3603,6 +3603,28 @@ struct ec_response_tmp006_get_raw {
 	int32_t v;  /* In nV */
 } __ec_align4;
 
+
+/*****************************************************************************/
+/* BIOS write flash log */
+
+/* flash log params and response structures */
+struct ec_params_flash_log {
+	uint32_t log_id;
+	uint32_t log_timestamp;
+} __ec_align4;
+
+struct ec_response_flash_log {
+	uint32_t log_id;
+	uint32_t log_timestamp;
+} __ec_align4;
+
+
+/* These use ec_response_rtc */
+#define EC_CMD_FLASH_LOG_GET_VALUE 0x0056
+
+/* These all use ec_params_rtc */
+#define EC_CMD_FLASH_LOG_SET_VALUE 0x0057
+
 /*****************************************************************************/
 /* MKBP - Matrix KeyBoard Protocol */
 
