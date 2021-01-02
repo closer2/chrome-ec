@@ -38,7 +38,7 @@
 #define NPCX7_PWM1_SEL    0                 /* GPIO C2 is not used as PWM1. */
 
 /* Remove after bringup */
-#define CONFIG_BRINGUP
+/*#define CONFIG_BRINGUP*/
 
 /* Internal SPI flash on NPCX7 */
 #define CONFIG_FLASH_SIZE (512 * 1024)      /* For flash size define*/
@@ -95,7 +95,7 @@
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
-#define CONFIG_UART_HOST                    /* Turn on serial port */
+#undef  CONFIG_UART_HOST                    /* Turn on serial port */
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
 #define CONFIG_VBOOT_HASH

@@ -467,7 +467,7 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
 		gpio_set_level(GPIO_PCIEX1_RST_L, debounce_sample);
 		gpio_set_level(GPIO_M2_2280_SSD1_RST_L, debounce_sample);
 
-		ccprints("apu_pcie_reset");
+		ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L));
 		return;
 	}
 

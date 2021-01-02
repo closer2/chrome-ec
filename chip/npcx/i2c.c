@@ -265,9 +265,9 @@ static void i2c_stall_bus(int controller, int stall)
 
 static void i2c_recovery(int controller, volatile struct i2c_status *p_status)
 {
-	cprintf(CC_I2C,
+	/*cprintf(CC_I2C,
 		"i2c %d recovery! error code is %d, current state is %d\n",
-		controller, p_status->err_code, p_status->oper_state);
+		controller, p_status->err_code, p_status->oper_state);*/
 
 	/* Make sure the bus is not stalled before exit. */
 	if (IS_ENABLED(NPCX_I2C_FIFO_SUPPORT))

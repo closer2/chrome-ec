@@ -162,11 +162,22 @@ static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
 
 	if (in_level == out_level)
 		return;
-	
-	gpio_set_level(pin_out, pin_in);
 
-    CPRINTS("%s -> %s, Pass through: %s(%d) to %s(%d)", __FILE__, __func__,
-            gpio_get_name(pin_in), in_level, gpio_get_name(pin_out), in_level);
+    	CPRINTS("Before pass through : %s(%d) -> %s(%d) ",
+		    gpio_get_name(pin_in), gpio_get_level(pin_in),
+		    gpio_get_name(pin_out), gpio_get_level(pin_out));
+
+	/* Ec pass through slp3/slp5 signal needs delay of 285ms.
+	 * The APU sends the slp3 and slp5 signals at the same time,
+	 * so ec only has to delay the slp5 signal
+	 * */
+	if(pin_in == GPIO_SLP_S5_L)
+    		msleep(285);
+
+	gpio_set_level(pin_out, in_level);
+    	CPRINTS("After Pass through: %s(%d) -> %s(%d)",
+            gpio_get_name(pin_in), gpio_get_level(pin_in),
+	    gpio_get_name(pin_out), gpio_get_level(pin_out));
 }
 
 enum power_state power_handle_state(enum power_state state)
@@ -264,10 +275,13 @@ enum power_state power_handle_state(enum power_state state)
 			return POWER_S5G3;
 		}
 
+		CPRINTS("before wait PGOOD_ALL_CORE, atx=%d\n", gpio_get_level(GPIO_ATX_PG));
 		/* TODO: return S5 or G3? */
 		if (power_wait_signals(IN_PGOOD_ALL_CORE)) {
+			CPRINTS("power wait ALL_CORE timeout, atx=%d\n", gpio_get_level(GPIO_ATX_PG));
 			return POWER_S5G3;
 		}
+		CPRINTS("power wait done, atx=%d\n", gpio_get_level(GPIO_ATX_PG));
 
 		msleep(10);
 		gpio_set_level(GPIO_EC_FCH_PWRGD, 1);
