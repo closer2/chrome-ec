@@ -93,6 +93,7 @@
 #define CONFIG_FLASH_LOG_OEM                /* For flash write log function*/
 #define CONFIG_CMD_FLASH                    /* For flash console command function*/
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
+#define CONFIG_HOSTCMD_RTC                  /* For host update EC RTC*/
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
 #undef  CONFIG_UART_HOST                    /* Turn on serial port */
