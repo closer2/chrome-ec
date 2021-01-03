@@ -1293,6 +1293,7 @@ struct ec_response_get_chip_info {
  * @board_version: A monotonously incrementing number.
  */
 struct ec_response_board_version {
+    uint16_t project_version;
 	uint16_t board_version;
 } __ec_align2;
 
