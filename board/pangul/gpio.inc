@@ -113,7 +113,7 @@ UNUSED(PIN(3, 1))
 UNUSED(PIN(B, 4))
 UNUSED(PIN(B, 5))
 
-GPIO(PWM6_LED,			    PIN(B, 6), GPIO_OUT_LOW)			/* TODO: When power-on, should have a hook to light his LED */
+/*GPIO(PWM6_LED,			    PIN(B, 6), GPIO_OUT_LOW)*/			/* TODO: When power-on, should have a hook to light his LED */
 
 /* The following signal not implmented by PanGuL board, need confirm We Do Not Them!!! */
 UNIMPLEMENTED(AC_PRESENT)
@@ -156,6 +156,7 @@ ALTERNATE(PIN_MASK(E, BIT(1)), 0, MODULE_ADC, 0)				/* ADC7: VR_THERMAL */
 ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)			/* ADC8: MEM_THERMAL, ADC9:EC_VIN33 */
 
 ALTERNATE(PIN_MASK(C, BIT(0) | BIT(2) | BIT(3)), 0, MODULE_PWM, 0)		/* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM, PWM6: SPKR */
+ALTERNATE(PIN_MASK(B, BIT(6)), 0, MODULE_PWM, 0)		                /* power-on led*/
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */

@@ -309,6 +309,12 @@ const struct pwm_t pwm_channels[] = {
 		.freq = 25000,
     },
 
+   [PWM_CH_POWER_LED] = {
+        .channel = 4,
+        .flags = PWM_CONFIG_DSLEEP,
+        .freq = 100,
+   },
+
 	[PWM_CH_SPKR] = {
 		.channel = 6,
 		.flags = PWM_CONFIG_DSLEEP,

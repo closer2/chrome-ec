@@ -15,6 +15,7 @@
 #include "power.h"
 #include "power/renoir.h"
 #include "power_button.h"
+#include "power_led.h"
 #include "system.h"
 #include "timer.h"
 #include "usb_charge.h"
@@ -118,6 +119,9 @@ void chipset_handle_espi_reset_assert(void)
 enum power_state power_chipset_init(void)
 {
 	CPRINTS("%s -> %s: power_signal=0x%x", __FILE__, __func__, power_get_signals());
+ 
+    /* PowerOn init Turn off Power Led */
+    powerled_set_state(POWERLED_STATE_OFF);
 
 	/* Pause in S5 when shutting down. */
 	power_set_pause_in_s5(1);
@@ -283,6 +287,9 @@ enum power_state power_handle_state(enum power_state state)
 		}
 		CPRINTS("power wait done, atx=%d\n", gpio_get_level(GPIO_ATX_PG));
 
+        /* Power-on Led turn on*/
+       powerled_set_state(POWERLED_STATE_ON);
+
 		msleep(10);
 		gpio_set_level(GPIO_EC_FCH_PWRGD, 1);
 
@@ -338,6 +345,8 @@ enum power_state power_handle_state(enum power_state state)
 		return POWER_S3;
 
 	case POWER_S3S5:
+        /* Power-on Led turn off*/
+        powerled_set_state(POWERLED_STATE_OFF);
 		/* Call hooks before we remove power rails */
 		hook_notify(HOOK_CHIPSET_SHUTDOWN);
 
