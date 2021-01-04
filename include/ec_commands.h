@@ -80,36 +80,37 @@ extern "C" {
  * determined in other ways.  Remove this once the kernel code no longer
  * depends on it.
  */
-#define EC_PROTO_VERSION          0x00000002
+#define EC_PROTO_VERSION            0x00000002
 
 /* Command version mask */
 #define EC_VER_MASK(version) BIT(version)
 
 /* I/O addresses for ACPI commands */
-#define EC_LPC_ADDR_ACPI_DATA  0x62
-#define EC_LPC_ADDR_ACPI_CMD   0x66
+#define EC_LPC_ADDR_ACPI_DATA       0x62
+#define EC_LPC_ADDR_ACPI_CMD        0x66
 
 /* I/O addresses for host command */
-#define EC_LPC_ADDR_HOST_DATA  0x200
-#define EC_LPC_ADDR_HOST_CMD   0x204
+#define EC_LPC_ADDR_HOST_DATA       0x200
+#define EC_LPC_ADDR_HOST_CMD        0x204
 
 /* I/O addresses for host command args and params */
 /* Protocol version 2 */
-#define EC_LPC_ADDR_HOST_ARGS    0x800  /* And 0x801, 0x802, 0x803 */
-#define EC_LPC_ADDR_HOST_PARAM   0x804  /* For version 2 params; size is
-					 * EC_PROTO2_MAX_PARAM_SIZE
-					 */
+#define EC_LPC_ADDR_HOST_ARGS       0x800  /* And 0x801, 0x802, 0x803 */
+#define EC_LPC_ADDR_HOST_PARAM      0x804  /* For version 2 params; size is
+                                            * EC_PROTO2_MAX_PARAM_SIZE
+                                            */
+
 /* Protocol version 3 */
-#define EC_LPC_ADDR_HOST_PACKET  0x800  /* Offset of version 3 packet */
-#define EC_LPC_HOST_PACKET_SIZE  0x100  /* Max size of version 3 packet */
+#define EC_LPC_ADDR_HOST_PACKET     0x800  /* Offset of version 3 packet */
+#define EC_LPC_HOST_PACKET_SIZE     0x100  /* Max size of version 3 packet */
 
 /*
  * The actual block is 0x800-0x8ff, but some BIOSes think it's 0x880-0x8ff
  * and they tell the kernel that so we have to think of it as two parts.
  */
-#define EC_HOST_CMD_REGION0    0x800
-#define EC_HOST_CMD_REGION1    0x880
-#define EC_HOST_CMD_REGION_SIZE 0x80
+#define EC_HOST_CMD_REGION0         0x800
+#define EC_HOST_CMD_REGION1         0x880
+#define EC_HOST_CMD_REGION_SIZE     0x80
 
 /* EC command register bit functions */
 #define EC_LPC_CMDR_DATA	BIT(0)  /* Data ready for host to read */
@@ -120,10 +121,13 @@ extern "C" {
 #define EC_LPC_CMDR_SCI		BIT(5)  /* SCI event is pending */
 #define EC_LPC_CMDR_SMI		BIT(6)  /* SMI event is pending */
 
-#define EC_LPC_ADDR_MEMMAP       0x900
-#define EC_MEMMAP_SIZE         255 /* ACPI IO buffer max is 255 bytes */
-#define EC_MEMMAP_TEXT_MAX     8   /* Size of a string in the memory map */
+#define EC_LPC_ADDR_MEMMAP          0x900
+#define EC_MEMMAP_SIZE              255 /* ACPI IO buffer max is 255 bytes */
+#define EC_MEMMAP_TEXT_MAX          8   /* Size of a string in the memory map */
 
+/******************************************************************************/
+/***************************** EC Share RAM Define ****************************/
+/******************************************************************************/
 #undef CHROME_EC_MEMORY_MAP   /* Original RAM Defintion. */
 #ifndef CHROME_EC_MEMORY_MAP
 /* The offset address of each type of data in mapped memory. */
@@ -174,36 +178,34 @@ extern "C" {
 #define EC_MEMMAP_POLLING_WRITE     BIT(4) /* Start polling write PL1/2 */
 #define EC_MEMMAP_WRITE_PL4         BIT(5) /* Write PL4 request */
 #define EC_MEMMAP_TIME_UPDATE       BIT(6) /* BIOS set this BIT when time update to EC */  
-#define EC_MEMMAP_BATTERY1_DAMAGED  BIT(7) /* Battery 1 damaged */ 
+#define EC_MEMMAP_BATTERY1_DAMAGED  BIT(7) /* Battery 1 damaged */
+
 /* Unused 0x1E -0x1F */
-/* SOC NTC CORE_TEMP Temp(0-127 C) offset:0x20, 
- * SOC NTC CPU_SOC_TEMP Temp(0-127 C) offset:0x21, 
- * Near SSD NTC(0-127 C) offset:0x22, 
- * Near PCIEX16 NTC(0-127 C) offset:0x23, 
- * Environment NTC(0-127 C) offset:0x24,
- * Memory near NTC(0-127 C) offset:0x25,
- * CHARGER NTC Temperature(0-127 C) offset:0x26,
- * Battery 1 temp(0-127 C) offset:0x27 */  
-#define EC_MEMMAP_TEMP_SENSOR               0x20  
-/* Unused 0x28 -0x2F */
-#define EC_MEMMAP_TBATTERY_DEVICE           0x30 /* Battery device name (15 bytes) 0x30-0x3e */  
-#define EC_MEMMAP_TBATTERY_COUNTER          0x3f /* Byte counter of Battery deivce name */ 
-/* Unused 0x40 -0x43 */
-#define EC_MEMMAP_SLOW_POWER                0x44 /* Slow Power */ 
-#define EC_MEMMAP_FAST_POWER                0x45 /* Fast Power */  
-#define EC_MEMMAP_SUSTAINED_POWER           0x46 /* SUSTAINED POWER */ 
-#define EC_MEMMAP_THERMAL_CONTROL_LIMIT     0x47 /* Thermal Control Limit */ 
-/* Unused 0x48 -0x4B */
-#define EC_MEMMAP_TYPEC_UP_LIMIT            0x4C /* Up limitation of TYPE-C */ 
-#define EC_MEMMAP_TYPEC_DOWN_LIMIT          0x4D /* Down limitation of TYPE-C */ 
-#define EC_MEMMAP_CHARGER_UP_LIMIT          0x4E /* Up limitation of CHARGER */ 
-#define EC_MEMMAP_CHARGER_DOWN_LIMIT        0x4F /* Down limitation of CHARGER */ 
-/* Unused 0x50 -0x53 */
-#define EC_MEMMAP_SET_POWER_BUTTON_TIME     0x54 /* Set power button de-bounce time by APP */ 
-#define EC_MEMMAP_GET_POWER_BUTTON_TIME     0x55 /* Get power button last pressed time */
+
+/* Sensor temperature, offset 0x20--0x2F */
+#define EC_MEMMAP_TEMP_SENSOR_00            0x20 /* CPU internal */
+#define EC_MEMMAP_TEMP_SENSOR_01            0x21 /* CPU external */
+#define EC_MEMMAP_TEMP_SENSOR_02            0x22 /* GPU internal */
+#define EC_MEMMAP_TEMP_SENSOR_03            0x23 /* GPU external */
+#define EC_MEMMAP_TEMP_SENSOR_04            0x24 /* Environment */
+#define EC_MEMMAP_TEMP_SENSOR_05            0x25 /* SSD */
+#define EC_MEMMAP_TEMP_SENSOR_06            0x26 /* Memory */
+#define EC_MEMMAP_TEMP_SENSOR_07            0x27 /* Battery */
+#define EC_MEMMAP_TEMP_SENSOR_08            0x28 /* Charger */
+#define EC_MEMMAP_TEMP_SENSOR_09            0x29 /* Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_0A            0x2A /* Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0B            0x2B
+#define EC_MEMMAP_TEMP_SENSOR_0C            0x2C
+#define EC_MEMMAP_TEMP_SENSOR_0D            0x2D
+#define EC_MEMMAP_TEMP_SENSOR_0E            0x2E
+#define EC_MEMMAP_TEMP_SENSOR_0F            0x2F
+#define EC_MEMMAP_TEMP_SENSOR               EC_MEMMAP_TEMP_SENSOR_00
+
+/* Unused 0x30 -0x53 */
+
 /* SYS Fan RPM (High byte 0x56,Low byte 0x57),
  * CPU Fan RPM (High byte 0x58,Low byte 0x59). */
-#define EC_MEMMAP_FAN_RPM                   0x56  
+#define EC_MEMMAP_FAN_RPM                   0x56
 /* Unused 0x5A -0x5B Standby application Fan */
 #define EC_MEMMAP_TEMP_CPU_UP_LIMIT         0x5C /* Up limitation of CPU Temperature */ 
 #define EC_MEMMAP_TEMP_CPU_DOWN_LIMIT       0x5D /* Down limitation of CPU Temperature */ 
@@ -211,6 +213,7 @@ extern "C" {
 #define EC_MEMMAP_TEMP_DDR_DOWN_LIMIT       0x5F /* Down limitation of DDR Temperature */ 
 #define EC_MEMMAP_TEMP_SOC_UP_LIMIT         0x60 /* Up limitation of SOC Temperature */ 
 #define EC_MEMMAP_TEMP_SOC_DOWN_LIMIT       0x61 /* Down limitation of SOC Temperature */ 
+
 /* Unused 0x62 -0x65 */
 #define EC_MEMMAP_THERM_FLAG_UPB            0x66 /* ThermFlagUpB */ 
 #define EC_MEMMAP_THERM_FLAG_UPB0     BIT(0) /* Set CPU Up flag to 1, let EC to verify */
