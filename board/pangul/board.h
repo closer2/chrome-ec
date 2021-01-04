@@ -71,6 +71,7 @@
 #define CONFIG_LOW_POWER_IDLE
 #define CONFIG_LTO
 #define CONFIG_PWM
+#define CONFIG_SOFTWARE_WATCHDOG
 
 /* Increase length of history buffer for port80 messages. */
 #undef CONFIG_PORT80_HISTORY_LEN

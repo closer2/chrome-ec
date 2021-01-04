@@ -7299,12 +7299,11 @@ struct ec_params_usb_pd_mux_ack {
  * struct ec_external_WDT - External WDT Function.
  * @flag1: 0x01: Enable WDT.
  *         0x02: Disable WDT.
- * @flag2: 0x01: BIOS start post notify EC flag.
  * @time: EC Open WDT's time 
  */
 struct ec_external_WDT {
 	uint8_t flag1;
-	uint8_t flag2;
+	uint8_t Reserved;
     uint16_t time; 
 } __ec_align4;
 
