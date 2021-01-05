@@ -134,7 +134,7 @@ extern "C" {
 #define EC_MEMMAP_VERSION_X                 0x00 /* EC_VERSION_X */
 #define EC_MEMMAP_VERSION_YZ                0x01 /* EC_VERSION_YZ */
 #define EC_MEMMAP_VERSION_TEST              0x02 /* EC_VERSION_TEST */
-/* Unused 0x03 */
+#define EC_MEMMAP_RESET_FLAG                0x03 /* if write 0xAA, EC reset after shutdown*/
 #define EC_MEMMAP_Year                      0x04 /* EC_Year */
 #define EC_MEMMAP_Month                     0x05 /* EC_Month */
 #define EC_MEMMAP_Day                       0x06 /* EC_Day */

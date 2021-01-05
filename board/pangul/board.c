@@ -439,15 +439,40 @@ void board_pwrbtn_to_pch(int level)
 
 static void board_chipset_resume(void)
 {
-	return;
+	ccprints("%s -> %s", __FILE__, __func__);
+    return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_RESUME, board_chipset_resume, HOOK_PRIO_DEFAULT);
-
+ 
 static void board_chipset_suspend(void)
 {
-	return;
+	ccprints("%s -> %s", __FILE__, __func__);
+    return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, board_chipset_suspend, HOOK_PRIO_DEFAULT);
+ 
+static void board_chipset_shutdown(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
+
+    if(0xAA == (*mptr))
+    {
+        (*mptr) = 0;
+        ccprints("EC reboot......");
+        system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
+    }
+
+    ccprints("%s -> %s", __FILE__, __func__);
+    return;
+}
+DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, board_chipset_shutdown, HOOK_PRIO_DEFAULT);
+
+static void board_chipset_startup(void)
+{
+    ccprints("%s -> %s", __FILE__, __func__);
+    return;
+}
+DECLARE_HOOK(HOOK_CHIPSET_STARTUP, board_chipset_startup, HOOK_PRIO_DEFAULT);
 
 /*****************************************************************************
  * USB-C
