@@ -18,8 +18,8 @@
 #include "system.h"
 
 
-ec_poweron_WDT g_poweronWDT = {0};
-
+ec_wakeup_WDT g_wakeupWDT = {0};
+ec_shutdown_WDT g_shutdownWDT = {0};
 static enum ec_status
 host_command_WDT(struct host_cmd_handler_args *args)
 {
@@ -29,17 +29,26 @@ host_command_WDT(struct host_cmd_handler_args *args)
        return EC_RES_INVALID_COMMAND; 
     }
 
-    switch(g_wdtPackage->flag1) {
+    switch(g_wdtPackage->type) {
         case 1:
-            g_poweronWDT.wdtEn = POWERON_WDT_ENABLE;
+            if (g_wdtPackage->flag1 == 0x01) {
+                g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
+            } else if (g_wdtPackage->flag1 == 0x02) {
+                g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+            }
+            g_wakeupWDT.time = g_wdtPackage->time;
             break;
         case 2:
-            g_poweronWDT.wdtEn = POWERON_WDT_DISENABLE;
+            if (g_wdtPackage->flag1 == 0x01) {
+                g_shutdownWDT.wdtEn = SW_WDT_ENABLE;
+            } else if (g_wdtPackage->flag1 == 0x02) {
+                g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+            }
+            g_shutdownWDT.time = g_wdtPackage->time;
             break;
         default:
-            break;       
+            break;        
     }
-    g_poweronWDT.time = g_wdtPackage->time;
     
 	return EC_RES_SUCCESS;
 }
@@ -49,20 +58,33 @@ DECLARE_HOST_COMMAND(EC_CMD_EXTERNAL_WDT,
 
 static void SwWatchdogService(void)
 {
-    if (g_poweronWDT.wdtEn == POWERON_WDT_ENABLE) {
-        g_poweronWDT.countTime++;
-        if (g_poweronWDT.countTime > g_poweronWDT.time) {
-            g_poweronWDT.countTime = 0;
+    /* Poweron software WDT */
+    if (g_wakeupWDT.wdtEn == SW_WDT_ENABLE) {
+        g_wakeupWDT.countTime++;
+        if (g_wakeupWDT.countTime > g_wakeupWDT.time) {
+            g_wakeupWDT.countTime = 0;
         }
 
-        if (g_poweronWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM) {
+        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM) {
             /* EC reboot */
             system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
         }
     } else {
-        g_poweronWDT.time = 0;
-        g_poweronWDT.countTime = 0;
-        g_poweronWDT.timeoutNum = 0;
+        g_wakeupWDT.time = 0;
+        g_wakeupWDT.countTime = 0;
+        g_wakeupWDT.timeoutNum = 0;
+    }
+    /* Shutdown software WDT */ 
+    if (g_shutdownWDT.wdtEn == SW_WDT_ENABLE) {
+        g_shutdownWDT.countTime++;
+        if (g_shutdownWDT.countTime > g_shutdownWDT.time) {
+            gpio_set_level(GPIO_APU_NMI_L, 0);
+        }  
+    } else {
+        g_shutdownWDT.time = 0;
+        g_shutdownWDT.countTime = 0;
+        g_shutdownWDT.timeoutNum = 0;
+        gpio_set_level(GPIO_APU_NMI_L, 1);
     }
 }
  DECLARE_HOOK(HOOK_SECOND, SwWatchdogService, HOOK_PRIO_INIT_CHIPSET);

@@ -8,15 +8,24 @@
 #ifndef __CROS_EC_SOFTWARE_WATCHDOG_H
 #define __CROS_EC_SOFTWARE_WATCHDOG_H
 
-typedef struct EC_POWERON_WDT {
+/* WakeUp WDT */
+typedef struct EC_WAKEUP_WDT {
      uint8_t wdtEn;
      uint16_t time;
      uint16_t countTime;
      uint8_t timeoutNum;
- }ec_poweron_WDT;
- 
-#define  POWERON_WDT_DISENABLE       0x00
-#define  POWERON_WDT_ENABLE          0x01
+ }ec_wakeup_WDT;
+
+/* Shutdown WDT */
+typedef struct EC_SHUTDOAN_WDT {
+      uint8_t wdtEn;
+      uint16_t time;
+      uint16_t countTime;
+      uint8_t timeoutNum;
+  }ec_shutdown_WDT;
+
+#define  SW_WDT_DISENABLE       0x00
+#define  SW_WDT_ENABLE          0x01
 
 #define  POWERON_WDT_TIMEOUT_NUM     0x02 /* */
 #define  POWERON_WDT_TIMEOUT_NUM2    0x05 /* */
