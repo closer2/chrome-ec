@@ -17,6 +17,9 @@
 #include "chipset.h"
 #include "system.h"
 
+/* Console output macros */
+#define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
+#define CPRINTS(format, args...) cprints(CC_CHIPSET, format, ##args)
 
 ec_wakeup_WDT g_wakeupWDT = {0};
 ec_shutdown_WDT g_shutdownWDT = {0};
@@ -28,7 +31,8 @@ host_command_WDT(struct host_cmd_handler_args *args)
     if (g_wdtPackage == NULL) {
        return EC_RES_INVALID_COMMAND; 
     }
-
+    CPRINTS("host_command_WDT: type=%d flag1=%d time=%d\n", g_wdtPackage->type, 
+        g_wdtPackage->flag1, g_wdtPackage->time);
     switch(g_wdtPackage->type) {
         case 1:
             if (g_wdtPackage->flag1 == 0x01) {

@@ -23,11 +23,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "04"
+#define BLD_EC_VERSION_TEST     "05"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x04
+#define BLD_EC_VERSION_TEST_HEX 0x05
 
 
 /*------------------------------------------------------------------------------
