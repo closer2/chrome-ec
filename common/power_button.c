@@ -55,6 +55,13 @@ static int raw_power_button_pressed(void)
 	if (simulate_power_pressed)
 		return 1;
 
+#ifdef CONFIG_POWER_BUTTON_LOCK_HOST
+        if (get_power_button_lock_flag() & EC_MEMMAP_POWER_LOCK) {
+            CPRINTS("Power button lock......\n");
+            return 0; 
+        }
+#endif
+
 #ifndef CONFIG_POWER_BUTTON_IGNORE_LID
 	/*
 	 * Always indicate power button released if the lid is closed.

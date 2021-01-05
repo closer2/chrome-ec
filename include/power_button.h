@@ -69,4 +69,11 @@ int64_t get_time_dsw_pwrok(void);
  */
 void board_pwrbtn_to_pch(int level);
 
+#ifdef CONFIG_POWER_BUTTON_LOCK_HOST
+/*
+ * Lock power button form host.
+ */
+uint8_t get_power_button_lock_flag(void);
+#endif
+
 #endif  /* __CROS_EC_POWER_BUTTON_H */

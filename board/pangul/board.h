@@ -116,6 +116,7 @@
 #define CONFIG_POWER_BUTTON                 /* Compile common code to support power button debouncing */
 #define CONFIG_POWER_BUTTON_X86             /* Support sending the power button signal to x86 chipsets */
 #define CONFIG_POWER_BUTTON_IGNORE_LID      /* Allow the power button to send events while the lid is closed */
+#define CONFIG_POWER_BUTTON_LOCK_HOST       /* power button lock form host  */
 #define CONFIG_POWER_BUTTON_TO_PCH_CUSTOM   /* Board provides board_pwrbtn_to_pch function*/
 #define CONFIG_THROTTLE_AP                  /* Compile common code for throttling the CPU based on the temp sensors */
 #define CONFIG_CPU_PROCHOT_ACTIVE_LOW       /* On x86 systems, define this option if the CPU_PROCHOT signal is active low.*/

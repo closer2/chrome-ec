@@ -188,6 +188,21 @@ void power_button_pch_pulse(void)
 	task_wake(TASK_ID_POWERBTN);
 }
 
+#ifdef CONFIG_POWER_BUTTON_LOCK_HOST
+/*
+ * Lock power button form host.
+ */
+uint8_t get_power_button_lock_flag(void)
+{
+    uint8_t memValue = 0;
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+
+    memValue = *mptr;
+    CPRINTS("Get power button lock flag:%d\n", memValue);
+    return memValue;
+}
+#endif
+
 /**
  * Handle debounced power button down.
  */
