@@ -774,12 +774,14 @@ static void lpc_init(void)
 	/* Initialize Hardware for UART Host */
 #ifdef CONFIG_UART_HOST
 	/* Init COMx LPC UART */
-	/* FMCLK Freq have to using 50MHz */
+	/* FMCLK Freq have to using 48MHz */
 	NPCX_DEVALT(0xB) = 0xFF;
 	/* Make sure Host Access unlock */
 	CLEAR_BIT(NPCX_LKSIOHA, 2);
 	/* Clear Host Access Lock Violation */
 	SET_BIT(NPCX_SIOLV, 2);
+    /* FULL_CK50 (SP Clock Speed at 48MHz). */
+    SET_BIT(NPCX_DEV_CTL4, BIT(3));
 #endif
 
 	/* Don't stall SHM transactions */
