@@ -401,4 +401,22 @@ static inline void flash_lock_mapped_storage(int lock) { };
  */
 int board_flash_select(int select);
 
+
+/**
+ * write wakeup cause to flash
+ *
+ * @param data   wakeup cause ID(32bit)
+ */
+void wakeup_cause_record(uint32_t data);
+
+/**
+ * write shutdown cause to flash
+ *
+ * @param data   shutdown cause ID(32bit)
+ */
+
+void shutdown_cause_record(uint32_t data);
+
+
+
 #endif  /* __CROS_EC_FLASH_H */
