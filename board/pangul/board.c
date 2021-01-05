@@ -31,6 +31,8 @@
 #include "thermistor.h"
 #include "usb_pd_tcpm.h"
 #include "usbc_ppc.h"
+#include "flash.h"
+
 
 #define CPRINTSUSB(format, args...) cprints(CC_USBCHARGE, format, ## args)
 #define CPRINTFUSB(format, args...) cprintf(CC_USBCHARGE, format, ## args)
@@ -413,40 +415,61 @@ void pd_power_supply_reset(int port)
 	//fusb307_power_supply_reset(port);
 }
 
+/*******************************************************************************
+ * power button
+ *
+ */
+
 /*
  * b/164921478: On G3->S5, wait for RSMRST_L to be deasserted before asserting
  * PWRBTN_L.
  */
 void board_pwrbtn_to_pch(int level)
 {
-	/* Add delay for G3 exit if asserting PWRBTN_L and S5_PGOOD is low. */
-	if (!level && !gpio_get_level(GPIO_S5_PGOOD)) {
-		/*
-		 * From Power Sequence, wait 10 ms for RSMRST_L to rise after
-		 * S5_PGOOD.
-		 */
-		msleep(10);
+    /* Add delay for G3 exit if asserting PWRBTN_L and S5_PGOOD is low. */
+    if (!level && !gpio_get_level(GPIO_S5_PGOOD)) {
+        /*
+        * From Power Sequence, wait 10 ms for RSMRST_L to rise after
+        * S5_PGOOD.
+        */
+        msleep(10);
 
-		if (!gpio_get_level(GPIO_S5_PGOOD))
-			ccprints("Error: pwrbtn S5_PGOOD low");
-	}
-	gpio_set_level(GPIO_PCH_PWRBTN_L, level);
+        if (!gpio_get_level(GPIO_S5_PGOOD))
+            ccprints("Error: pwrbtn S5_PGOOD low");
+    }
+    
+    gpio_set_level(GPIO_PCH_PWRBTN_L, level);
 }
 
-/*****************************************************************************
- * Board suspend / resume
- */
+static void power_button_record(void)
+{
+    if(power_button_is_pressed())
+    {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x40);
+    }
+    else
+    {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x41);
+    }
+}
+DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, power_button_record, HOOK_PRIO_DEFAULT);
 
+/*******************************************************************************
+ * Board chipset suspend/resume/shutdown/startup
+ *
+ */
 static void board_chipset_resume(void)
 {
-	ccprints("%s -> %s", __FILE__, __func__);
+    wakeup_cause_record(LOG_ID_WAKEUP_0x04);
+    ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_RESUME, board_chipset_resume, HOOK_PRIO_DEFAULT);
  
 static void board_chipset_suspend(void)
 {
-	ccprints("%s -> %s", __FILE__, __func__);
+    shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
+    ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, board_chipset_suspend, HOOK_PRIO_DEFAULT);
@@ -458,10 +481,12 @@ static void board_chipset_shutdown(void)
     if(0xAA == (*mptr))
     {
         (*mptr) = 0;
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x42);
         ccprints("EC reboot......");
         system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
     }
 
+    shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
@@ -469,44 +494,45 @@ DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, board_chipset_shutdown, HOOK_PRIO_DEFAULT);
 
 static void board_chipset_startup(void)
 {
+    wakeup_cause_record(LOG_ID_WAKEUP_0x06);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_STARTUP, board_chipset_startup, HOOK_PRIO_DEFAULT);
 
-/*****************************************************************************
- * USB-C
- */
-
 
 static void board_init_config(void)
 {
-	gpio_config_module(MODULE_HOST_UART, 0);
+    gpio_config_module(MODULE_HOST_UART, 0);
 }
 DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_DEFAULT);
 
 void apu_pcie_reset_interrupt(enum gpio_signal signal)
 {
-	int debounce_sample = 0;
+    int debounce_sample = 0;
 
-	int first_sample = gpio_get_level(signal);
-	usleep(10);
-	debounce_sample = gpio_get_level(signal);
+    int first_sample = gpio_get_level(signal);
+    usleep(10);
+    debounce_sample = gpio_get_level(signal);
 
-	if (first_sample == debounce_sample) {
-		gpio_set_level(GPIO_PCIEX16_RST_L, debounce_sample);
-		gpio_set_level(GPIO_PCIEX1_RST_L, debounce_sample);
-		gpio_set_level(GPIO_M2_2280_SSD1_RST_L, debounce_sample);
+    if (first_sample == debounce_sample) {
+        gpio_set_level(GPIO_PCIEX16_RST_L, debounce_sample);
+        gpio_set_level(GPIO_PCIEX1_RST_L, debounce_sample);
+        gpio_set_level(GPIO_M2_2280_SSD1_RST_L, debounce_sample);
 
-		ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L));
-		return;
-	}
+        ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L));
+        return;
+    }
 
-	ccprints("Error: apu_pcie_reset glitch, please check");
-	return;
+    ccprints("Error: apu_pcie_reset glitch, please check");
+    return;
 }
 
 
+/*******************************************************************************
+ * EC firmware version set
+ *
+ */
 static void ec_oem_version_set(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_VERSION_X);

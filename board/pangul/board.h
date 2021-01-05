@@ -23,11 +23,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "05"
+#define BLD_EC_VERSION_TEST     "06"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x05
+#define BLD_EC_VERSION_TEST_HEX 0x06
 
 
 /*------------------------------------------------------------------------------
@@ -300,6 +300,94 @@
 #define GPIO_PROJECT_VERSION1           GPIO_EC_PROJECT_ID0
 #define GPIO_PROJECT_VERSION2           GPIO_EC_PROJECT_ID1
 #define GPIO_PROJECT_VERSION3           GPIO_EC_PROJECT_ID2
+
+/*------------------------------------------------------------------------------
+* shutdown log ID define
+------------------------------------------------------------------------------*/
+#define LOG_ID_SHUTDOWN_0x01    0x01    /* S0, SLP_S4/S5 pull down */
+#define LOG_ID_SHUTDOWN_0x02    0x02    /* S3, SLP_S4/S5 pull down */
+#define LOG_ID_SHUTDOWN_0x03    0x03    /* S0, SLP_S3 pull down */
+#define LOG_ID_SHUTDOWN_0x04    0x04    /* S0, SLP_S4 pull down */
+#define LOG_ID_SHUTDOWN_0x05    0x05
+#define LOG_ID_SHUTDOWN_0x06    0x06    /* Power button 4s timeout */
+#define LOG_ID_SHUTDOWN_0x07    0x07    /* Power button 10s timeout */
+#define LOG_ID_SHUTDOWN_0x08    0x08    /* S0, HWPG pull down */
+#define LOG_ID_SHUTDOWN_0x09    0x09    /* Sx to S0, Power on WDT */
+#define LOG_ID_SHUTDOWN_0x0A    0x0A    /* Sx to S0, HWPG timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0B    0x0B    /* Sx to S0, SUSB timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0C    0x0C    /* Sx to S0, SUSC timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0D    0x0D    /* Sx to S0, SLP_S5 timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0E    0x0E
+#define LOG_ID_SHUTDOWN_0x0F    0x0F    /* Sx to S0, RSMRST timeout WDT */
+#define LOG_ID_SHUTDOWN_0x10    0x10    /* Sx to S0, PLTRST timeout WDT */
+/* 11--1F reserve */
+
+#define LOG_ID_SHUTDOWN_0x20    0x20    /* PMIC reset by voltage regulator fault */
+#define LOG_ID_SHUTDOWN_0x21    0x21    /* PMIC reset by power button counter */
+#define LOG_ID_SHUTDOWN_0x2E    0x2E    /* Caterr#  low trig Shutdown */
+
+#define LOG_ID_SHUTDOWN_0x30    0x30    /* CPU too hot(internal PECI) */
+#define LOG_ID_SHUTDOWN_0x31    0x31    /* CPU too hot(external NTC) */
+#define LOG_ID_SHUTDOWN_0x32    0x32    /* VGA too hot */
+#define LOG_ID_SHUTDOWN_0x33    0x33    /* SYS too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x34    0x34    /* PCH too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x35    0x35    /* DDR too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x36    0x36    /* DCJ too hot */
+#define LOG_ID_SHUTDOWN_0x37    0x37    /* Ambient too hot */
+#define LOG_ID_SHUTDOWN_0x38    0x38    /* SSD too hot */
+#define LOG_ID_SHUTDOWN_0x39    0x39    /* battery too hot */
+#define LOG_ID_SHUTDOWN_0x3A    0x3A    /* charger IC too hot */
+/* 3B--3F reserve */
+
+/* 40--4F for ODM */
+#define LOG_ID_SHUTDOWN_0x40    0x40    /* Power button pressed */
+#define LOG_ID_SHUTDOWN_0x41    0x41    /* Power button released */
+#define LOG_ID_SHUTDOWN_0x42    0x42    /* EC reset after BIOS tool update EC */
+
+/* 50--CF reserve */
+
+#define LOG_ID_SHUTDOWN_0xD0    0xD0    /* BIOS/OS WDT time out trigger BSOD */
+#define LOG_ID_SHUTDOWN_0xD1    0xD1    /* BIOS bootlock fail */
+#define LOG_ID_SHUTDOWN_0xD2    0xD2    /* BIOS memory init fail */
+#define LOG_ID_SHUTDOWN_0xD3    0xD3    /* BIOS main block fail */
+#define LOG_ID_SHUTDOWN_0xD4    0xD4    /* BIOS crisis fail */
+#define LOG_ID_SHUTDOWN_0xD5    0xD5
+#define LOG_ID_SHUTDOWN_0xD6    0xD6
+#define LOG_ID_SHUTDOWN_0xD7    0xD7    /* flash BIOS start */
+#define LOG_ID_SHUTDOWN_0xD8    0xD8    /* flash BIOS end */
+/* D9--DF reserve */
+
+/* E0--EA reserve */
+#define LOG_ID_SHUTDOWN_0xEB    0xEB    /* EC RAM init fail */
+#define LOG_ID_SHUTDOWN_0xEC    0xEC    /* EC code reset */
+#define LOG_ID_SHUTDOWN_0xFC    0xFC    /* EC VSTBY or WRST reset */
+#define LOG_ID_SHUTDOWN_0xFD    0xFD    /* EC external WDT reset power off */
+#define LOG_ID_SHUTDOWN_0xFE    0xFE    /* EC internal WDT reset power off */
+
+/*------------------------------------------------------------------------------
+* wakeup log ID define
+------------------------------------------------------------------------------*/
+#define LOG_ID_WAKEUP_0x01      0x01    /* power button interrupt power on */
+#define LOG_ID_WAKEUP_0x02      0x02    /* power button polling power on */
+#define LOG_ID_WAKEUP_0x03      0x03    /* power button wakeup S3 */
+#define LOG_ID_WAKEUP_0x04      0x04    /* S3, SLP_S3 pull up */
+#define LOG_ID_WAKEUP_0x05      0x05    /* S5, SLP_S4 pull up */
+#define LOG_ID_WAKEUP_0x06      0x06    /* S5, SLP_S5 pull up */
+/* 07--3F reserve */
+
+/* 40--CF for ODM define */
+
+#define LOG_ID_WAKEUP_0xD1      0xD1    /* system wakeup after BIOS update */
+#define LOG_ID_WAKEUP_0xD2      0xD2    /* system wakeup from sleep */
+#define LOG_ID_WAKEUP_0xD3      0xD3    /* system wakeup from hibernate */
+#define LOG_ID_WAKEUP_0xD4      0xD4    /* system wakeup from power off */
+/* D5--DF reserve */
+
+/* E0--FB reserve */
+#define LOG_ID_WAKEUP_0xFC      0xFC    /* EC auto power on */
+#define LOG_ID_WAKEUP_0xFD      0xFD    /* system power on after mirror */
+#define LOG_ID_WAKEUP_0xFE      0xFE    /* internal WDT wakeup */
+
 
 
 /* We can select CONFIG_WP_ALWAYS for independent on gpio, Or
