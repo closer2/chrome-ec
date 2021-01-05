@@ -67,6 +67,8 @@ GPIO(EC_ALW_EN,			    PIN(D, 0), GPIO_OUT_LOW)			/* EC_ALW_EN */
 GPIO(PCIEX1_RST_L,		    PIN(1, 6), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
 GPIO(M2_2280_SSD1_RST_L,	PIN(1, 7), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
 GPIO(PCIEX16_RST_L,		    PIN(2, 0), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
+GPIO(EC_LAN_WAKE_L,		    PIN(2, 2), GPIO_OUT_LOW)		    /* Waked up LAN */
+GPIO(EC_WLAN_WAKE_L,		PIN(1, 1), GPIO_OUT_LOW)		    /* Waked up WLAN */
 
 /* KBRST# as gpio */
 GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_HIGH)			/* KBRST# */
@@ -85,11 +87,9 @@ GPIO(EC_BT_WAKE,		    PIN(C, 4), GPIO_INPUT)				/* Reserved for BT_WAKE */
 GPIO(FPS_RST_L,			    PIN(9, 6), GPIO_INPUT)				/* Connected to CH549, can reset it, but we do not use it */
 GPIO(EC_1103_PRON_Q,		PIN(8, 3), GPIO_INPUT)				/* TODO: confirm tis function, EC_1103_PRON_Q */
 GPIO(EC_AUD_MUTE_L,		    PIN(1, 4), GPIO_INPUT)				/* Reserved Pin, HW no populate components, set it as INPUT */
-GPIO(EC_LAN_WAKE_L,		    PIN(2, 2), GPIO_INPUT)				/* Reserved Pin */
 GPIO(EC_1103_AP_WAKE_WL,	PIN(2, 3), GPIO_INPUT)				/* Reserved Pin */
 GPIO(BAT_12V_SEL,		    PIN(2, 4), GPIO_INPUT)				/* Reserved Pin */
 GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_INPUT)				/* TODO: should be OUPUT, then HOW TO USE IT? */
-GPIO(EC_WLAN_WAKE_L,		PIN(1, 1), GPIO_INPUT)				/* Reserved Pin */
 GPIO(EC_DDR_VDDQ_EN,		PIN(C, 1), GPIO_INPUT)				/* reserved(not used), EC enable VDDQ power */
 GPIO(EC_DDR_VPP_EN,		    PIN(D, 3), GPIO_INPUT)				/* reserved(not used), EC eanble VPP power */
 GPIO(EC_WLAN_PWR_EN,		PIN(9, 5), GPIO_INPUT)				/* Not used, reserved for WLAN power en, EC_WLAN_PWR_EN */

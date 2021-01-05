@@ -178,8 +178,18 @@ host_command_Switch(struct host_cmd_handler_args *args)
         } else {
             powerled_set_state(POWERLED_STATE_OFF);
         }
-    } else if (p->type == 0x01) { /* WakeOnLan turn on/off */
-    } else if (p->type == 0x02) { /* WakeOnWLan turn on/off */
+    } else if (p->type == 0x01) { /* WakeOnLan Wake */
+        if (p->switchi) {
+            gpio_set_level(GPIO_EC_LAN_WAKE_L, 0);
+        } else {
+            gpio_set_level(GPIO_EC_LAN_WAKE_L, 1);
+        }  
+    } else if (p->type == 0x02) { /* WakeOnWLan Wake */
+        if (p->switchi) {
+            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 0);
+        } else {
+            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 1);
+        }         
     }
     
 	return EC_RES_SUCCESS;
