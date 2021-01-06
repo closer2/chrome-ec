@@ -256,6 +256,12 @@ extern "C" {
 #define EC_MEMMAP_HOST_CMD_FLAGS           0x75 /* Host cmd interface flags (8 bits) */
 #define EC_MEMMAP_HOST_EVENTS              0x76 /* 64 bits */
 /* Unused 0x77 - 0xdf */
+
+/* E0--FF, write protect disable*/
+#define EC_MEMMAP_BIOS_CMD                  0xE0
+#define EC_MEMMAP_BIOS_CMD_STATUS           0xE1
+#define EC_MEMMAP_BIOS_DATA                 0xE2
+
 #else
 #define EC_MEMMAP_TEMP_SENSOR      0x00 /* Temp sensors 0x00 - 0x0f */
 #define EC_MEMMAP_FAN              0x10 /* Fan speeds 0x10 - 0x17 */

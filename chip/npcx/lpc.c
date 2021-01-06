@@ -797,7 +797,8 @@ static void lpc_init(void)
 	NPCX_WIN_BASE(1) = (uint32_t)shm_memmap;
 	#if defined(IO_900_WRITE_PROTECT)
 	/* Write protect of Share memory */
-	NPCX_WIN_WR_PROT(1) = 0xFF;
+    /* 00-CF, Protects the eighth (higher) 1/8 of the RAM1 window */
+	NPCX_WIN_WR_PROT(1) = 0x7F;
 	#endif
     
 	/* We support LPC args and version 3 protocol */

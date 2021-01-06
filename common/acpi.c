@@ -421,3 +421,42 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
 
 	return retval;
 }
+
+/*******************************************************************************
+* ec host memory has 256-Byte, remap to HOST IO/900-9FF.
+* we set IO/900-9CF for write protection, disable IO/9E0-9FF write protection.
+*
+* We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC. 
+*/
+static void oem_bios_to_ec_command(void)
+{
+    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
+    uint8_t *mptr = NULL;
+    
+    if(0 == *bios_cmd)
+    {
+        return;
+    }
+
+    CPRINTS("BIOS command=[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+    switch (*bios_cmd) {
+    case 0x01 : /* BIOS write ec reset flag*/
+        mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
+        *mptr = 0xAA; /* 0xAA is ec reset flag */
+        *(bios_cmd+1) = 0x01; /* command status */
+        break;
+
+    case 0x02 :
+        break;
+
+    case 0x03 :
+        break;
+
+    default :
+        break;
+    }
+
+    *bios_cmd = 0;
+}
+DECLARE_HOOK(HOOK_SECOND, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
+
