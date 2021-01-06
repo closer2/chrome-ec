@@ -426,7 +426,11 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
 * ec host memory has 256-Byte, remap to HOST IO/900-9FF.
 * we set IO/900-9CF for write protection, disable IO/9E0-9FF write protection.
 *
-* We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC. 
+* We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC.
+*
+* This function is called every 10ms. BIOS must to write data firstly, and then
+* write command to ec.
+*
 */
 static void oem_bios_to_ec_command(void)
 {
