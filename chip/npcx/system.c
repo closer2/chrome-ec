@@ -195,6 +195,8 @@ static int bbram_idx_lookup(enum system_bbram_idx idx)
 		return BBRM_DATA_INDEX_PD2;
 	if (idx == SYSTEM_BBRAM_IDX_TRY_SLOT)
 		return BBRM_DATA_INDEX_TRY_SLOT;
+    if (idx == SYSTEM_BBRAM_IDX_SYSTEM_RESET)
+		return SYSTEM_BBRAM_IDX_SYSTEM_RESET;
 	return -1;
 }
 
@@ -917,7 +919,11 @@ void system_pre_init(void)
 void system_reset(int flags)
 {
 	uint32_t save_flags;
-
+    
+#ifdef CONFIG_SYSTEM_RESET_DELAY
+    /* When ec reboot, set one flag to bbram */
+    system_set_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, 0x55);
+#endif    
 	/* Disable interrupts to avoid task swaps during reboot */
 	interrupt_disable();
 

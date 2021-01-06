@@ -41,6 +41,9 @@
 test_mockable __keep int main(void)
 {
 	int mpu_pre_init_rv = EC_SUCCESS;
+#ifdef CONFIG_SYSTEM_RESET_DELAY
+    uint8_t value = EC_SUCCESS;
+#endif
 
 	if (IS_ENABLED(CONFIG_PRESERVE_LOGS)) {
 		/*
@@ -153,6 +156,15 @@ test_mockable __keep int main(void)
 		system_print_reset_flags();
 		CPUTS("]\n");
 	}
+    
+#ifdef CONFIG_SYSTEM_RESET_DELAY
+    system_get_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, &value);
+    if (value == 0x55) {
+        msleep(300);
+        system_set_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, 0x00);
+    }
+    ccprintf("EC reboot delay 0x%02x\n", value);
+#endif
 
 #ifdef CONFIG_BRINGUP
 	ccprintf("\n\nWARNING: BRINGUP BUILD\n\n\n");

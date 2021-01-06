@@ -7383,14 +7383,15 @@ struct ec_params_notify_EC {
  * struct ec_params_information - Parameters for different type read command.
  * @type: 0x01: Get ChassisIntrusion data.
  *        0x02: Clear ChassisIntrusion data.
- * @Reserved: Reserved.
- * @data:BIOS read data form EC. 
+ *        0x03: AC_Recovery.
+ * @dataIn: EC receive data form BIOS.
+ * @dataOut: EC send data to BIOS. 
  */
 struct ec_params_information {
     uint8_t type;
-    uint8_t Reserved;
-	uint32_t data;
-} __ec_align4;
+    uint8_t dataIn;
+	uint8_t dataOut;
+} __ec_align1;
 
 
 /*****************************************************************************/
