@@ -2013,6 +2013,7 @@ static enum ec_status host_command_mfg_data_read(struct host_cmd_handler_args *a
     struct ec_response_mfg_data *r = args->response;
 
     r->data = mfg_data_read(p->index);
+	args->response_size = sizeof(*r);
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_FLASH_GET_MFG_DATA,
