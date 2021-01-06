@@ -1925,7 +1925,13 @@ DECLARE_CONSOLE_COMMAND(flash_log, console_command_write_flash_log,
         "[shutdown/wakeup <log_id>]",
         "Write log_id to flash");
 
-
+/*******************************************************************************
+* Some data needs to be saved in case of power loss, We defined 4K of space 
+* to store the necessary data. 
+* The offset position of the flash space is 0x3E000.
+* The size is 4K(x01000).
+*
+*******************************************************************************/
 #define MFG_DATA_ADDRESS    0x3E000
 #define MFG_DATA_BLOCK_SIZE 0x1000  // 4K
 #define MFG_DATA_SIZE       256     // 256-Byte
@@ -1983,13 +1989,6 @@ static int console_command_mfg_data(int argc, char **argv)
                 return EC_ERROR_PARAM2;
             mfg_data_write(index, d);
         }
-        else if(!strcasecmp(argv[1], "read") && (3==argc))
-        {
-            index = strtoi(argv[2], &e, 0);
-            if (*e)
-                return EC_ERROR_PARAM2;
-            mfg_data_read(index);
-        }
         else if(!strcasecmp(argv[1], "show"))
         {
             //TODO, Maybe you need to parse the MFG data here
@@ -2008,6 +2007,28 @@ DECLARE_CONSOLE_COMMAND(mfg_data, console_command_mfg_data,
         "[write <index> <data>]",
         "read/Write mfg data to flash");
 
+static enum ec_status host_command_mfg_data_read(struct host_cmd_handler_args *args)
+{
+    const struct ec_params_mfg_data *p = args->params;
+    struct ec_response_mfg_data *r = args->response;
+
+    r->data = mfg_data_read(p->index);
+    return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_FLASH_GET_MFG_DATA,
+        host_command_mfg_data_read,
+        EC_VER_MASK(0));
+
+static enum ec_status host_command_mfg_data_write(struct host_cmd_handler_args *args)
+{
+    const struct ec_params_mfg_data *p = args->params;
+
+    mfg_data_write(p->index, p->data);
+    return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_FLASH_SET_MFG_DATA,
+        host_command_mfg_data_write,
+        EC_VER_MASK(0));
 #else
 void shutdown_cause_record(uint32_t data)
 {

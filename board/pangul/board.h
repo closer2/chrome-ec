@@ -93,6 +93,8 @@
 
 #define CONFIG_BOARD_VERSION_GPIO           /* For board version define*/
 
+/* disable EC chip hibernate */
+#undef CONFIG_HIBERNATE                     /* Enable system hibernate */
 
 #define CONFIG_FLASH_LOG_OEM                /* For flash write log function*/
 #define CONFIG_CMD_FLASH                    /* For flash console command function*/
@@ -100,7 +102,7 @@
 #define CONFIG_HOSTCMD_RTC                  /* For host update EC RTC*/
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
-#define  CONFIG_UART_HOST                   /* Turn on serial port */
+#define CONFIG_UART_HOST                    /* Turn on serial port */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
@@ -387,7 +389,6 @@
 #define LOG_ID_WAKEUP_0xFC      0xFC    /* EC auto power on */
 #define LOG_ID_WAKEUP_0xFD      0xFD    /* system power on after mirror */
 #define LOG_ID_WAKEUP_0xFE      0xFE    /* internal WDT wakeup */
-
 
 
 /* We can select CONFIG_WP_ALWAYS for independent on gpio, Or
