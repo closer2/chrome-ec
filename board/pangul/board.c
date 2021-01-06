@@ -549,4 +549,5 @@ static void ec_oem_version_set(void)
     *(mptr+EC_MEMMAP_GPIO_PROJECT_ID) = (uint8_t)system_get_project_version();
 }
 DECLARE_HOOK(HOOK_INIT, ec_oem_version_set, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_CHIPSET_STARTUP, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 
