@@ -267,6 +267,13 @@ uint32_t system_get_sku_id(void);
 int system_get_board_version(void);
 
 /**
+ * Return the project version number.  The meaning of this number is
+ * project-dependent; projects where the code actually cares about this should
+ * declare enum project_version in board.h.
+ */
+int system_get_project_version(void);
+
+/**
  * Return information about the build including the version, build date and
  * user/machine which performed the build.
  */

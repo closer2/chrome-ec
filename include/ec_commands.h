@@ -139,8 +139,8 @@ extern "C" {
 #define EC_MEMMAP_Month                     0x05 /* EC_Month */
 #define EC_MEMMAP_Day                       0x06 /* EC_Day */
 /* Unused 0x07 - 0x0B */
-#define EC_MEMMAP_POST_WATCHDOG_COUNTER     0x0C /* BIOS POST watchd1og counter */
-#define EC_MEMMAP_POST_WATCHDOG_TIMES       0x0D /* BIOS POST watchdog re-try times */ 
+#define EC_MEMMAP_GPIO_BOARD_ID             0x0C /* BOARD_ID */
+#define EC_MEMMAP_GPIO_PROJECT_ID           0x0D /* PROJECT_ID */ 
 /* Unused 0x0E - 0x0F */
 #define EC_MEMMAP_DEVICE_CONTROL_REG        0x10 /* Device Control register */ 
 #define EC_MEMMAP_LID_STATUS        BIT(0) /* 1:LID closed;0:LID open */
@@ -7343,10 +7343,11 @@ struct ec_params_notify_EC {
 } __ec_align4;
 
 /* Get different type information*/
-#define EC_CMD_GET_INFORMATION 0x0613
+#define EC_CMD_INFORMATION_FUNTION 0x0613
 /**
  * struct ec_params_information - Parameters for different type read command.
  * @type: 0x01: Get ChassisIntrusion data.
+ *        0x02: Clear ChassisIntrusion data.
  * @Reserved: Reserved.
  * @data:BIOS read data form EC. 
  */

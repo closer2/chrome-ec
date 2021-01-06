@@ -537,9 +537,16 @@ static void ec_oem_version_set(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_VERSION_X);
 
+    /* Update ec version to RAM */
     *(mptr+0) = BLD_EC_VERSION_X_HEX;
     *(mptr+1) = BLD_EC_VERSION_YZ_HEX;
     *(mptr+2) = BLD_EC_VERSION_TEST_HEX;
+
+    /* Update board ID to RAM */     
+    *(mptr+EC_MEMMAP_GPIO_BOARD_ID) = (uint8_t)system_get_board_version();
+    
+    /* Update project ID to RAM */
+    *(mptr+EC_MEMMAP_GPIO_PROJECT_ID) = (uint8_t)system_get_project_version();
 }
 DECLARE_HOOK(HOOK_INIT, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 
