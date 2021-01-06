@@ -100,7 +100,7 @@
 #define CONFIG_HOSTCMD_RTC                  /* For host update EC RTC*/
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
-#undef  CONFIG_UART_HOST                    /* Turn on serial port */
+#define  CONFIG_UART_HOST                   /* Turn on serial port */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2

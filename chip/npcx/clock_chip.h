@@ -51,7 +51,7 @@
  */
 /* Target OSC_CLK OSCCLK freq */
 #ifdef CONFIG_UART_HOST
-#define OSC_CLK 100000000 /* FMCLK have to using 50MHz, Support Serial port */
+#define OSC_CLK 96000000 /* FMCLK have to using 48MHz, Support Serial port */
 #else 
 #define OSC_CLK 90000000
 #endif
@@ -81,28 +81,15 @@
 /* APBs source clock */
 #define APBSRC_CLK OSC_CLK
 
-#ifdef CONFIG_UART_HOST
-/* APB1 clock divider 20MHz */
-#define APB1DIV 4 /* APB1 clock = OSC_CLK/5 */
-/* APB2 clock divider 20MHz*/
-#define APB2DIV 4 /* APB2 clock = OSC_CLK/5 */
-/* APB3 clock divider 20MHz*/
-#define APB3DIV 4 /* APB3 clock = OSC_CLK/5 */
-#if NPCX_FAMILY_VERSION >= NPCX_FAMILY_NPCX9
-/* APB4 clock divider 20MHz*/
-#define APB4DIV 4 /* APB4 clock = OSC_CLK/5 */
-#endif
-#else
-/* APB1 clock divider 15MHz*/
+/* APB1 clock divider 16MHz*/
 #define APB1DIV 5 /* APB1 clock = OSC_CLK/6 */
-/* APB2 clock divider 15MHz*/
+/* APB2 clock divider 16MHz*/
 #define APB2DIV 5 /* APB2 clock = OSC_CLK/6 */
-/* APB3 clock divider 15MHz*/
+/* APB3 clock divider 16MHz*/
 #define APB3DIV 5 /* APB3 clock = OSC_CLK/6 */
 #if NPCX_FAMILY_VERSION >= NPCX_FAMILY_NPCX9
-/* APB4 clock divider 15MHz*/
+/* APB4 clock divider 16MHz*/
 #define APB4DIV 5 /* APB4 clock = OSC_CLK/6 */
-#endif
 #endif
 #endif
 
