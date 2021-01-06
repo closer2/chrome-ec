@@ -418,5 +418,10 @@ void wakeup_cause_record(uint32_t data);
 void shutdown_cause_record(uint32_t data);
 
 
+void mfg_data_write(uint8_t index, uint8_t data);
+
+
+uint8_t mfg_data_read(uint8_t index);
+
 
 #endif  /* __CROS_EC_FLASH_H */
