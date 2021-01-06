@@ -1925,4 +1925,108 @@ DECLARE_CONSOLE_COMMAND(flash_log, console_command_write_flash_log,
         "[shutdown/wakeup <log_id>]",
         "Write log_id to flash");
 
+
+#define MFG_DATA_ADDRESS    0x3E000
+#define MFG_DATA_BLOCK_SIZE 0x1000  // 4K
+#define MFG_DATA_SIZE       256     // 256-Byte
+
+static uint8_t mfg_data_map[MFG_DATA_SIZE] __aligned(8);
+
+void mfg_data_write(uint8_t index, uint8_t data)
+{
+    mfg_data_map[index] = data;
+    if(eflash_debug_physical_erase(MFG_DATA_ADDRESS, MFG_DATA_BLOCK_SIZE))
+    {
+        ccprintf(" mfg data update fail\n");
+    }
+    else
+    {
+        flash_write(MFG_DATA_ADDRESS, MFG_DATA_SIZE, (char *)mfg_data_map);
+        ccprintf(" mfg data update OK, index=[0x%02x] data=[0x%02x]\n",
+                index, data);
+    }
+}
+
+uint8_t mfg_data_read(uint8_t index)
+{
+    ccprintf(" mfg data read OK, index=[0x%02x] data=[0x%02x]\n",
+                index, mfg_data_map[index]);
+    return mfg_data_map[index];
+}
+
+static void mfg_data_init(void)
+{
+    flash_read(MFG_DATA_ADDRESS, MFG_DATA_SIZE, (char *)mfg_data_map);
+}
+DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
+
+static int console_command_mfg_data(int argc, char **argv)
+{
+    if (1 == argc)
+    {
+        return EC_ERROR_INVAL;
+    }
+    else
+    {
+        char *e;
+        uint8_t d;
+        uint8_t index;
+
+        if(!strcasecmp(argv[1], "write") && (4==argc))
+        {
+            index = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+        
+            d = strtoi(argv[3], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+            mfg_data_write(index, d);
+        }
+        else if(!strcasecmp(argv[1], "read") && (3==argc))
+        {
+            index = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+            mfg_data_read(index);
+        }
+        else if(!strcasecmp(argv[1], "show"))
+        {
+            //TODO, Maybe you need to parse the MFG data here
+        }
+        else
+        {
+            return EC_ERROR_PARAM2;
+        }
+    }
+    
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(mfg_data, console_command_mfg_data,
+        "[show]"
+        "[read <index>]"
+        "[write <index> <data>]",
+        "read/Write mfg data to flash");
+
+#else
+void shutdown_cause_record(uint32_t data)
+{
+    ccprintf(" Please define CONFIG_FLASH_LOG_OEM\n");
+}
+
+void wakeup_cause_record(uint32_t data)
+{
+    ccprintf(" Please define CONFIG_FLASH_LOG_OEM\n");
+}
+
+void mfg_data_write(uint8_t index, uint8_t data)
+{
+    ccprintf(" Please define CONFIG_FLASH_LOG_OEM\n");
+}
+
+uint8_t mfg_data_read(uint8_t index)
+{
+    ccprintf(" Please define CONFIG_FLASH_LOG_OEM\n");
+    return 0;
+}
 #endif
