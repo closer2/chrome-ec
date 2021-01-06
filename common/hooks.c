@@ -58,6 +58,7 @@ static const struct hook_ptrs hook_list[] = {
 #ifdef CONFIG_USB_SUSPEND
 	{__hooks_usb_change, __hooks_usb_change_end},
 #endif
+    {__hooks_msec, __hooks_msec_end},
 	{__hooks_tick, __hooks_tick_end},
 	{__hooks_second, __hooks_second_end},
 	{__hooks_usb_pd_disconnect, __hooks_usb_pd_disconnect_end},
@@ -177,6 +178,7 @@ void hook_task(void *u)
 	/* Periodic hooks will be called first time through the loop */
 	static uint64_t last_second = -SECOND;
 	static uint64_t last_tick = -HOOK_TICK_INTERVAL;
+    static uint64_t last_10ms = -HOOK_INTERVAL_10MS;
 
 	hook_task_started = 1;
 
@@ -214,6 +216,11 @@ void hook_task(void *u)
 			hook_notify(HOOK_TICK);
 			last_tick = t;
 		}
+
+        if(t - last_10ms >= HOOK_INTERVAL_10MS) {
+            hook_notify(HOOK_MSEC);
+			last_10ms = t;
+        }
 
 		if (t - last_second >= SECOND) {
 #ifdef CONFIG_HOOK_DEBUG

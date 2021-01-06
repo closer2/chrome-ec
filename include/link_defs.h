@@ -68,6 +68,8 @@ extern const struct hook_data __hooks_battery_soc_change_end[];
 extern const struct hook_data __hooks_usb_change[];
 extern const struct hook_data __hooks_usb_change_end[];
 #endif
+extern const struct hook_data __hooks_msec[];
+extern const struct hook_data __hooks_msec_end[];
 extern const struct hook_data __hooks_tick[];
 extern const struct hook_data __hooks_tick_end[];
 extern const struct hook_data __hooks_second[];

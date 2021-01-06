@@ -295,6 +295,10 @@ SECTIONS
 		__hooks_usb_change_end = .;
 #endif
 
+		__hooks_msec = .;
+		KEEP(*(.rodata.HOOK_MSEC))
+		__hooks_msec_end = .;
+		
 		__hooks_tick = .;
 		KEEP(*(.rodata.HOOK_TICK))
 		__hooks_tick_end = .;

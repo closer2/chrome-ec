@@ -438,6 +438,7 @@ static void oem_bios_to_ec_command(void)
         return;
     }
 
+    *(bios_cmd+1) = 0x00;
     CPRINTS("BIOS command=[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
     switch (*bios_cmd) {
     case 0x01 : /* BIOS write ec reset flag*/
@@ -446,7 +447,17 @@ static void oem_bios_to_ec_command(void)
         *(bios_cmd+1) = 0x01; /* command status */
         break;
 
-    case 0x02 :
+    case 0x02 : /* power button control */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+        if(0x01 == *(bios_cmd+2)) /* disable */
+        {
+            (*mptr) |= EC_MEMMAP_POWER_LOCK;
+        }
+        else     /* enable */
+        {
+            (*mptr) &= (~EC_MEMMAP_POWER_LOCK);
+        }
+        *(bios_cmd+1) = 0x02;
         break;
 
     case 0x03 :
@@ -458,5 +469,5 @@ static void oem_bios_to_ec_command(void)
 
     *bios_cmd = 0;
 }
-DECLARE_HOOK(HOOK_SECOND, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
 

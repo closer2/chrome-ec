@@ -212,6 +212,13 @@ enum hook_type {
 	HOOK_USB_PM_CHANGE,
 #endif
 
+    /*
+	 * Periodic tick, every HOOK_INTERVAL_10MS.
+	 *
+	 * Hook routines will be called from the TICK task.
+	 */
+    HOOK_MSEC,
+
 	/*
 	 * Periodic tick, every HOOK_TICK_INTERVAL.
 	 *

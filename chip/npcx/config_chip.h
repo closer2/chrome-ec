@@ -48,6 +48,8 @@
 #define HOOK_TICK_INTERVAL_MS 200
 #define HOOK_TICK_INTERVAL    (HOOK_TICK_INTERVAL_MS * MSEC)
 
+#define HOOK_INTERVAL_10MS    (10 * MSEC)
+
 /* System stack size */
 #define CONFIG_STACK_SIZE       1024
 
