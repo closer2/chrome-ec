@@ -31,8 +31,6 @@ static uint8_t __bss_slow acpi_cmd;
 static uint8_t __bss_slow acpi_addr;
 /* Number of data writes after command */
 static int __bss_slow acpi_data_count;
-/* Test byte in ACPI memory space */
-static uint8_t __bss_slow acpi_mem_test;
 
 #ifdef CONFIG_DPTF
 static int __bss_slow dptf_temp_sensor_id;	/* last sensor ID written */
@@ -128,35 +126,33 @@ int acpi_dptf_get_profile_num(void)
 /* Read memmapped data, returns read data or 0xff on error. */
 static int acpi_read(uint8_t addr)
 {
-	uint8_t *memmap_addr = (uint8_t *)(lpc_get_memmap_range() + addr -
-					   EC_ACPI_MEM_MAPPED_BEGIN);
+    uint8_t *memmap_addr = (uint8_t *)(lpc_get_memmap_range() + addr);
 
-	/* Check for out-of-range read. */
-	if (addr < EC_ACPI_MEM_MAPPED_BEGIN ||
-	    addr >= EC_ACPI_MEM_MAPPED_BEGIN + EC_ACPI_MEM_MAPPED_SIZE) {
-		CPRINTS("ACPI read 0x%02x (ignored)",
-			acpi_addr);
-		return 0xff;
-	}
+    /* Read from cache if enabled (burst mode). */
+    if (acpi_read_cache.enabled) {
+        /* Fetch to cache on miss. */
+        if (acpi_read_cache.start_addr == ACPI_READ_CACHE_FLUSHED ||
+            acpi_read_cache.start_addr > addr ||
+            addr - acpi_read_cache.start_addr >=
+            ACPI_READ_CACHE_SIZE) {
+            memcpy(acpi_read_cache.data, memmap_addr, ACPI_VALID_CACHE_SIZE(addr));
+            acpi_read_cache.start_addr = addr;
+        }
+        
+        /* Return data from cache. */
+        return acpi_read_cache.data[addr - acpi_read_cache.start_addr];
+    } else {
+        /* Read directly from memmap data. */
+        return *memmap_addr;
+    }
+}
 
-	/* Read from cache if enabled (burst mode). */
-	if (acpi_read_cache.enabled) {
-		/* Fetch to cache on miss. */
-		if (acpi_read_cache.start_addr == ACPI_READ_CACHE_FLUSHED ||
-		    acpi_read_cache.start_addr > addr ||
-		    addr - acpi_read_cache.start_addr >=
-		    ACPI_READ_CACHE_SIZE) {
-			memcpy(acpi_read_cache.data,
-			       memmap_addr,
-			       ACPI_VALID_CACHE_SIZE(addr));
-			acpi_read_cache.start_addr = addr;
-		}
-		/* Return data from cache. */
-		return acpi_read_cache.data[addr - acpi_read_cache.start_addr];
-	} else {
-		/* Read directly from memmap data. */
-		return *memmap_addr;
-	}
+static void acpi_write(uint8_t addr, int w_data)
+{
+    uint8_t *memmap_addr = (uint8_t *)(lpc_get_memmap_range() + addr);
+    
+    CPRINTS("ACPI IO(6266) write [0x%02x] -> [0x%02x] (pass)", w_data, addr);
+    *memmap_addr = w_data;
 }
 
 /*
@@ -165,224 +161,91 @@ static int acpi_read(uint8_t addr)
  */
 int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
 {
-	int data = 0;
-	int retval = 0;
-	int result = 0xff;			/* value for bogus read */
+    int data = 0;
+    int retval = 0;
+    int result = 0xff;      /* value for bogus read */
 
-	/* Read command/data; this clears the FRMH status bit. */
-	if (is_cmd) {
-		acpi_cmd = value;
-		acpi_data_count = 0;
-	} else {
-		data = value;
-		/*
-		 * The first data byte is the ACPI memory address for
-		 * read/write commands.
-		 */
-		if (!acpi_data_count++)
-			acpi_addr = data;
-	}
+    /* Read command/data; this clears the FRMH status bit. */
+    if (is_cmd) {
+        acpi_cmd = value;
+        acpi_data_count = 0;
+    } else {
+        data = value;
+        /*
+        * The first data byte is the ACPI memory address for
+        * read/write commands.
+        */
+        if (!acpi_data_count++)
+            acpi_addr = data;
+    }
 
-	/* Process complete commands */
-	if (acpi_cmd == EC_CMD_ACPI_READ && acpi_data_count == 1) {
-		/* ACPI read cmd + addr */
-		switch (acpi_addr) {
-		case EC_ACPI_MEM_VERSION:
-			result = EC_ACPI_MEM_VERSION_CURRENT;
-			break;
-		case EC_ACPI_MEM_TEST:
-			result = acpi_mem_test;
-			break;
-		case EC_ACPI_MEM_TEST_COMPLIMENT:
-			result = 0xff - acpi_mem_test;
-			break;
-#ifdef CONFIG_KEYBOARD_BACKLIGHT
-		case EC_ACPI_MEM_KEYBOARD_BACKLIGHT:
-			result = kblight_get();
-			break;
-#endif
+    /* Process complete commands */
+    if (acpi_cmd == EC_CMD_ACPI_READ && acpi_data_count == 1) {
+        /* ACPI read cmd + addr */
+        switch (acpi_addr) {
 #ifdef CONFIG_FANS
-		case EC_ACPI_MEM_FAN_DUTY:
-			result = dptf_get_fan_duty_target();
-			break;
+        case EC_ACPI_MEM_FAN_DUTY:
+            result = dptf_get_fan_duty_target();
+            break;
 #endif
 #ifdef CONFIG_DPTF
-		case EC_ACPI_MEM_TEMP_ID:
-			result = dptf_query_next_sensor_event();
-			break;
-#endif
-#ifdef CONFIG_CHARGER
-		case EC_ACPI_MEM_CHARGING_LIMIT:
-			result = dptf_get_charging_current_limit();
-			if (result >= 0)
-				result /= EC_ACPI_MEM_CHARGING_LIMIT_STEP_MA;
-			else
-				result = EC_ACPI_MEM_CHARGING_LIMIT_DISABLED;
-			break;
+        case EC_ACPI_MEM_TEMP_ID:
+            result = dptf_query_next_sensor_event();
+            break;
 #endif
 
-		case EC_ACPI_MEM_DEVICE_ORIENTATION:
-			result = 0;
-
-#ifdef CONFIG_TABLET_MODE
-			result = tablet_get_mode() << EC_ACPI_MEM_TBMD_SHIFT;
-#endif
-
+        case EC_ACPI_MEM_DEVICE_ORIENTATION:
+            result = 0;
 #ifdef CONFIG_DPTF
-			result |= (acpi_dptf_get_profile_num() &
-				   EC_ACPI_MEM_DDPN_MASK)
-				<< EC_ACPI_MEM_DDPN_SHIFT;
+            result |= (acpi_dptf_get_profile_num() &
+               EC_ACPI_MEM_DDPN_MASK)
+               EC_ACPI_MEM_DDPN_SHIFT;
 #endif
-			break;
+            break;
 
-		case EC_ACPI_MEM_DEVICE_FEATURES0:
-		case EC_ACPI_MEM_DEVICE_FEATURES1:
-		case EC_ACPI_MEM_DEVICE_FEATURES2:
-		case EC_ACPI_MEM_DEVICE_FEATURES3: {
-			int off = acpi_addr - EC_ACPI_MEM_DEVICE_FEATURES0;
-			uint32_t val = get_feature_flags0();
 
-			/* Flush EC_FEATURE_LIMITED bit. Having it reset to 0
-			 * means that FEATURES[0-3] are supported in the first
-			 * place, and the other bits are valid.
-			 */
-			val &= ~1;
+        default:
+            result = acpi_read(acpi_addr);
+            break;
+        }
 
-			result = val >> (8 * off);
-			break;
-			}
-		case EC_ACPI_MEM_DEVICE_FEATURES4:
-		case EC_ACPI_MEM_DEVICE_FEATURES5:
-		case EC_ACPI_MEM_DEVICE_FEATURES6:
-		case EC_ACPI_MEM_DEVICE_FEATURES7: {
-			int off = acpi_addr - EC_ACPI_MEM_DEVICE_FEATURES4;
-			uint32_t val = get_feature_flags1();
+        /* Send the result byte */
+        *resultptr = result;
+        retval = 1;
 
-			result = val >> (8 * off);
-			break;
-			}
-
-#ifdef CONFIG_USB_PORT_POWER_DUMB
-		case EC_ACPI_MEM_USB_PORT_POWER: {
-			int i;
-			const int port_count = MIN(8, USB_PORT_COUNT);
-
-			/*
-			 * Convert each USB port power GPIO signal to a bit
-			 * field with max size 8 bits. USB port ID (index) 0 is
-			 * the least significant bit.
-			 */
-			result = 0;
-			for (i = 0; i < port_count; ++i) {
-				if (gpio_get_level(usb_port_enable[i]) != 0)
-					result |= 1 << i;
-			}
-			break;
-			}
-#endif
-
-		default:
-			result = acpi_read(acpi_addr);
-			break;
-		}
-
-		/* Send the result byte */
-		*resultptr = result;
-		retval = 1;
-
-	} else if (acpi_cmd == EC_CMD_ACPI_WRITE && acpi_data_count == 2) {
-		/* ACPI write cmd + addr + data */
-		switch (acpi_addr) {
-		case EC_ACPI_MEM_TEST:
-			acpi_mem_test = data;
-			break;
-#ifdef CONFIG_BATTERY_V2
-		case EC_ACPI_MEM_BATTERY_INDEX:
-			CPRINTS("ACPI battery %d", data);
-			battery_memmap_set_index(data);
-			break;
-#endif
-#ifdef CONFIG_KEYBOARD_BACKLIGHT
-		case EC_ACPI_MEM_KEYBOARD_BACKLIGHT:
-			/*
-			 * Debug output with CR not newline, because the host
-			 * does a lot of keyboard backlights and it scrolls the
-			 * debug console.
-			 */
-			CPRINTF("\r[%pT ACPI kblight %d]",
-				PRINTF_TIMESTAMP_NOW, data);
-			kblight_set(data);
-			kblight_enable(data > 0);
-			break;
-#endif
+    }
+    else if (acpi_cmd == EC_CMD_ACPI_WRITE && acpi_data_count == 2) {
+        /* ACPI write cmd + addr + data */
+        switch (acpi_addr) {
 #ifdef CONFIG_FANS
-		case EC_ACPI_MEM_FAN_DUTY:
-			dptf_set_fan_duty_target(data);
-			break;
+        case EC_ACPI_MEM_FAN_DUTY:
+            dptf_set_fan_duty_target(data);
+            break;
 #endif
+
 #ifdef CONFIG_DPTF
-		case EC_ACPI_MEM_TEMP_ID:
-			dptf_temp_sensor_id = data;
-			break;
-		case EC_ACPI_MEM_TEMP_THRESHOLD:
-			dptf_temp_threshold = data + EC_TEMP_SENSOR_OFFSET;
-			break;
-		case EC_ACPI_MEM_TEMP_COMMIT:
-		{
-			int idx = data & EC_ACPI_MEM_TEMP_COMMIT_SELECT_MASK;
-			int enable = data & EC_ACPI_MEM_TEMP_COMMIT_ENABLE_MASK;
-			dptf_set_temp_threshold(dptf_temp_sensor_id,
-						dptf_temp_threshold,
-						idx, enable);
-			break;
-		}
-#endif
-#ifdef CONFIG_CHARGER
-		case EC_ACPI_MEM_CHARGING_LIMIT:
-			if (data == EC_ACPI_MEM_CHARGING_LIMIT_DISABLED) {
-				dptf_set_charging_current_limit(-1);
-			} else {
-				data *= EC_ACPI_MEM_CHARGING_LIMIT_STEP_MA;
-				dptf_set_charging_current_limit(data);
-			}
-			break;
+        case EC_ACPI_MEM_TEMP_ID:
+            dptf_temp_sensor_id = data;
+            break;
+        case EC_ACPI_MEM_TEMP_THRESHOLD:
+            dptf_temp_threshold = data + EC_TEMP_SENSOR_OFFSET;
+            break;
+        case EC_ACPI_MEM_TEMP_COMMIT:
+        {
+            int idx = data & EC_ACPI_MEM_TEMP_COMMIT_SELECT_MASK;
+            int enable = data & EC_ACPI_MEM_TEMP_COMMIT_ENABLE_MASK;
+            dptf_set_temp_threshold(dptf_temp_sensor_id,
+                    dptf_temp_threshold, idx, enable);
+            break;
+        }
 #endif
 
-#ifdef CONFIG_USB_PORT_POWER_DUMB
-		case EC_ACPI_MEM_USB_PORT_POWER: {
-			int i;
-			int mode_field = data;
-			const int port_count = MIN(8, USB_PORT_COUNT);
-
-			/*
-			 * Read the port power bit field (with max size 8 bits)
-			 * and set the charge mode of each USB port accordingly.
-			 * USB port ID 0 is the least significant bit.
-			 */
-			for (i = 0; i < port_count; ++i) {
-				int mode = USB_CHARGE_MODE_DISABLED;
-
-				if (mode_field & 1)
-					mode = USB_CHARGE_MODE_ENABLED;
-
-				if (usb_charge_set_mode(i, mode,
-				    USB_ALLOW_SUSPEND_CHARGE)) {
-					CPRINTS("ERROR: could not set charge "
-						"mode of USB port p%d to %d",
-						i, mode);
-				}
-				mode_field >>= 1;
-			}
-			break;
-			}
-#endif
-
-		default:
-			CPRINTS("ACPI write 0x%02x = 0x%02x (ignored)",
-				acpi_addr, data);
-			break;
-		}
-	} else if (acpi_cmd == EC_CMD_ACPI_QUERY_EVENT && !acpi_data_count) {
+        default:
+            acpi_write(acpi_addr, data);
+            break;
+        }
+    }
+    else if (acpi_cmd == EC_CMD_ACPI_QUERY_EVENT && !acpi_data_count) {
 		/* Clear and return the lowest host event */
 		int evt_index = lpc_get_next_host_event();
 		CPRINTS("ACPI query = %d", evt_index);
