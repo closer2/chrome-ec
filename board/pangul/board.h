@@ -23,11 +23,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "09"
+#define BLD_EC_VERSION_TEST     "0A"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x09
+#define BLD_EC_VERSION_TEST_HEX 0x0A
 
 
 /*------------------------------------------------------------------------------
@@ -96,7 +96,7 @@
 /* disable EC chip hibernate */
 #undef CONFIG_HIBERNATE                     /* Enable system hibernate */
 
-#define IO_900_WRITE_PROTECT                /* for IO/900-9CF write protection */
+#define CONFIG_IO900_WRITE_PROTECT          /* for IO/900-9CF write protection */
 
 #define CONFIG_FLASH_LOG_OEM                /* For flash write log function*/
 #define CONFIG_CMD_FLASH                    /* For flash console command function*/

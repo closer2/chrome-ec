@@ -19,13 +19,10 @@ enum power_signal {
 #define IN_SLP_S3_N		POWER_SIGNAL_MASK(X86_SLP_S3_N)
 #define IN_SLP_S5_N		POWER_SIGNAL_MASK(X86_SLP_S5_N)
 
-#define IN_ALL_PM_SLP_DEASSERTED (IN_SLP_S3_N | \
-				  IN_SLP_S5_N)
+#define IN_ALL_PM_SLP_DEASSERTED (IN_SLP_S3_N | IN_SLP_S5_N)
 
 /* All core and non-core power */
-#define IN_PGOOD_ALL_CORE (IN_ATX_PG | \
-			IN_VCORE_EN | \
-			IN_VRMPWRGD)
+#define IN_PGOOD_ALL_CORE (IN_ATX_PG | IN_VCORE_EN | IN_VRMPWRGD)
 
 /* All always-on supplies */
 #define IN_PGOOD_ALWAYS_ON (IN_SYSTEM_ALW_PG)

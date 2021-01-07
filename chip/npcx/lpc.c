@@ -795,7 +795,7 @@ static void lpc_init(void)
 	NPCX_WIN_SIZE = 0x88;
 	NPCX_WIN_BASE(0) = (uint32_t)shm_mem_host_cmd;
 	NPCX_WIN_BASE(1) = (uint32_t)shm_memmap;
-	#if defined(IO_900_WRITE_PROTECT)
+	#if defined(CONFIG_IO900_WRITE_PROTECT)
 	/* Write protect of Share memory */
     /* 00-CF, Protects the eighth (higher) 1/8 of the RAM1 window */
 	NPCX_WIN_WR_PROT(1) = 0x7F;

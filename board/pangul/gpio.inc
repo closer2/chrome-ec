@@ -36,7 +36,7 @@ GPIO_INT(APU_PCIE_RST_L,	PIN(2, 1), GPIO_INT_BOTH,			apu_pcie_reset_interrupt)	/
 
 
 /* Replace of the above for PanGuL board */
-GPIO(EC_FCH_PWRGD,		    PIN(A, 6), GPIO_OUT_LOW)			/* Power OK to SOC, EC_FCH_PWRGD */
+GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)			/* Power OK to SOC, EC_FCH_PWRGD */
 GPIO(EC_FCH_SCI_ODL,		PIN(7, 6), GPIO_OUT_HIGH)			/* SCI to SOC, EC_SCI_N */
 GPIO(EC_FCH_PWR_BTN_L,		PIN(7, 4), GPIO_OUT_HIGH)			/* Power Button to SOC, EC_PWRBTN_OUT_N */
 GPIO(EC_1V8_AUX_EN,		    PIN(7, 0), GPIO_OUT_HIGH)			/* 1.8V AUX Enable, EC_1.8V_AUX_EN */
