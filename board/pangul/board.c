@@ -343,13 +343,13 @@ const struct fan_conf fan_conf_1 = {
 const struct fan_rpm fan_rpm_0 = {
 	.rpm_min = 1000,
 	.rpm_start = 1000,
-	.rpm_max = 5200,
+	.rpm_max = 2500,
 };
 
 const struct fan_rpm fan_rpm_1 = {
 	.rpm_min = 1000,
 	.rpm_start = 1000,
-	.rpm_max = 4300,
+	.rpm_max = 2500,
 };
 
 const struct fan_t fans[] = {
@@ -361,8 +361,8 @@ BUILD_ASSERT(ARRAY_SIZE(fans) == FAN_CH_COUNT);
 /******************************************************************************/
 /* MFT channels. These are logically separate from pwm_channels. */
 const struct mft_t mft_channels[] = {
-	[MFT_CH_0] = { NPCX_MFT_MODULE_1, TCKC_LFCLK, PWM_CH_SYS_FAN},
-    [MFT_CH_1] = { NPCX_MFT_MODULE_2, TCKC_LFCLK, PWM_CH_CPU_FAN},
+	[MFT_CH_0] = { NPCX_MFT_MODULE_1, TCKC_LFCLK, PWM_CH_CPU_FAN},
+    [MFT_CH_1] = { NPCX_MFT_MODULE_2, TCKC_LFCLK, PWM_CH_SYS_FAN},
 };
 BUILD_ASSERT(ARRAY_SIZE(mft_channels) == MFT_CH_COUNT);
 /*

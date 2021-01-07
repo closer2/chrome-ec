@@ -518,6 +518,7 @@ DECLARE_HOOK(HOOK_INIT, pwm_fan_init, HOOK_PRIO_DEFAULT);
 static void pwm_fan_second(void)
 {
 	uint16_t *mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
+    uint8_t *fan_status = (uint8_t *)host_get_memmap(EC_MEMMAP_SYS_FAN_STATUS);
 	uint16_t rpm;
 	int stalled = 0;
 	int fan;
@@ -532,6 +533,7 @@ static void pwm_fan_second(void)
 		}
 
 		mapped[fan] = rpm;
+        *(fan_status + fan) = (uint8_t)fan_get_status(fan);
 	}
 
 	/*

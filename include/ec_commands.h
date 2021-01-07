@@ -206,9 +206,10 @@ extern "C" {
 #define EC_MEMMAP_TEMP_SENSOR_0E            0x2E
 #define EC_MEMMAP_TEMP_SENSOR_0F            0x2F
 #define EC_MEMMAP_TEMP_SENSOR               EC_MEMMAP_TEMP_SENSOR_00
-
-/* Unused 0x30 -0x53 */
-
+/* Unused 0x30 -0x52 */
+#define EC_MEMMAP_SYS_FAN_STATUS            0x53 /* SYS fan_status */ 
+#define EC_MEMMAP_CPU_FAN_STATUS            0x54 /* CPU fan_status */ 
+/* Unused 0x55 */
 /* SYS Fan RPM (High byte 0x56,Low byte 0x57),
  * CPU Fan RPM (High byte 0x58,Low byte 0x59). */
 #define EC_MEMMAP_FAN_RPM                   0x56
