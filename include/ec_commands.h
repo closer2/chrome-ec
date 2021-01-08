@@ -158,8 +158,8 @@ extern "C" {
 #define EC_MEMMAP_MIC_MODE          BIT(4) /* 1:Microphone mute, 0:Mic un-mute. */
 
 #define EC_MEMMAP_LEDERROR_CONTROL          0x17 /* EC Error LED control */ 
-#define EC_MEMMAP_KBB1IDTIME_HBYTE          0x18 /* KbBlIdleTime High Byte */ 
-#define EC_MEMMAP_KBB1IDTIME_LBYTE          0x19 /* KbBlIdleTime Low Byte */ 
+#define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(!0xBE:NO MODE;0xBE:MFG MODE) */
+/* Unused 0x19 */
 #define EC_MEMMAP_SYS_MISC1                 0x1A /* SYS_MISC1 */ 
 #define EC_MEMMAP_NC0               BIT(0) /* NC0 */
 #define EC_MEMMAP_NC1               BIT(1) /* NC1 */
@@ -167,7 +167,6 @@ extern "C" {
 
 #define EC_MEMMAP_SYS_MISC2                 0x1B /* SYS_MISC2 */
 #define EC_MEMMAP_AC_ADAPTER_FLAG   BIT(0) /* AC adapter Status (0:Off-line;1:On-line) */ 
-#define EC_MEMMAP_MFG_MODE_FLAG     BIT(1) /* MFG mode status (1:enable; 0:diable)*/
 
 #define EC_MEMMAP_SYS_MISC3                 0x1C /* status/flag. */ 
 #define EC_MEMMAP_SHOP_MODE         BIT(1) /* Shop mode of thermal table */

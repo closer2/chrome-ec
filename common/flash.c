@@ -1962,7 +1962,11 @@ uint8_t mfg_data_read(uint8_t index)
 
 static void mfg_data_init(void)
 {
+    uint8_t *mfgMode = (uint8_t *)host_get_memmap(EC_MEMMAP_MFG_MODE);
+    
     flash_read(MFG_DATA_ADDRESS, MFG_DATA_SIZE, (char *)mfg_data_map);
+    /* initialize read MFG mode */
+    *mfgMode = mfg_data_read(MFG_MODE_OFFSET);
 }
 DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
 
@@ -2023,8 +2027,11 @@ DECLARE_HOST_COMMAND(EC_CMD_FLASH_GET_MFG_DATA,
 static enum ec_status host_command_mfg_data_write(struct host_cmd_handler_args *args)
 {
     const struct ec_params_mfg_data *p = args->params;
+    uint8_t *mfgMode_target = (uint8_t *)host_get_memmap(EC_MEMMAP_MFG_MODE);
 
     mfg_data_write(p->index, p->data);
+    /* Updata MFG mode to memory */
+    *mfgMode_target = p->data;
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_FLASH_SET_MFG_DATA,
