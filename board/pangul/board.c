@@ -82,42 +82,41 @@ BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
 
 int board_get_temp(int idx, int *temp_k)
 {
-	int mv;
-	int temp_c;
-	enum adc_channel channel;
+    int mv;
+    int temp_c;
+    enum adc_channel channel;
 
-	/* idx is the sensor index set in board temp_sensors[] */
-	switch (idx) {
-    case TEMP_SENSOR_SOC_CORE:
-		/* thermistor is not powered in G3 */
-		if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
-			return EC_ERROR_NOT_POWERED;
+    /* idx is the sensor index set in board temp_sensors[] */
+    switch (idx) {
+        case TEMP_SENSOR_SOC_NEAR:
+            /* thermistor is not powered in G3 */
+            if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
+                return EC_ERROR_NOT_POWERED;
+            channel = ADC_SENSOR_SOC_NEAR;
+            break;    
+        case TEMP_SENSOR_SSD_NEAR:
+            channel = ADC_SENSOR_SSD_NEAR;
+            break;
+        case TEMP_SENSOR_PCIEX16_NEAR:
+            channel = ADC_SENSOR_PCIEX16_NEAR;
+            break;
+        case TEMP_SENSOR_ENVIRONMENT:
+            channel = ADC_SENSOR_ENVIRONMENT;
+            break;
+        case TEMP_SENSOR_MEMORY_NEAR:
+            channel = ADC_SENSOR_MEMORY_NEAR;
+            break;  
+        default:
+            return EC_ERROR_INVAL;
+    }
 
-		channel = ADC_SENSOR_SOC_NEAR;
-		break;    
-    case TEMP_SENSOR_SSD_NEAR:
-		channel = ADC_SENSOR_SSD_NEAR;
-		break;
-    case TEMP_SENSOR_PCIEX16_NEAR:
-		channel = ADC_SENSOR_PCIEX16_NEAR;
-		break;
-    case TEMP_SENSOR_ENVIRONMENT:
-		channel = ADC_SENSOR_ENVIRONMENT;
-		break;
-    case TEMP_SENSOR_MEMORY_NEAR:
-		channel = ADC_SENSOR_MEMORY_NEAR;
-		break;  
-	default:
-		return EC_ERROR_INVAL;
-	}
+    mv = adc_read_channel(channel);
+    if (mv < 0)
+        return EC_ERROR_INVAL;
 
-	mv = adc_read_channel(channel);
-	if (mv < 0)
-		return EC_ERROR_INVAL;
-
-	temp_c = thermistor_linear_interpolate(mv, &thermistor_info);
-	*temp_k = C_TO_K(temp_c);
-	return EC_SUCCESS;
+    temp_c = thermistor_linear_interpolate(mv, &thermistor_info);
+    *temp_k = C_TO_K(temp_c);
+    return EC_SUCCESS;
 }
 
 const struct adc_t adc_channels[] = {
@@ -151,7 +150,7 @@ const struct adc_t adc_channels[] = {
 	},
     [ADC_SENSOR_MEMORY_NEAR] = {
 		.name = "Memory Near",
-		.input_ch = NPCX_ADC_CH1,
+		.input_ch = NPCX_ADC_CH8,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,

@@ -135,11 +135,6 @@
 #undef  CONFIG_FANS
 #define CONFIG_FANS 2 
 
-
-
-
-
-
 /* TODO: config fans */
 /* #ifdef VARIANT_ZORK_TREMBYLE
 	#define CONFIG_FANS FAN_CH_COUNT
@@ -285,7 +280,7 @@
 /* We only have one PD TCPC connect to PORT1_0 */
 #define I2C_PORT_SMB_AUX	NPCX_I2C_PORT0_0
 #define I2C_PORT_TCPC0		NPCX_I2C_PORT1_0
-#define I2C_PORT_THERMAL_AP	NPCX_I2C_PORT3_0
+#define I2C_PORT_THERMAL_AP	NPCX_I2C_PORT5_1
 
 
 /* TODO: need confirm with real hardware */
