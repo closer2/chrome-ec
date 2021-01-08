@@ -306,7 +306,7 @@ static void oem_bios_to_ec_command(void)
     }
 
     *(bios_cmd+1) = 0x00;
-    CPRINTS("BIOS command=[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+    CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
     switch (*bios_cmd) {
     case 0x01 : /* BIOS write ec reset flag*/
         mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
@@ -334,6 +334,7 @@ static void oem_bios_to_ec_command(void)
         break;
     }
 
+    CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
     *bios_cmd = 0;
 }
 DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
