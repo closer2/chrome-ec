@@ -98,6 +98,8 @@
 
 #define CONFIG_IO900_WRITE_PROTECT          /* for IO/900-9CF write protection */
 
+#define CONFIG_CMD_POWERLED                 /* for powerled command */
+
 #define CONFIG_FLASH_LOG_OEM                /* For flash write log function*/
 #define CONFIG_CMD_FLASH                    /* For flash console command function*/
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
