@@ -133,8 +133,21 @@
 #define CONFIG_EXTPOWER_DEBOUNCE_MS 200
 #define CONFIG_EXTPOWER_GPIO*/
 #undef CONFIG_EXTPOWER                      /* This board is desktop, NO AC status, undefine it*/
+
+/* TODO: config fans */
 #undef  CONFIG_FANS
 #define CONFIG_FANS 2 
+#undef CONFIG_FAN_RPM_CUSTOM
+/* #define CONFIG_CUSTOM_FAN_CONTROL */
+/* #ifdef VARIANT_ZORK_TREMBYLE
+	#define CONFIG_FANS FAN_CH_COUNT
+	#undef CONFIG_FAN_INIT_SPEED
+	#define CONFIG_FAN_INIT_SPEED 50
+#endif */
+#define CONFIG_FAN_FAULT_CHECK_SPEED   50      /* fan check fault percent */
+#define FAN_CHECK_FAULT_TIME           12     /* timebase 200ms */
+#define FAN_THERMAL_CONTROL_ENABLE     30    /* timebase 200ms*/
+#define FAN_DUTY_50_RPM                900     /* fan set duty 50%, check rpm > 900 */
 
 /*------------------------------------------------------------------------------
 * USB-C define for pangu-l

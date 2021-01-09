@@ -518,7 +518,7 @@ DECLARE_HOOK(HOOK_INIT, pwm_fan_init, HOOK_PRIO_DEFAULT);
 static void pwm_fan_second(void)
 {
 	uint16_t *mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
-    uint8_t *fan_status = (uint8_t *)host_get_memmap(EC_MEMMAP_SYS_FAN_STATUS);
+
 	uint16_t rpm;
 	int stalled = 0;
 	int fan;
@@ -533,7 +533,6 @@ static void pwm_fan_second(void)
 		}
 
 		mapped[fan] = rpm;
-        *(fan_status + fan) = (uint8_t)fan_get_status(fan);
 	}
 
 	/*
@@ -601,13 +600,23 @@ DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, pwm_fan_stop, HOOK_PRIO_DEFAULT);
 
 static void pwm_fan_start(void)
 {
+	uint8_t fan;
+
 	/*
 	 * Even if the DPTF is enabled, enable thermal control here.
 	 * Upon booting to S0, if needed AP will disable/throttle it using
 	 * host commands.
 	 */
-	if (chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON))
-		pwm_fan_control(1);
+	if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
+        return;
+    }
+		
+    pwm_fan_control(0); /* disable fan thermal control */
+   	/* powen on check fan fault */
+	for (fan = 0; fan < fan_count; fan++) {
+		set_enabled(fan, 1);
+        fan_set_duty(fan, CONFIG_FAN_FAULT_CHECK_SPEED);
+	}  
 }
 /* On Fizz, CHIPSET_RESUME isn't triggered when AP warm resets.
  * So we hook CHIPSET_RESET instead.

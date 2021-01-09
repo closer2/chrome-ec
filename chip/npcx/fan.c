@@ -21,6 +21,8 @@
 #include "hooks.h"
 #include "system.h"
 #include "math_util.h"
+#include "host_command.h"
+#include "chipset.h"
 
 #if !(DEBUG_FAN)
 #define CPRINTS(...)
@@ -547,3 +549,60 @@ static void fan_init(void)
 	clock_enable_peripheral(CGC_OFFSET_FAN, CGC_FAN_MASK, CGC_MODE_ALL);
 }
 DECLARE_HOOK(HOOK_INIT, fan_init, HOOK_PRIO_INIT_FAN);
+
+uint16_t count[CONFIG_FANS] = {0};
+uint8_t countflag[CONFIG_FANS] = {0};
+static void fan_fault_check(void)
+{
+	uint8_t fan;
+    uint16_t rpm_actual;
+    uint8_t *fan_fault = (uint8_t *)host_get_memmap(EC_MEMMAP_SYS_FAN_STATUS);
+
+     /*
+	 * Even if the DPTF is enabled, enable thermal control here.
+	 * Upon booting to S0, if needed AP will disable/throttle it using
+	 * host commands.
+	 * Make sure rpm mode is enabled.
+	 */
+	if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
+        return;
+    }
+
+    if ((count[0] > FAN_CHECK_FAULT_TIME) && (countflag[0] == 0x0)) {
+        countflag[0] = 0x01;
+    	for (fan = 0; fan < fan_get_count(); fan++) {
+		    /* Fan in duty mode still want rpm_actual being updated. */
+			rpm_actual = fan_get_rpm_actual(fan);
+            /* Upate fan fault status to ram */
+            if (rpm_actual > FAN_DUTY_50_RPM) {
+                *(fan_fault + fan) = 0x0;
+            } else {
+                *(fan_fault + fan) = 0x3;
+                CPRINTS("%s -> %s fan channel-%d/n", __FILE__, __func__, fan);
+            }
+        }
+    }else {
+        count[0]++;
+    }
+
+    if ((count[1] > FAN_THERMAL_CONTROL_ENABLE) && (countflag[1] == 0x0)) {
+        countflag[1] = 0x01;
+        pwm_fan_control(1); /* Enable fan thermal control */
+    } else {
+        count[1]++;
+    }
+}
+DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_DEFAULT);
+
+static void fan_fault_status_clear(void)
+{
+    uint8_t i;
+
+    for (i = 0; i < CONFIG_FANS; i++) {
+       count[i] = 0x0;
+       countflag[i] = 0x0;
+    }
+}
+DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, fan_fault_status_clear,
+	     HOOK_PRIO_DEFAULT);
+
