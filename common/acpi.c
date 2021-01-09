@@ -327,7 +327,17 @@ static void oem_bios_to_ec_command(void)
         *(bios_cmd+1) = 0x02;
         break;
 
-    case 0x03 :
+    case 0x03 : /* system G3 control */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+        if(0x01 == *(bios_cmd+2)) /* disable */
+        {
+            (*mptr) |= EC_MEMMAP_DISABLE_G3;
+        }
+        else     /* enable */
+        {
+            (*mptr) &= (~EC_MEMMAP_DISABLE_G3);
+        }
+        *(bios_cmd+1) = 0x03;
         break;
 
     default :
@@ -338,4 +348,59 @@ static void oem_bios_to_ec_command(void)
     *bios_cmd = 0;
 }
 DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
+
+
+#ifdef CONFIG_BIOS_CMD_TO_EC
+static int console_command_to_ec(int argc, char **argv)
+{
+    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
+    
+    if (1 == argc)
+    {
+        return EC_ERROR_INVAL;
+    }
+    else
+    {
+        char *e;
+        uint8_t d;
+
+        if(!strcasecmp(argv[1], "reset_ctrl"))
+        {
+            *(bios_cmd) = 0x01;
+            CPRINTS("set ec reset flasg(0xAA), ec will reset after system shutdown");
+        }
+        else if(!strcasecmp(argv[1], "psw_ctrl") && (3==argc))
+        {
+            d = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = d;
+            *(bios_cmd) = 0x02;
+            CPRINTS("%s power button to PCH", d?("disable"):("enable"));
+        }
+        else if(!strcasecmp(argv[1], "g3_ctrl") && (3==argc))
+        {
+            d = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = d;
+            *(bios_cmd) = 0x03;
+            CPRINTS("%s system G3", d?("disable"):("enable"));
+        }
+        else
+        {
+            return EC_ERROR_PARAM2;
+        }
+    }
+    
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
+        "\n[reset_ctrl]\n"
+        "[psw_ctrl <1/0>]\n"
+        "[g3_ctrl <1/0>]\n",
+        "Simulate a bios command");
+#endif
 

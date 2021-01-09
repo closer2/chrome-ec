@@ -486,25 +486,32 @@ static enum power_state power_common_state(enum power_state state)
 		break;
 
 	case POWER_S5:
-		/*
-		 * If the power button is pressed before S5 inactivity timer
-		 * expires, the timer will be cancelled and the task of the
-		 * power state machine will be back here again. Since we are
-		 * here, which means the system has been waiting for CPU
-		 * starting up, we don't need want_g3_exit flag to be set
-		 * anymore. Therefore, we can reset the flag here to prevent
-		 * the situation that the flag is still set after S5 inactivity
-		 * timer expires, which can cause the system to exit G3 again.
-		 */
-		want_g3_exit = 0;
+        {
+            uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+            /*
+            * If the power button is pressed before S5 inactivity timer
+            * expires, the timer will be cancelled and the task of the
+            * power state machine will be back here again. Since we are
+            * here, which means the system has been waiting for CPU
+            * starting up, we don't need want_g3_exit flag to be set
+            * anymore. Therefore, we can reset the flag here to prevent
+            * the situation that the flag is still set after S5 inactivity
+            * timer expires, which can cause the system to exit G3 again.
+            */
+            want_g3_exit = 0;
 
-		/* Wait for inactivity timeout */
-		power_wait_signals(0);
-		if (task_wait_event(S5_INACTIVITY_TIMEOUT) ==
-		    TASK_EVENT_TIMER) {
-			/* Prepare to drop to G3; wake not requested yet */
-			return POWER_S5G3;
-		}
+            /* Wait for inactivity timeout */
+            power_wait_signals(0);
+            if ((*mptr) & EC_MEMMAP_DISABLE_G3) {
+                task_wait_event(-1); /* chipset task pause for wait wakeup */
+            } else {
+            	if (task_wait_event(S5_INACTIVITY_TIMEOUT) ==
+            	    TASK_EVENT_TIMER) {
+            		/* Prepare to drop to G3; wake not requested yet */
+            		return POWER_S5G3;
+            	}
+            }
+        }
 		break;
 
 	case POWER_S3:

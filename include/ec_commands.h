@@ -145,8 +145,10 @@ extern "C" {
 #define EC_MEMMAP_DEVICE_CONTROL_REG        0x10 /* Device Control register */ 
 #define EC_MEMMAP_LID_STATUS        BIT(0) /* 1:LID closed;0:LID open */
 /* Unused 0x11 */
-#define EC_MEMMAP_POWER_FLAG1               0x12 /* EC power flag 1 */ 
+#define EC_MEMMAP_POWER_FLAG1               0x12 /* EC power flag 1 */
+#define EC_MEMMAP_DISABLE_G3        BIT(0) /* 1:disable G3, 0:enable G3 */
 #define EC_MEMMAP_POWER_LOCK        BIT(7) /* 1:Lock power button */
+
 /* Unused 0x13 -0x14 */
 #define EC_MEMMAP_KEYBOARD_CONTROL          0x15 /* Keyboard control flag */ 
 #define EC_MEMMAP_FNKEY_INVERSE     BIT(0) /* FN key inverse status: 1 => inverse, 0 => not inverse. */
