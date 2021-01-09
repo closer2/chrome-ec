@@ -81,18 +81,52 @@ const struct power_signal_info power_signal_list[] = {
 };
 BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
 
+/*
+ * We use 11 as the scaling factor so that the maximum mV value below (2761)
+ * can be compressed to fit in a uint8_t.
+ */
+#define THERMISTOR_SCALING_FACTOR 11
+
+/*
+ * Data derived from Seinhart-Hart equation in a resistor divider circuit with
+ * Vdd=3300mV, R = 10Kohm, and Murata NCP15XH103F03RC thermistor (B = 3380,
+ * T0 = 298.15, nominal resistance (R0) = 10Kohm).
+ */
+const struct thermistor_data_pair thermistor_data[] = {
+    { 2413 / THERMISTOR_SCALING_FACTOR, 0},
+    { 2118 / THERMISTOR_SCALING_FACTOR, 10},
+    { 1805 / THERMISTOR_SCALING_FACTOR, 20},
+    { 1498 / THERMISTOR_SCALING_FACTOR, 30},
+    { 1215 / THERMISTOR_SCALING_FACTOR, 40},
+    { 969 / THERMISTOR_SCALING_FACTOR, 50},
+    { 764 / THERMISTOR_SCALING_FACTOR, 60},
+    { 601 / THERMISTOR_SCALING_FACTOR, 70},
+    { 471 / THERMISTOR_SCALING_FACTOR, 80},
+    { 411 / THERMISTOR_SCALING_FACTOR, 85},
+    { 371 / THERMISTOR_SCALING_FACTOR, 90},
+    { 329 / THERMISTOR_SCALING_FACTOR, 95},
+    { 292 / THERMISTOR_SCALING_FACTOR, 100}
+};
+
+const struct thermistor_info thermistor_info = {
+    .scaling_factor = THERMISTOR_SCALING_FACTOR,
+    .num_pairs = ARRAY_SIZE(thermistor_data),
+    .data = thermistor_data,
+};
+
 int board_get_temp(int idx, int *temp_k)
 {
     int mv;
     int temp_c;
     enum adc_channel channel;
 
+    /* thermistor is not powered in G3 */
+    if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
+        return EC_ERROR_NOT_POWERED;
+
     /* idx is the sensor index set in board temp_sensors[] */
     switch (idx) {
         case TEMP_SENSOR_SOC_NEAR:
-            /* thermistor is not powered in G3 */
-            if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
-                return EC_ERROR_NOT_POWERED;
             channel = ADC_SENSOR_SOC_NEAR;
             break;    
         case TEMP_SENSOR_SSD_NEAR:
@@ -365,37 +399,6 @@ const struct mft_t mft_channels[] = {
     [MFT_CH_1] = { NPCX_MFT_MODULE_2, TCKC_LFCLK, PWM_CH_SYS_FAN},
 };
 BUILD_ASSERT(ARRAY_SIZE(mft_channels) == MFT_CH_COUNT);
-/*
- * We use 11 as the scaling factor so that the maximum mV value below (2761)
- * can be compressed to fit in a uint8_t.
- */
-#define THERMISTOR_SCALING_FACTOR 11
-
-/*
- * Values are calculated from the "Resistance VS. Temperature" table on the
- * Murata page for part NCP15WB473F03RC. Vdd=3.3V, R=30.9Kohm.
- */
-const struct thermistor_data_pair thermistor_data[] = {
-	{ 2761 / THERMISTOR_SCALING_FACTOR, 0},
-	{ 2492 / THERMISTOR_SCALING_FACTOR, 10},
-	{ 2167 / THERMISTOR_SCALING_FACTOR, 20},
-	{ 1812 / THERMISTOR_SCALING_FACTOR, 30},
-	{ 1462 / THERMISTOR_SCALING_FACTOR, 40},
-	{ 1146 / THERMISTOR_SCALING_FACTOR, 50},
-	{ 878 / THERMISTOR_SCALING_FACTOR, 60},
-	{ 665 / THERMISTOR_SCALING_FACTOR, 70},
-	{ 500 / THERMISTOR_SCALING_FACTOR, 80},
-	{ 434 / THERMISTOR_SCALING_FACTOR, 85},
-	{ 376 / THERMISTOR_SCALING_FACTOR, 90},
-	{ 326 / THERMISTOR_SCALING_FACTOR, 95},
-	{ 283 / THERMISTOR_SCALING_FACTOR, 100}
-};
-
-const struct thermistor_info thermistor_info = {
-	.scaling_factor = THERMISTOR_SCALING_FACTOR,
-	.num_pairs = ARRAY_SIZE(thermistor_data),
-	.data = thermistor_data,
-};
 
 /*******************************************************************************
  * power button
