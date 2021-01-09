@@ -29,6 +29,7 @@
 #include "task.h"
 #include "temp_sensor.h"
 #include "thermistor.h"
+#include "usb_pd.h"
 #include "usb_pd_tcpm.h"
 #include "usbc_ppc.h"
 #include "flash.h"
@@ -395,28 +396,9 @@ const struct thermistor_info thermistor_info = {
 	.num_pairs = ARRAY_SIZE(thermistor_data),
 	.data = thermistor_data,
 };
-#if 0  // pangu-l PD define
-const struct tcpc_config_t tcpc_config[CONFIG_USB_PD_PORT_MAX_COUNT] = {
-	{
-		.bus_type = EC_BUS_TYPE_I2C,
-		.i2c_info = {
-			.port = I2C_PORT_TCPC0,
-			.addr_flags = RT1715_I2C_ADDR_FLAGS,
-		},
-		.drv = &rt1715_tcpm_drv,
-	},
-};
-#endif
-
-void pd_power_supply_reset(int port)
-{
-	/* Disable VBUS */
-	//fusb307_power_supply_reset(port);
-}
 
 /*******************************************************************************
  * power button
- *
  */
 
 /*
@@ -550,3 +532,81 @@ static void ec_oem_version_set(void)
 DECLARE_HOOK(HOOK_INIT, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 DECLARE_HOOK(HOOK_CHIPSET_STARTUP, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 
+
+/******************************************************************************/
+/* USB PD functions */
+/* Power Delivery and charing functions */
+
+const struct tcpc_config_t tcpc_config[CONFIG_USB_PD_PORT_MAX_COUNT] = {
+	{
+		.bus_type = EC_BUS_TYPE_I2C,
+		.i2c_info = {
+			.port = I2C_PORT_TCPC0,
+			.addr_flags = RT1715_I2C_ADDR_FLAGS,
+		},
+		.drv = &rt1715_tcpm_drv,
+	},
+};
+
+void tcpc_alert_event(enum gpio_signal signal)
+{
+	int port = -1;
+
+	switch (signal) {
+	case GPIO_USB_C0_MUX_INT_ODL:
+		port = 0;
+		break;
+	default:
+		return;
+	}
+
+	schedule_deferred_pd_interrupt(port);
+}
+
+void variant_tcpc_init(void)
+{
+	/* Enable TCPC interrupts. */
+	gpio_enable_interrupt(GPIO_USB_C0_MUX_INT_ODL);
+}
+/* Called after the baseboard_tcpc_init (via +3) */
+DECLARE_HOOK(HOOK_INIT, variant_tcpc_init, HOOK_PRIO_INIT_I2C + 3);
+
+uint16_t tcpc_get_alert_status(void)
+{
+	uint16_t status = 0;
+
+	/* PaunGuL do not implement RST_ODL signal */
+	if (!gpio_get_level(GPIO_USB_C0_MUX_INT_ODL)) {
+		status |= PD_STATUS_TCPC_ALERT_0;
+	}
+
+	return status;
+}
+
+/**
+ * Reset all system PD/TCPC MCUs -- currently only called from
+ * handle_pending_reboot() in common/power.c just before hard
+ * resetting the system. This logic is likely not needed as the
+ * PP3300_A rail should be dropped on EC reset.
+ */
+void board_reset_pd_mcu(void)
+{
+	CPRINTSUSB("Skipping C1 TCPC reset because no battery");
+}
+
+void board_set_usb_output_voltage(int mv)
+{
+	if(mv < 0) {
+		/* Turn off output voltage, default LDO to 5V */
+		gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);
+		gpio_set_level(GPIO_EC_PORT0_PD0, 0);
+	}else if(mv == 5000) {
+		gpio_set_level(GPIO_EC_PORT0_PD0, 0);
+		gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 0);
+	}else if(mv == 9000) {
+		gpio_set_level(GPIO_EC_PORT0_PD0, 1);
+		gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 0);
+	}
+
+	return;
+}

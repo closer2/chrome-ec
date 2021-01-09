@@ -17,7 +17,7 @@
 /* GPIO(EC_RST_ODL,		PIN(0, 2), GPIO_INT_BOTH | GPIO_HIB_WAKE_HIGH) */
 
 /* Interrupt signal */
-/* GPIO_INT(EC_PD_INT,		PIN(7, 2), GPIO_INT_BOTH,			pd_interrupt) */
+GPIO_INT(USB_C0_MUX_INT_ODL,	PIN(7, 2), GPIO_INT_FALLING, 			tcpc_alert_event)
 
 GPIO_INT(SYSTEM_ALW_PG,		PIN(9, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_AUX power good */
 GPIO_INT(SLP_S3_L,		    PIN(9, 4), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power enable */
@@ -43,7 +43,7 @@ GPIO(EC_1V8_AUX_EN,		    PIN(7, 0), GPIO_OUT_HIGH)			/* 1.8V AUX Enable, EC_1.8V
 GPIO(PCH_SMI_L,			    PIN(C, 6), GPIO_OUT_HIGH)			/* SMI to SOC, EC_SMI_N */
 GPIO(EC_WP_ROM,			    PIN(A, 3), GPIO_OUT_LOW)			/* TODO: confirm its function, 1130_EC_WP_ROM */
 GPIO(EC_SLP_S5_L,		    PIN(A, 4), GPIO_OUT_LOW)			/* EC_SLP_S5#, output, passthrough SLP_S5_L */
-GPIO(TYPC_PFET_EN,		    PIN(D, 7), GPIO_OUT_LOW)			/* TYPEC_PFET_EN */
+GPIO(TYPEC_VBUS_CTRL,		PIN(D, 7), GPIO_OUT_HIGH)			/* EC control Type-C VBUS power, default to H, no output 5V */
 GPIO(PROCHOT_ODL,		    PIN(D, 4), GPIO_OUT_HIGH)			/* PROCHOT# */
 GPIO(PWRGD_140MS,		    PIN(B, 0), GPIO_OUT_HIGH)			/* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
 GPIO(EC_3V_5V_ALW_EN,		PIN(A, 0), GPIO_OUT_HIGH)			/* Control 3V/5V ALW power */
@@ -54,7 +54,6 @@ GPIO(EC_AUDIO_MUTE_L,		PIN(E, 3), GPIO_OUT_HIGH)			/* EC_AUDIO_MUTE_L */
 GPIO(EC_PSON_L,			    PIN(E, 5), GPIO_OUT_HIGH)			/* EC_PSO_N, PSU 12V enable, default to high */
 GPIO(PROM19_EN,			    PIN(D, 2), GPIO_OUT_LOW)			/* Refer to Power Sequence */
 GPIO(USB_FING_BLUE_EN_L,	PIN(9, 7), GPIO_OUT_HIGH)			/* Finger KBD USB port power enable */
-GPIO(TYPEC_VBUS_CTRL,		PIN(8, 0), GPIO_OUT_LOW)			/* EC control Type-C VBUS power */
 GPIO(EC_SLP_S3_L,		    PIN(D, 5), GPIO_OUT_LOW)			/* EC_SLP_S3#, output, passthrough SLP_S3_L */
 GPIO(DGPU_PROCHOT_L,		PIN(9, 3), GPIO_OUT_HIGH)			/* DGPU_PROCHOT_L */
 GPIO(RV_SELECT,			    PIN(6, 6), GPIO_OUT_LOW)			/* Default High, Set Low after EC load, we do not use it, set it to low directly */
@@ -98,6 +97,7 @@ GPIO(APU_RST_L,			    PIN(E, 2), GPIO_INPUT)				/* reserved, not real usage */
 /* CLKRUN# as input with pull up */
 UNUSED(PIN(0, 6))								/* EC_3VSBSW */
 UNUSED(PIN(0, 1))								/* EC_JIG_PWR_EN_N */
+UNUSED(PIN(8, 0))								/* HW_G_Det */
 UNUSED(PIN(8, 5))								/* EC_LPS_EN_N */
 UNUSED(PIN(E, 0))								/* FPS_IRQ */
 UNUSED(PIN(0, 3))								/* FPS_ID */

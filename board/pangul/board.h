@@ -135,123 +135,30 @@
 #undef  CONFIG_FANS
 #define CONFIG_FANS 2 
 
-/* TODO: config fans */
-/* #ifdef VARIANT_ZORK_TREMBYLE
-	#define CONFIG_FANS FAN_CH_COUNT
-	#undef CONFIG_FAN_INIT_SPEED
-	#define CONFIG_FAN_INIT_SPEED 50
-#endif */
-
-/* TODO: add back led */
-/* #define CONFIG_LED_COMMON */
-/* #define CONFIG_CMD_LEDTEST */
-/* #define CONFIG_LED_ONOFF_STATES */
-
-/*
- * On power-on, H1 releases the EC from reset but then quickly asserts and
- * releases the reset a second time. This means the EC sees 2 resets:
- * (1) power-on reset, (2) reset-pin reset. This config will
- * allow the second reset to be treated as a power-on.
- */
-/* TODO: review this, we do not need this in theory */
-/* #define CONFIG_BOARD_RESET_AFTER_POWER_ON */
-
-/* Disable PD as a whole, reopen it when ready */
-/* TODO: handle PD */
-#if 0
-/*
- * USB ID
- *
- * This is allocated specifically for Zork
- * http://google3/hardware/standards/usb/
- */
-#define CONFIG_USB_PID 0x5040
-
-#define CONFIG_USB_PD_REV30
-
-/* Enable the TCPMv2 PD stack */
-#define CONFIG_USB_PD_TCPMV2
-
-#ifndef CONFIG_USB_PD_TCPMV2
-	#define CONFIG_USB_PD_TCPMV1
-#else
-	#define CONFIG_USB_PD_DECODE_SOP
-	#define CONFIG_USB_DRP_ACC_TRYSRC
-
-	 /* Enable TCPMv2 Fast Role Swap */
-	 /* Turn off until FRSwap is working */
-	#undef CONFIG_USB_PD_FRS_TCPC
-#endif
-
-#define CONFIG_HOSTCMD_PD_CONTROL
-#define CONFIG_CMD_TCPC_DUMP
-#define CONFIG_USB_CHARGER
-#define CONFIG_USB_POWER_DELIVERY
-#define CONFIG_USB_PD_ALT_MODE
-#define CONFIG_USB_PD_ALT_MODE_DFP
-#define CONFIG_USB_PD_COMM_LOCKED
-#define CONFIG_USB_PD_DISCHARGE_TCPC
-#define CONFIG_USB_PD_DP_HPD_GPIO
-#ifdef VARIANT_ZORK_TREMBYLE
-/*
- * Use a custom HPD function that supports HPD on IO expander.
- * TODO(b/165622386) remove this when HPD is on EC GPIO.
- */
-#	define CONFIG_USB_PD_DP_HPD_GPIO_CUSTOM
-#endif
-#define CONFIG_USB_PD_DUAL_ROLE
-#define CONFIG_USB_PD_DUAL_ROLE_AUTO_TOGGLE
-#define CONFIG_USB_PD_LOGGING
-#define CONFIG_USB_PD_MAX_SINGLE_SOURCE_CURRENT TYPEC_RP_3A0
-#define CONFIG_USB_PD_TCPC_LOW_POWER
-#define CONFIG_USB_PD_TCPM_MUX
-#define CONFIG_USB_PD_TCPM_NCT38XX
-#define CONFIG_USB_PD_TCPM_TCPCI
-#define CONFIG_USB_PD_TRY_SRC
-#define CONFIG_USB_PD_VBUS_DETECT_TCPC
-#define CONFIG_USBC_PPC
-#define CONFIG_USBC_PPC_SBU
-#define CONFIG_USBC_PPC_AOZ1380
-#define CONFIG_USBC_RETIMER_PI3HDX1204
-#define CONFIG_USBC_SS_MUX
-#define CONFIG_USBC_SS_MUX_DFP_ONLY
-#define CONFIG_USBC_VCONN
-#define CONFIG_USBC_VCONN_SWAP
-#define CONFIG_USB_MUX_AMD_FP5
-
-#if defined(VARIANT_ZORK_TREMBYLE)
-	#define CONFIG_USB_PD_PORT_MAX_COUNT 2
-	#define CONFIG_USBC_PPC_NX20P3483
-	#define CONFIG_USBC_RETIMER_PS8802
-	#define CONFIG_USBC_RETIMER_PS8818
-	#define CONFIG_IO_EXPANDER_PORT_COUNT USBC_PORT_COUNT
-	#define CONFIG_USB_MUX_RUNTIME_CONFIG
-	/* USB-A config */
-	#define GPIO_USB1_ILIM_SEL IOEX_USB_A0_CHARGE_EN_L
-	#define GPIO_USB2_ILIM_SEL IOEX_USB_A1_CHARGE_EN_DB_L
-	/* PS8818 RX Input Termination - default value */
-	#define ZORK_PS8818_RX_INPUT_TERM PS8818_RX_INPUT_TERM_112_OHM
-#elif defined(VARIANT_ZORK_DALBOZ)
-	#define CONFIG_IO_EXPANDER_PORT_COUNT IOEX_PORT_COUNT
-#endif
-#endif /* disable PD as a whole, reopen it next */
-
-#if 0 // pangu-l PD define
-
+/*------------------------------------------------------------------------------
+* USB-C define for pangu-l
+------------------------------------------------------------------------------*/
 #define CONFIG_USB
-#define CONFIG_USB_PID 0x1234
-/*#define CONFIG_USB_CONSOLE*/
-
+#define CONFIG_USB_PID 0x1641
 #define CONFIG_USB_POWER_DELIVERY
 #define CONFIG_USB_PD_TCPMV1
+#define CONFIG_USB_PD_CUSTOM_PDO
+#undef CONFIG_USB_PD_DUAL_ROLE
+#undef CONFIG_USB_PD_INTERNAL_COMP
+#define CONFIG_USB_PD_LOGGING
+#undef  CONFIG_EVENT_LOG_SIZE
+#define CONFIG_EVENT_LOG_SIZE 256
+/* #define CONFIG_USB_PD_LOW_POWER */
 #define CONFIG_USB_PD_PORT_MAX_COUNT 1
 #define CONFIG_USB_PD_TCPM_TCPCI
 #define CONFIG_USB_PD_VBUS_DETECT_TCPC
-#define CONFIG_USB_PD_REV30
-#define CONFIG_USB_PD_DECODE_SOP
-#define CONFIG_USBC_VCONN
+#define CONFIG_USB_PD_TCPC_LOW_POWER
 #define CONFIG_USB_PD_TCPM_RT1715
-#endif
+#define CONFIG_USB_PD_REV30             /* more than zinger */
+#define CONFIG_USBC_VCONN               /* more than zinger */
+/* #define CONFIG_USB_PD_SIMPLE_DFP
+#define CONFIG_USB_PD_VBUS_DETECT_GPIO
+#define CONFIG_USBC_BACKWARDS_COMPATIBLE_DFP */
 
 /* TODO: Maybe these definitions should be cleard */
 #define PD_POWER_SUPPLY_TURN_ON_DELAY	30000 /* us */
@@ -262,6 +169,8 @@
 #define PD_MAX_POWER_MW		65000
 #define PD_MAX_CURRENT_MA	3250
 #define PD_MAX_VOLTAGE_MV	20000
+
+
 
 /* Round up 3250 max current to multiple of 128mA for ISL9241 AC prochot. */
 #define ZORK_AC_PROCHOT_CURRENT_MA 3328
@@ -279,7 +188,7 @@
 /* USBA0 not control, SMBCLK/SMBDATA_AUX connect to PORT0_0 */
 /* We only have one PD TCPC connect to PORT1_0 */
 #define I2C_PORT_SMB_AUX	NPCX_I2C_PORT0_0
-#define I2C_PORT_TCPC0		NPCX_I2C_PORT1_0
+#define I2C_PORT_TCPC0		NPCX_I2C_PORT4_1
 #define I2C_PORT_THERMAL_AP	NPCX_I2C_PORT5_1
 
 
@@ -478,6 +387,10 @@ __override_proto void ppc_interrupt(enum gpio_signal signal);
 
 void board_print_temps(void);
 void apu_pcie_reset_interrupt(enum gpio_signal signal);
+
+void tcpc_alert_event(enum gpio_signal signal);
+/* Board interfaces */
+void board_set_usb_output_voltage(int mv);
 
 #endif /* !__ASSEMBLER__ */
 
