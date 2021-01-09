@@ -23,6 +23,7 @@
 #include "math_util.h"
 #include "host_command.h"
 #include "chipset.h"
+#include "power.h"
 
 #if !(DEBUG_FAN)
 #define CPRINTS(...)
@@ -556,7 +557,7 @@ static void fan_fault_check(void)
 {
 	uint8_t fan;
     uint16_t rpm_actual;
-    uint8_t *fan_fault = (uint8_t *)host_get_memmap(EC_MEMMAP_SYS_FAN_STATUS);
+    uint8_t *fan_fault = (uint8_t *)host_get_memmap(EC_MEMMAP_CPU_FAN_STATUS);
 
      /*
 	 * Even if the DPTF is enabled, enable thermal control here.
@@ -564,7 +565,14 @@ static void fan_fault_check(void)
 	 * host commands.
 	 * Make sure rpm mode is enabled.
 	 */
-	if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
+	if ((!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) 
+        || (power_get_state() <= POWER_S5)) {
+        for (fan = 0; fan < CONFIG_FANS; fan++) {
+            count[fan] = 0x0;
+            countflag[fan] = 0x0;
+            *(fan_fault + fan) = 0x0;
+            pwm_fan_control(0); /* Disable fan thermal control */
+        }
         return;
     }
 
@@ -594,15 +602,4 @@ static void fan_fault_check(void)
 }
 DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_DEFAULT);
 
-static void fan_fault_status_clear(void)
-{
-    uint8_t i;
-
-    for (i = 0; i < CONFIG_FANS; i++) {
-       count[i] = 0x0;
-       countflag[i] = 0x0;
-    }
-}
-DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, fan_fault_status_clear,
-	     HOOK_PRIO_DEFAULT);
 

@@ -564,7 +564,7 @@ static void pwm_fan_preserve_state(void)
 }
 DECLARE_HOOK(HOOK_SYSJUMP, pwm_fan_preserve_state, HOOK_PRIO_DEFAULT);
 
-static void pwm_fan_control(int enable)
+void pwm_fan_control(int enable)
 {
 	int fan;
 

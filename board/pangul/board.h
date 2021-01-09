@@ -145,9 +145,9 @@
 	#define CONFIG_FAN_INIT_SPEED 50
 #endif */
 #define CONFIG_FAN_FAULT_CHECK_SPEED   50      /* fan check fault percent */
-#define FAN_CHECK_FAULT_TIME           12     /* timebase 200ms */
+#define FAN_CHECK_FAULT_TIME           15     /* timebase 200ms */
 #define FAN_THERMAL_CONTROL_ENABLE     30    /* timebase 200ms*/
-#define FAN_DUTY_50_RPM                900     /* fan set duty 50%, check rpm > 900 */
+#define FAN_DUTY_50_RPM                800     /* fan set duty 50%, check rpm > 800 */
 
 /*------------------------------------------------------------------------------
 * USB-C define for pangu-l
