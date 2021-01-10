@@ -278,83 +278,6 @@ static void fan_adjust_duty(int ch, int rpm_diff, int duty)
 	CPRINTS("fan%d: duty %d, rpm_diff %d", ch, duty, rpm_diff);
 }
 
-/**
- * Smart fan control function.
- *
- * @param   ch         operation channel
- * @param   rpm_actual actual operation rpm value
- * @param   rpm_target target operation rpm value
- * @return  current    fan control status
- */
-enum fan_status fan_smart_control(int ch, int rpm_actual, int rpm_target)
-{
-	int duty, rpm_diff;
-
-	/* wait rpm is stable */
-	if (ABS(rpm_actual - rpm_pre[ch]) > RPM_MARGIN(rpm_actual)) {
-		rpm_pre[ch] = rpm_actual;
-		return FAN_STATUS_CHANGING;
-	}
-
-	/* Record previous rpm */
-	rpm_pre[ch] = rpm_actual;
-
-	/* Adjust PWM duty */
-	rpm_diff = rpm_target - rpm_actual;
-	duty = fan_get_duty(ch);
-	if (duty == 0 && rpm_target == 0)
-		return FAN_STATUS_STOPPED;
-
-	/* Increase PWM duty */
-	if (rpm_diff > RPM_MARGIN(rpm_target)) {
-		if (duty == 100)
-			return FAN_STATUS_FRUSTRATED;
-
-		fan_adjust_duty(ch, rpm_diff, duty);
-		return FAN_STATUS_CHANGING;
-	/* Decrease PWM duty */
-	} else if (rpm_diff < -RPM_MARGIN(rpm_target)) {
-		if (duty == 1 && rpm_target != 0)
-			return FAN_STATUS_FRUSTRATED;
-
-		fan_adjust_duty(ch, rpm_diff, duty);
-		return FAN_STATUS_CHANGING;
-	}
-
-	return FAN_STATUS_LOCKED;
-}
-
-/**
- * Tick function for fan control.
- *
- * @return  none
- */
-void fan_tick_func(void)
-{
-	int ch;
-
-	for (ch = 0; ch < FAN_CH_COUNT ; ch++) {
-		volatile struct fan_status_t *p_status = fan_status + ch;
-		/* Make sure rpm mode is enabled */
-		if (p_status->fan_mode != TACHO_FAN_RPM) {
-		/* Fan in duty mode still want rpm_actual being updated. */
-			p_status->rpm_actual = mft_fan_rpm(ch);
-			if (p_status->rpm_actual > 0)
-				p_status->auto_status = FAN_STATUS_LOCKED;
-			else
-				p_status->auto_status = FAN_STATUS_STOPPED;
-			continue;
-		}
-		if (!fan_get_enabled(ch))
-			continue;
-		/* Get actual rpm */
-		p_status->rpm_actual = mft_fan_rpm(ch);
-		/* Do smart fan stuff */
-		p_status->auto_status = fan_smart_control(ch,
-				p_status->rpm_actual, p_status->rpm_target);
-	}
-}
-DECLARE_HOOK(HOOK_TICK, fan_tick_func, HOOK_PRIO_DEFAULT);
 
 /*****************************************************************************/
 /* IC specific low-level driver */
@@ -515,6 +438,17 @@ enum fan_status fan_get_status(int ch)
 }
 
 /**
+ * Set fan operation status.
+ *
+ * @param   ch          operation channel
+ * @return  fan_status  fan operation status
+ */
+void fan_set_status(int ch, enum fan_status status)
+{
+	fan_status[ch].auto_status = status;
+}
+
+/**
  * Check fan is stall condition.
  *
  * @param   ch          operation channel
@@ -551,55 +485,82 @@ static void fan_init(void)
 }
 DECLARE_HOOK(HOOK_INIT, fan_init, HOOK_PRIO_INIT_FAN);
 
-uint16_t count[CONFIG_FANS] = {0};
-uint8_t countflag[CONFIG_FANS] = {0};
-static void fan_fault_check(void)
+/**
+ * Smart fan control function.
+ *
+ * @param   ch         operation channel
+ * @param   rpm_actual actual operation rpm value
+ * @param   rpm_target target operation rpm value
+ * @return  current    fan control status
+ */
+enum fan_status fan_smart_control(int ch, int rpm_actual, int rpm_target)
 {
-	uint8_t fan;
-    uint16_t rpm_actual;
-    uint8_t *fan_fault = (uint8_t *)host_get_memmap(EC_MEMMAP_CPU_FAN_STATUS);
+	int duty, rpm_diff;
 
-     /*
-	 * Even if the DPTF is enabled, enable thermal control here.
-	 * Upon booting to S0, if needed AP will disable/throttle it using
-	 * host commands.
-	 * Make sure rpm mode is enabled.
-	 */
-	if ((!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) 
-        || (power_get_state() <= POWER_S5)) {
-        for (fan = 0; fan < CONFIG_FANS; fan++) {
-            count[fan] = 0x0;
-            countflag[fan] = 0x0;
-            *(fan_fault + fan) = 0x0;
-            pwm_fan_control(0); /* Disable fan thermal control */
-        }
-        return;
-    }
+	/* wait rpm is stable */
+	if (ABS(rpm_actual - rpm_pre[ch]) > RPM_MARGIN(rpm_actual)) {
+		rpm_pre[ch] = rpm_actual;
+		return FAN_STATUS_CHANGING;
+	}
 
-    if ((count[0] > FAN_CHECK_FAULT_TIME) && (countflag[0] == 0x0)) {
-        countflag[0] = 0x01;
-    	for (fan = 0; fan < fan_get_count(); fan++) {
-		    /* Fan in duty mode still want rpm_actual being updated. */
-			rpm_actual = fan_get_rpm_actual(fan);
-            /* Upate fan fault status to ram */
-            if (rpm_actual > FAN_DUTY_50_RPM) {
-                *(fan_fault + fan) = 0x0;
-            } else {
-                *(fan_fault + fan) = 0x3;
-                CPRINTS("%s -> %s fan channel-%d/n", __FILE__, __func__, fan);
-            }
-        }
-    }else {
-        count[0]++;
-    }
+	/* Record previous rpm */
+	rpm_pre[ch] = rpm_actual;
 
-    if ((count[1] > FAN_THERMAL_CONTROL_ENABLE) && (countflag[1] == 0x0)) {
-        countflag[1] = 0x01;
-        pwm_fan_control(1); /* Enable fan thermal control */
-    } else {
-        count[1]++;
-    }
+	/* Adjust PWM duty */
+	rpm_diff = rpm_target - rpm_actual;
+	duty = fan_get_duty(ch);
+	if (duty == 0 && rpm_target == 0)
+		return FAN_STATUS_STOPPED;
+
+	/* Increase PWM duty */
+	if (rpm_diff > RPM_MARGIN(rpm_target)) {
+		if (duty == 100)
+			return FAN_STATUS_FRUSTRATED;
+
+		fan_adjust_duty(ch, rpm_diff, duty);
+		return FAN_STATUS_CHANGING;
+	/* Decrease PWM duty */
+	} else if (rpm_diff < -RPM_MARGIN(rpm_target)) {
+		if (duty == 1 && rpm_target != 0)
+			return FAN_STATUS_FRUSTRATED;
+
+		fan_adjust_duty(ch, rpm_diff, duty);
+		return FAN_STATUS_CHANGING;
+	}
+
+	return FAN_STATUS_LOCKED;
 }
-DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_DEFAULT);
 
+/**
+ * Tick function for fan control.
+ *
+ * @return  none
+ */
+void fan_tick_func(void)
+{
+	int ch;
+
+
+	for (ch = 0; ch < FAN_CH_COUNT ; ch++) {
+        volatile struct fan_status_t *p_status = fan_status + ch;
+
+        /* Get actual rpm */
+        p_status->rpm_actual = mft_fan_rpm(ch);
+
+		/* Make sure rpm mode is enabled */
+		if ((p_status->fan_mode != TACHO_FAN_RPM) 
+            && (p_status->auto_status != FAN_STATUS_FAULT)) {
+			if (p_status->rpm_actual > 0)
+				p_status->auto_status = FAN_STATUS_LOCKED;
+			else
+				p_status->auto_status = FAN_STATUS_STOPPED;
+			continue;
+		}
+        
+		/* Do smart fan stuff */
+		p_status->auto_status = fan_smart_control(ch,
+				p_status->rpm_actual, p_status->rpm_target);
+	}
+}
+DECLARE_HOOK(HOOK_TICK, fan_tick_func, HOOK_PRIO_DEFAULT);
 

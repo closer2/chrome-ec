@@ -113,9 +113,11 @@ enum fan_status {
 	FAN_STATUS_STOPPED = 0,
 	FAN_STATUS_CHANGING = 1,
 	FAN_STATUS_LOCKED = 2,
-	FAN_STATUS_FRUSTRATED = 3
+	FAN_STATUS_FAULT = 3,
+	FAN_STATUS_FRUSTRATED = 4
 };
 enum fan_status fan_get_status(int ch);
+void fan_set_status(int ch, enum fan_status status);
 
 /* Initialize the HW according to the desired flags */
 void fan_channel_setup(int ch, unsigned int flags);
@@ -126,6 +128,6 @@ void fan_set_count(int count);
 
 int is_thermal_control_enabled(int idx);
 
-void pwm_fan_control(int enable);
+void pwm_fan_control(int fan, int enable);
 
 #endif  /* __CROS_EC_FAN_H */

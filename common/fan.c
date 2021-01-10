@@ -17,6 +17,30 @@
 #include "system.h"
 #include "util.h"
 
+#if !(DEBUG_FAN)
+#define CPRINTS(...)
+#else
+#define CPRINTS(format, args...) cprints(CC_PWM, format, ## args)
+#endif
+
+
+/* Fan status data structure */
+struct fan_parameter {
+	/* booting check fan fault time */
+    uint16_t count[FAN_CH_COUNT];
+    /* booting check fan fault flag */
+    uint8_t countFlag[FAN_CH_COUNT];
+    /* booting OK set fan_mode */
+    uint16_t countMode[FAN_CH_COUNT];
+    /* booting OK set fan_mode */
+    uint8_t countModeFlag[FAN_CH_COUNT];
+    /* booting check rpm_actual */
+    int rpm_actual[FAN_CH_COUNT];
+    /* booting fan_fault flag */
+    uint8_t fan_fault[FAN_CH_COUNT];
+};
+static struct fan_parameter g_fan_parameter;
+
 /* True if we're listening to the thermal control task. False if we're setting
  * things manually. */
 static int thermal_control_enabled[CONFIG_FANS];
@@ -115,8 +139,11 @@ test_export_static void set_thermal_control_enabled(int fan, int enable)
 	thermal_control_enabled[fan] = enable;
 
 	/* If controlling the fan, need it in RPM-control mode */
-	if (enable)
+	if (enable) {
 		fan_set_rpm_mode(FAN_CH(fan), 1);
+    } else {
+        fan_set_rpm_mode(FAN_CH(fan), 0); 
+    }
 }
 
 static void set_duty_cycle(int fan, int percent)
@@ -133,6 +160,20 @@ static void set_duty_cycle(int fan, int percent)
 	/* Set the duty cycle */
 	fan_set_duty(FAN_CH(fan), percent);
 }
+
+uint8_t get_fan_fault(uint8_t fan)
+{
+    return g_fan_parameter.fan_fault[fan];
+}
+
+static void clear_fan_fault(uint8_t fan)
+{
+    g_fan_parameter.count[fan] = 0;
+    g_fan_parameter.countFlag[fan] = 0;
+    g_fan_parameter.countMode[fan] = 0;
+    g_fan_parameter.countModeFlag[fan] = 0;
+}
+
 
 /*****************************************************************************/
 /* Console commands */
@@ -204,6 +245,8 @@ static int cc_faninfo(int argc, char **argv)
 			 is_thermal_control_enabled(fan) ? "yes" : "no");
 		ccprintf("%sEnable: %s\n", leader,
 			 fan_get_enabled(FAN_CH(fan)) ? "yes" : "no");
+        ccprintf("%sFault: %s\n", leader,
+			 get_fan_fault(FAN_CH(fan)) ? "yes" : "no");
 		is_pgood = is_powered(fan);
 		if (is_pgood >= 0)
 			ccprintf("%sPower:  %s\n", leader,
@@ -478,10 +521,7 @@ struct pwm_fan_state {
 
 static void pwm_fan_init(void)
 {
-	const struct pwm_fan_state *prev;
-	struct pwm_fan_state state;
 	uint16_t *mapped;
-	int version, size;
 	int i;
 	int fan;
 
@@ -491,23 +531,6 @@ static void pwm_fan_init(void)
 	for (fan = 0; fan < fan_count; fan++)
 		fan_channel_setup(FAN_CH(fan), fans[fan].conf->flags);
 
-	/* Restore previous state. */
-	prev = (const struct pwm_fan_state *)
-		system_get_jump_tag(PWMFAN_SYSJUMP_TAG, &version, &size);
-	if (prev && version == PWM_HOOK_VERSION && size == sizeof(*prev)) {
-		memcpy(&state, prev, sizeof(state));
-	} else {
-		memset(&state, 0, sizeof(state));
-	}
-
-	for (fan = 0; fan < fan_count; fan++) {
-		fan_set_enabled(FAN_CH(fan),
-				state.flag & FAN_STATE_FLAG_ENABLED);
-		fan_set_rpm_target(FAN_CH(fan), state.rpm);
-		set_thermal_control_enabled(
-				fan, state.flag & FAN_STATE_FLAG_THERMAL);
-	}
-
 	/* Initialize memory-mapped data */
 	mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
 	for (i = 0; i < EC_FAN_SPEED_ENTRIES; i++)
@@ -515,15 +538,22 @@ static void pwm_fan_init(void)
 }
 DECLARE_HOOK(HOOK_INIT, pwm_fan_init, HOOK_PRIO_DEFAULT);
 
-static void pwm_fan_second(void)
+static void update_fan_mapped(void)
 {
-	uint16_t *mapped = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
+    uint16_t *mapped_rpm = (uint16_t *)host_get_memmap(EC_MEMMAP_FAN_RPM);
+    uint8_t *mapped_fault = (uint8_t *)host_get_memmap(EC_MEMMAP_CPU_FAN_STATUS);
 
 	uint16_t rpm;
 	int stalled = 0;
 	int fan;
 
 	for (fan = 0; fan < fan_count; fan++) {
+        *(mapped_fault + fan) = g_fan_parameter.fan_fault[fan];
+        if (FAN_STATUS_FAULT == g_fan_parameter.fan_fault[fan]) {
+            *(mapped_rpm + fan) = 0x0;
+            continue;
+        }
+        
 		if (fan_is_stalled(FAN_CH(fan))) {
 			rpm = EC_FAN_SPEED_STALLED;
 			stalled = 1;
@@ -531,8 +561,8 @@ static void pwm_fan_second(void)
 		} else {
 			rpm = fan_get_rpm_actual(FAN_CH(fan));
 		}
-
-		mapped[fan] = rpm;
+        
+        *(mapped_rpm + fan) = rpm;
 	}
 
 	/*
@@ -542,44 +572,20 @@ static void pwm_fan_second(void)
 	if (stalled)
 		host_set_single_event(EC_HOST_EVENT_THERMAL);
 }
-DECLARE_HOOK(HOOK_SECOND, pwm_fan_second, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_SECOND, update_fan_mapped, HOOK_PRIO_DEFAULT);
 
-static void pwm_fan_preserve_state(void)
+void pwm_fan_control(int fan, int enable)
 {
-	struct pwm_fan_state state = {0};
-	int fan = 0;
-
-	if (fan_count == 0)
-		return;
-
 	/* TODO(crosbug.com/p/23530): Still treating all fans as one. */
-	if (fan_get_enabled(FAN_CH(fan)))
-		state.flag |= FAN_STATE_FLAG_ENABLED;
-	if (is_thermal_control_enabled(fan))
-		state.flag |= FAN_STATE_FLAG_THERMAL;
-	state.rpm = fan_get_rpm_target(FAN_CH(fan));
-
-	system_add_jump_tag(PWMFAN_SYSJUMP_TAG, PWM_HOOK_VERSION,
-			    sizeof(state), &state);
-}
-DECLARE_HOOK(HOOK_SYSJUMP, pwm_fan_preserve_state, HOOK_PRIO_DEFAULT);
-
-void pwm_fan_control(int enable)
-{
-	int fan;
-
-	/* TODO(crosbug.com/p/23530): Still treating all fans as one. */
-	for (fan = 0; fan < fan_count; fan++) {
-		set_thermal_control_enabled(fan, enable);
-		fan_set_rpm_target(FAN_CH(fan), enable ?
-			fan_percent_to_rpm(FAN_CH(fan), CONFIG_FAN_INIT_SPEED) :
-			0);
-		set_enabled(fan, enable);
-	}
+    set_thermal_control_enabled(fan, enable);
+    fan_set_rpm_target(FAN_CH(fan), enable ?
+        fan_percent_to_rpm(FAN_CH(fan), CONFIG_FAN_INIT_SPEED) : 0);
+    set_enabled(fan, enable);
 }
 
 static void pwm_fan_stop(void)
 {
+   int fan;
 	/*
 	 * There is no need to cool CPU in S3 or S5. We currently don't
 	 * have fans for battery or charger chip. Battery systems will
@@ -593,7 +599,11 @@ static void pwm_fan_stop(void)
 	 *
 	 * Thermal control may be already disabled if DPTF is used.
 	 */
-	pwm_fan_control(0); /* crosbug.com/p/8097 */
+	for (fan = 0; fan < fan_count; fan++) {  
+        pwm_fan_control(fan, 0); /* crosbug.com/p/8097 */
+        clear_fan_fault(fan);
+	} 
+
 }
 DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, pwm_fan_stop, HOOK_PRIO_DEFAULT);
 DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, pwm_fan_stop, HOOK_PRIO_DEFAULT);
@@ -610,10 +620,9 @@ static void pwm_fan_start(void)
 	if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
         return;
     }
-		
-    pwm_fan_control(0); /* disable fan thermal control */
    	/* powen on check fan fault */
 	for (fan = 0; fan < fan_count; fan++) {
+		set_thermal_control_enabled(fan, 0);
 		set_enabled(fan, 1);
         fan_set_duty(fan, CONFIG_FAN_FAULT_CHECK_SPEED);
 	}  
@@ -623,3 +632,46 @@ static void pwm_fan_start(void)
  */
 DECLARE_HOOK(HOOK_CHIPSET_RESET, pwm_fan_start, HOOK_PRIO_FIRST);
 DECLARE_HOOK(HOOK_CHIPSET_RESUME, pwm_fan_start, HOOK_PRIO_DEFAULT);
+
+static void fan_fault_check(void)
+{
+	int fan;
+
+	for (fan = 0; fan < fan_count; fan++) { 
+        if (!fan_get_enabled(fan)) {
+
+            return;
+        }
+
+        if ((g_fan_parameter.count[fan] > FAN_CHECK_FAULT_TIME) 
+            && (g_fan_parameter.countFlag[fan] == 0x0)) {
+            g_fan_parameter.countFlag[fan] = 0x01;
+		    /* Fan in duty mode still want rpm_actual being updated. */
+			g_fan_parameter.rpm_actual[fan] = fan_get_rpm_actual(fan);
+            /* Upate fan fault status to ram */
+            if (g_fan_parameter.rpm_actual[fan] > FAN_DUTY_50_RPM) {
+                g_fan_parameter.fan_fault[fan] = FAN_STATUS_STOPPED;
+            } else {
+                g_fan_parameter.fan_fault[fan] = FAN_STATUS_FAULT;
+                pwm_fan_control(fan, 0); 
+                CPRINTS("fan fault check ch--%d/n", fan);
+            }
+        } else {
+            if (g_fan_parameter.count[fan] <= FAN_CHECK_FAULT_TIME) {
+                g_fan_parameter.count[fan]++;
+            }
+        }
+
+        if ((g_fan_parameter.countMode[fan] > FAN_THERMAL_CONTROL_ENABLE) 
+            && (g_fan_parameter.countModeFlag[fan] == 0x0)) {
+                g_fan_parameter.countModeFlag[fan] = 0x01;
+                pwm_fan_control(fan, 1); /* Enable fan thermal control */
+        } else {
+            if (g_fan_parameter.countMode[fan] <= FAN_THERMAL_CONTROL_ENABLE) {
+                g_fan_parameter.countMode[fan]++;
+            }
+        }
+    }
+}
+DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_DEFAULT);
+
