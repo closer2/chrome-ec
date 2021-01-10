@@ -1646,7 +1646,7 @@ static void eflash_debug_init(void)
                                    (page_index*DATA_PAGE_SIZE) +
                                    data_index);
             
-            ccprintf(" BLD ====== page_index = [%x], shutdown_write_index = [%x]\n",
+            ccprintf("====== page_index = [%x], shutdown_write_index = [%x]\n",
                         page_index, shutdown_write_index);
             break;
         }
@@ -1683,7 +1683,7 @@ static void eflash_debug_init(void)
             wakeup_write_index = (uint32_t)(WAKEUP_HEADER_OFFSET +
                                    (page_index*DATA_PAGE_SIZE) +
                                    data_index);
-            ccprintf(" BLD ====== page_index = [%x], wakeup_write_index = [%x]\n",
+            ccprintf("====== page_index = [%x], wakeup_write_index = [%x]\n",
                         page_index, wakeup_write_index);
             break;
         }
@@ -1938,14 +1938,8 @@ DECLARE_CONSOLE_COMMAND(flash_log, console_command_write_flash_log,
 
 static uint8_t mfg_data_map[MFG_DATA_SIZE] __aligned(8);
 
-void mfg_data_write(uint8_t index, uint8_t data)
+static void mfg_data_sync_deferred(void)
 {
-    if(index >= MFG_OFFSET_COUNT)
-    {
-        return;
-    }
-    
-    mfg_data_map[index] = data;
     if(eflash_debug_physical_erase(MFG_DATA_ADDRESS, MFG_DATA_BLOCK_SIZE))
     {
         ccprintf(" mfg data update fail\n");
@@ -1953,9 +1947,20 @@ void mfg_data_write(uint8_t index, uint8_t data)
     else
     {
         flash_write(MFG_DATA_ADDRESS, MFG_DATA_SIZE, (char *)mfg_data_map);
-        ccprintf(" mfg data update OK, index=[0x%02x] data=[0x%02x]\n",
-                index, data);
+        ccprintf(" mfg data update OK\n");
     }
+}
+DECLARE_DEFERRED(mfg_data_sync_deferred);
+
+#define FLASH_SYNC_DEBOUNCE_US  (30 * MSEC)
+void mfg_data_write(uint8_t index, uint8_t data)
+{
+    if(index >= MFG_OFFSET_COUNT)
+    {
+        return;
+    }
+    mfg_data_map[index] = data;
+    hook_call_deferred(&mfg_data_sync_deferred_data, FLASH_SYNC_DEBOUNCE_US);
 }
 
 uint8_t mfg_data_read(uint8_t index)
