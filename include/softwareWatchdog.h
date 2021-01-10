@@ -30,6 +30,8 @@ typedef struct EC_SHUTDOAN_WDT {
 #define  POWERON_WDT_TIMEOUT_NUM     0x02 /* */
 #define  POWERON_WDT_TIMEOUT_NUM2    0x05 /* */
 
+extern ec_wakeup_WDT g_wakeupWDT;
+extern ec_shutdown_WDT g_shutdownWDT;
 
 #endif  /* __CROS_EC_SOFTWARE_WATCHDOG_H */
 

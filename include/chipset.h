@@ -102,6 +102,10 @@ enum chipset_shutdown_reason {
 	CHIPSET_SHUTDOWN_THERMAL,
 	/* Force a chipset shutdown from the power button through EC */
 	CHIPSET_SHUTDOWN_BUTTON,
+    /* Force a chipset shutdown when wakeup wdt timeout */
+    CHIPSET_WAKEUP_WDT,
+    /* Force a chipset shutdown when shutdown wdt timeout */
+    CHIPSET_SHUTDOWN_WDT,
 
 	CHIPSET_SHUTDOWN_COUNT,
 };

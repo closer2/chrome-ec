@@ -19,6 +19,8 @@
 #include "timer.h"
 #include "usb_charge.h"
 #include "util.h"
+#include "softwareWatchdog.h"
+
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_LPC, outstr)
@@ -155,6 +157,200 @@ static void acpi_write(uint8_t addr, int w_data)
     *memmap_addr = w_data;
 }
 
+/*******************************************************************************
+* ec host memory has 256-Byte, remap to HOST IO/900-9FF.
+* we set IO/900-9CF for write protection, disable IO/9E0-9FF write protection.
+*
+* We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC.
+*
+* This function is called every 10ms. BIOS must to write data firstly, and then
+* write command to ec.
+*
+*/
+static void oem_bios_to_ec_command(void)
+{
+    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
+    uint8_t *mptr = NULL;
+    
+    if(0 == *bios_cmd)
+    {
+        return;
+    }
+
+    *(bios_cmd+1) = 0x00;
+    CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+    switch (*bios_cmd) {
+    case 0x01 : /* BIOS write ec reset flag*/
+        mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
+        *mptr = 0xAA; /* 0xAA is ec reset flag */
+        break;
+
+    case 0x02 : /* power button control */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+        if (0x01 == *(bios_cmd+2)) {        /* disable */
+            (*mptr) |= EC_MEMMAP_POWER_LOCK;
+        } else if (0 == *(bios_cmd+2)) {    /* enable */
+            (*mptr) &= (~EC_MEMMAP_POWER_LOCK);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x03 : /* system G3 control */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+        if (0x01 == *(bios_cmd+2)) {        /* disable */
+            (*mptr) |= EC_MEMMAP_DISABLE_G3;
+        } else if (0 == *(bios_cmd+2)) {     /* enable */
+            (*mptr) &= (~EC_MEMMAP_DISABLE_G3);
+        }
+        else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x04 : /* wakeup wdt control */
+        if (0x01 == *(bios_cmd+2)) {        /* enable */
+            g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
+        } else if(0x02 == *(bios_cmd+2)) {  /* disable */
+            g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        g_wakeupWDT.time = *(bios_cmd+3) | (*(bios_cmd+4))<<8;   /* time */
+        CPRINTS("wakeup WDT=[%d]", g_wakeupWDT.time);
+        break;
+
+    case 0x05 : /* shutdown wdt control */
+        if (0x01 == *(bios_cmd+2)) {        /* enable */
+            g_shutdownWDT.wdtEn = SW_WDT_ENABLE;
+        } else if(0x02 == *(bios_cmd+2)) {  /* disable */
+            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        g_shutdownWDT.time = *(bios_cmd+3) | (*(bios_cmd+4))<<8;   /* time */
+        CPRINTS("shutdown WDT=[%d]", g_shutdownWDT.time);
+        break;
+        
+    default :
+        *(bios_cmd+1) = 0xFF; /* unknown command */
+        break;
+    }
+
+    CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+    if (0x00 == *(bios_cmd+1)) {
+        *(bios_cmd+1) = *bios_cmd; /* set status */
+    }
+    
+    *bios_cmd = 0;
+}
+/*DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);*/
+
+
+#ifdef CONFIG_BIOS_CMD_TO_EC
+static int console_command_to_ec(int argc, char **argv)
+{
+    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
+    
+    if (1 == argc)
+    {
+        return EC_ERROR_INVAL;
+    }
+    else
+    {
+        char *e;
+        uint8_t d;
+        uint8_t flag;
+        uint16_t time;
+
+        if(!strcasecmp(argv[1], "reset_set"))
+        {
+            *(bios_cmd) = 0x01;
+            CPRINTS("set ec reset flasg(0xAA), ec will reset after system shutdown");
+        }
+        else if(!strcasecmp(argv[1], "psw_ctrl") && (3==argc))
+        {
+            d = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = d;
+            *(bios_cmd) = 0x02;
+            CPRINTS("%s power button to PCH", d?("disable"):("enable"));
+        }
+        else if(!strcasecmp(argv[1], "g3_ctrl") && (3==argc))
+        {
+            d = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = d;
+            *(bios_cmd) = 0x03;
+            CPRINTS("%s system G3", d?("disable"):("enable"));
+        }
+        else if(!strcasecmp(argv[1], "wake_wdt_ctrl") && (4==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            time = strtoi(argv[3], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd+3) = time&0xFF;
+            *(bios_cmd+4) = (time>>8)&0xFF;
+            *(bios_cmd) = 0x04;
+            
+            CPRINTS("wakeup WDT %s, time=%d",
+                (0x01==flag)?("enable"):("disable"), time);
+        }
+        else if(!strcasecmp(argv[1], "shutdown_wdt_ctrl") && (4==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            time = strtoi(argv[3], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd+3) = time&0xFF;
+            *(bios_cmd+4) = (time>>8)&0xFF;
+            *(bios_cmd) = 0x05;
+            
+            CPRINTS("shutdown WDT %s, time=%d",
+                (0x01==flag)?("enable"):("disable"), time);
+        }
+        else
+        {
+            return EC_ERROR_PARAM2;
+        }
+    }
+    
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
+        "\n[reset_set]\n"
+        "[psw_ctrl <1/0>]\n"
+        "[g3_ctrl <1/0>]\n"
+        "[wake_wdt_ctrl <en/dis> time]\n"
+        "[shutdown_wdt_ctrl <en/dis> time]\n",
+        "Simulate a bios command");
+#endif
+
 /*
  * This handles AP writes to the EC via the ACPI I/O port. There are only a few
  * ACPI commands (EC_CMD_ACPI_*), but they are all handled here.
@@ -242,6 +438,7 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
 
         default:
             acpi_write(acpi_addr, data);
+            oem_bios_to_ec_command();
             break;
         }
     }
@@ -284,123 +481,3 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
 
 	return retval;
 }
-
-/*******************************************************************************
-* ec host memory has 256-Byte, remap to HOST IO/900-9FF.
-* we set IO/900-9CF for write protection, disable IO/9E0-9FF write protection.
-*
-* We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC.
-*
-* This function is called every 10ms. BIOS must to write data firstly, and then
-* write command to ec.
-*
-*/
-static void oem_bios_to_ec_command(void)
-{
-    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
-    uint8_t *mptr = NULL;
-    
-    if(0 == *bios_cmd)
-    {
-        return;
-    }
-
-    *(bios_cmd+1) = 0x00;
-    CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
-    switch (*bios_cmd) {
-    case 0x01 : /* BIOS write ec reset flag*/
-        mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
-        *mptr = 0xAA; /* 0xAA is ec reset flag */
-        *(bios_cmd+1) = 0x01; /* command status */
-        break;
-
-    case 0x02 : /* power button control */
-        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
-        if(0x01 == *(bios_cmd+2)) /* disable */
-        {
-            (*mptr) |= EC_MEMMAP_POWER_LOCK;
-        }
-        else     /* enable */
-        {
-            (*mptr) &= (~EC_MEMMAP_POWER_LOCK);
-        }
-        *(bios_cmd+1) = 0x02;
-        break;
-
-    case 0x03 : /* system G3 control */
-        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
-        if(0x01 == *(bios_cmd+2)) /* disable */
-        {
-            (*mptr) |= EC_MEMMAP_DISABLE_G3;
-        }
-        else     /* enable */
-        {
-            (*mptr) &= (~EC_MEMMAP_DISABLE_G3);
-        }
-        *(bios_cmd+1) = 0x03;
-        break;
-
-    default :
-        break;
-    }
-
-    CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
-    *bios_cmd = 0;
-}
-DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);
-
-
-#ifdef CONFIG_BIOS_CMD_TO_EC
-static int console_command_to_ec(int argc, char **argv)
-{
-    uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
-    
-    if (1 == argc)
-    {
-        return EC_ERROR_INVAL;
-    }
-    else
-    {
-        char *e;
-        uint8_t d;
-
-        if(!strcasecmp(argv[1], "reset_ctrl"))
-        {
-            *(bios_cmd) = 0x01;
-            CPRINTS("set ec reset flasg(0xAA), ec will reset after system shutdown");
-        }
-        else if(!strcasecmp(argv[1], "psw_ctrl") && (3==argc))
-        {
-            d = strtoi(argv[2], &e, 0);
-            if (*e)
-                return EC_ERROR_PARAM2;
-
-            *(bios_cmd+2) = d;
-            *(bios_cmd) = 0x02;
-            CPRINTS("%s power button to PCH", d?("disable"):("enable"));
-        }
-        else if(!strcasecmp(argv[1], "g3_ctrl") && (3==argc))
-        {
-            d = strtoi(argv[2], &e, 0);
-            if (*e)
-                return EC_ERROR_PARAM2;
-
-            *(bios_cmd+2) = d;
-            *(bios_cmd) = 0x03;
-            CPRINTS("%s system G3", d?("disable"):("enable"));
-        }
-        else
-        {
-            return EC_ERROR_PARAM2;
-        }
-    }
-    
-    return EC_SUCCESS;
-}
-DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
-        "\n[reset_ctrl]\n"
-        "[psw_ctrl <1/0>]\n"
-        "[g3_ctrl <1/0>]\n",
-        "Simulate a bios command");
-#endif
-

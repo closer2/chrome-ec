@@ -1,7 +1,5 @@
 /*
- * Copyright 2014 The Chromium OS Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
+ *Copyright 2021 The bitland Authors. All rights reserved.
  *
  * software watchdog for BLD.
  */
@@ -16,6 +14,9 @@
 #include <stddef.h>
 #include "chipset.h"
 #include "system.h"
+#include "power.h"
+#include "power_button.h"
+
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -54,42 +55,75 @@ host_command_WDT(struct host_cmd_handler_args *args)
             break;        
     }
     
-	return EC_RES_SUCCESS;
+    return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_EXTERNAL_WDT,
-		     host_command_WDT,
-		     EC_VER_MASK(0)); 
+        host_command_WDT,
+        EC_VER_MASK(0)); 
 
-static void SwWatchdogService(void)
+
+static void system_sw_wdt_service(void)
 {
     /* Poweron software WDT */
     if (g_wakeupWDT.wdtEn == SW_WDT_ENABLE) {
         g_wakeupWDT.countTime++;
         if (g_wakeupWDT.countTime > g_wakeupWDT.time) {
             g_wakeupWDT.countTime = 0;
+            g_wakeupWDT.timeoutNum ++;
+
+            //TODO: force shutdown and then power on
+            if(POWER_S0 == power_get_state()) {
+                CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
+                chipset_force_shutdown(CHIPSET_WAKEUP_WDT);
+            }
         }
 
-        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM) {
-            /* EC reboot */
-            system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
+        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM)
+        {
+            g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        }
+
+        if(POWER_S5 == power_get_state()) {
+            CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
+            power_button_pch_pulse();
         }
     } else {
         g_wakeupWDT.time = 0;
         g_wakeupWDT.countTime = 0;
         g_wakeupWDT.timeoutNum = 0;
     }
-    /* Shutdown software WDT */ 
+
+    /* shutdown software WDT */
     if (g_shutdownWDT.wdtEn == SW_WDT_ENABLE) {
         g_shutdownWDT.countTime++;
+        
         if (g_shutdownWDT.countTime > g_shutdownWDT.time) {
-            gpio_set_level(GPIO_APU_NMI_L, 0);
-        }  
+            g_shutdownWDT.countTime = 0;
+            g_shutdownWDT.timeoutNum ++;
+
+            //TODO: force shutdown and then power on
+            if(POWER_S0 == power_get_state()) {
+                CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
+                            g_shutdownWDT.time);
+                /* force shutdwon when beta*/
+                chipset_force_shutdown(CHIPSET_WAKEUP_WDT);
+
+                /* notify BIOS NMI when development*/
+                /* gpio_set_level(GPIO_APU_NMI_L, 0); */
+            }
+        }
+
+        if (g_shutdownWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM)
+        {
+            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+        }
     } else {
         g_shutdownWDT.time = 0;
         g_shutdownWDT.countTime = 0;
         g_shutdownWDT.timeoutNum = 0;
-        gpio_set_level(GPIO_APU_NMI_L, 1);
+
+        /* gpio_set_level(GPIO_APU_NMI_L, 1); */
     }
 }
- DECLARE_HOOK(HOOK_SECOND, SwWatchdogService, HOOK_PRIO_INIT_CHIPSET);
+DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);
  
