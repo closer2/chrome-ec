@@ -21,6 +21,7 @@
 #include "util.h"
 #include "softwareWatchdog.h"
 #include "power_led.h"
+#include "flash.h"
 
 
 /* Console output macros */
@@ -164,8 +165,8 @@ static void acpi_write(uint8_t addr, int w_data)
 *
 * We defined an interface at 9E0-9FF for the BIOS to send custom commands to EC.
 *
-* This function is called every 10ms. BIOS must to write data firstly, and then
-* write command to ec.
+* This function is called when write EC space 0xE0. BIOS must to write data
+* firstly, and then write command to ec.
 *
 */
 static void oem_bios_to_ec_command(void)
@@ -271,10 +272,11 @@ static void oem_bios_to_ec_command(void)
         break;
         
     case 0x09 : /* crisis recovery mode control */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
         if (0x01 == *(bios_cmd+2)) {        /* enter */
-            /* TODO beep function */
+            (*mptr) |= EC_MEMMAP_CRISIS_RECOVERY;
         } else if(0x02 == *(bios_cmd+2)) {  /* exit */
-            /* TODO beep function */
+            (*mptr) &= (~EC_MEMMAP_CRISIS_RECOVERY);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -305,11 +307,11 @@ static void oem_bios_to_ec_command(void)
 
     case 0x0C : /* AC recovery state */
         if (0x01 == *(bios_cmd+2)) {        /* AC recovery on */
-            /* TODO */
+            mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x01);
         } else if(0x02 == *(bios_cmd+2)) {  /* AC recovery off */
-            /* TODO */
+            mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x02);
         } else if(0x03 == *(bios_cmd+2)) {  /* AC recovery previous */
-            /* TODO */
+            mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x03);
         }else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -318,9 +320,9 @@ static void oem_bios_to_ec_command(void)
 
     case 0x0D : /* wakeup WDT count */
         if (0x01 == *(bios_cmd+2)) {        /* get */
-            /* TODO */
+            *(bios_cmd+3) = g_wakeupWDT.timeoutNum;
         } else if(0x02 == *(bios_cmd+2)) {  /* clear */
-            /* TODO */
+            g_wakeupWDT.timeoutNum = 0;
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

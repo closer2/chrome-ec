@@ -1940,6 +1940,11 @@ static uint8_t mfg_data_map[MFG_DATA_SIZE] __aligned(8);
 
 void mfg_data_write(uint8_t index, uint8_t data)
 {
+    if(index >= MFG_OFFSET_COUNT)
+    {
+        return;
+    }
+    
     mfg_data_map[index] = data;
     if(eflash_debug_physical_erase(MFG_DATA_ADDRESS, MFG_DATA_BLOCK_SIZE))
     {
@@ -1955,6 +1960,11 @@ void mfg_data_write(uint8_t index, uint8_t data)
 
 uint8_t mfg_data_read(uint8_t index)
 {
+    if(index >= MFG_OFFSET_COUNT)
+    {
+        return 0;
+    }
+    
     ccprintf(" mfg data read OK, index=[0x%02x] data=[0x%02x]\n",
                 index, mfg_data_map[index]);
     return mfg_data_map[index];
@@ -1962,11 +1972,29 @@ uint8_t mfg_data_read(uint8_t index)
 
 static void mfg_data_init(void)
 {
-    uint8_t *mfgMode = (uint8_t *)host_get_memmap(EC_MEMMAP_MFG_MODE);
+    uint8_t *mfgMode;
     
     flash_read(MFG_DATA_ADDRESS, MFG_DATA_SIZE, (char *)mfg_data_map);
+    
     /* initialize read MFG mode */
-    *mfgMode = mfg_data_read(MFG_MODE_OFFSET);
+    mfgMode = host_get_memmap(EC_MEMMAP_MFG_MODE);
+    *mfgMode = mfg_data_map[MFG_MODE_OFFSET];
+
+    /* initialize read AC recovery state */
+    mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
+    if (0xFF == mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]) {
+        *mfgMode = 0x01; /* default is AC recovery to power on */
+    } else {
+        *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
+    }
+
+    /* initialize wakeup timeout count */
+    mfgMode = host_get_memmap(EC_MEMMAP_WDT_TIMEOUT_COUNT);
+    if (0xFF == mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]) {
+        *mfgMode = 0;
+    } else {
+        *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
+    }
 }
 DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
 
@@ -1995,7 +2023,27 @@ static int console_command_mfg_data(int argc, char **argv)
         }
         else if(!strcasecmp(argv[1], "show"))
         {
-            //TODO, Maybe you need to parse the MFG data here
+            /* TODO, Maybe you need to parse the MFG data here */
+            /* default 0xFF is MFG mode enable */
+            ccprintf("MFG Mode    : %s\n",
+                (0xFF==mfg_data_map[MFG_MODE_OFFSET])?("Enable"):("Disable"));
+
+            /* AC recovery state, 1:on, 2:off, 3:pre */
+            if (0x01==mfg_data_map[MFG_AC_RECOVERY_OFFSET]) {
+                ccprintf("AC Recovery : on\n");
+            }
+            else if (0x02==mfg_data_map[MFG_AC_RECOVERY_OFFSET]) {
+                ccprintf("AC Recovery : off\n");
+            }
+            else if (0x03==mfg_data_map[MFG_AC_RECOVERY_OFFSET]) {
+                ccprintf("AC Recovery : previous\n");
+            } else {
+                ccprintf("AC Recovery : unknown\n");
+            }
+
+            /* wakeup WDT timeout count*/
+            ccprintf("wakeup WDT timeout count=%d\n",
+                        mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]);
         }
         else
         {
@@ -2017,7 +2065,7 @@ static enum ec_status host_command_mfg_data_read(struct host_cmd_handler_args *a
     struct ec_response_mfg_data *r = args->response;
 
     r->data = mfg_data_read(p->index);
-	args->response_size = sizeof(*r);
+    args->response_size = sizeof(*r);
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_FLASH_GET_MFG_DATA,

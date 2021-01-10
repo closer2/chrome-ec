@@ -147,6 +147,7 @@ extern "C" {
 /* Unused 0x11 */
 #define EC_MEMMAP_POWER_FLAG1               0x12 /* EC power flag 1 */
 #define EC_MEMMAP_DISABLE_G3        BIT(0) /* 1:disable G3, 0:enable G3 */
+#define EC_MEMMAP_CRISIS_RECOVERY   BIT(1) /* 1:BIOS crisis recovery, 0:normal*/
 #define EC_MEMMAP_POWER_LOCK        BIT(7) /* 1:Lock power button */
 
 /* Unused 0x13 -0x14 */
@@ -159,9 +160,10 @@ extern "C" {
 #define EC_MEMMAP_DEVICE_STATUS             0x16 /* Device status */ 
 #define EC_MEMMAP_MIC_MODE          BIT(4) /* 1:Microphone mute, 0:Mic un-mute. */
 
-#define EC_MEMMAP_LEDERROR_CONTROL          0x17 /* EC Error LED control */ 
-#define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(!0xBE:NO MODE;0xBE:MFG MODE) */
-/* Unused 0x19 */
+#define EC_MEMMAP_AC_RECOVERY               0x17 /* AC recovery state(1:on, 2:0ff, 3:pre)*/ 
+#define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(!0xFF:NO MODE; 0xFF:MFG MODE) */
+#define EC_MEMMAP_WDT_TIMEOUT_COUNT         0x19 /* wakeup wdt timeout count */
+
 #define EC_MEMMAP_SYS_MISC1                 0x1A /* SYS_MISC1 */ 
 #define EC_MEMMAP_NC0               BIT(0) /* NC0 */
 #define EC_MEMMAP_NC1               BIT(1) /* NC1 */

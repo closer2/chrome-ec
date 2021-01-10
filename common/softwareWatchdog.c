@@ -30,7 +30,7 @@ host_command_WDT(struct host_cmd_handler_args *args)
     const struct ec_external_WDT *g_wdtPackage = args->params;
 
     if (g_wdtPackage == NULL) {
-       return EC_RES_INVALID_COMMAND; 
+       return EC_RES_INVALID_COMMAND;
     }
     CPRINTS("host_command_WDT: type=%d flag1=%d time=%d\n", g_wdtPackage->type, 
         g_wdtPackage->flag1, g_wdtPackage->time);

@@ -414,13 +414,22 @@ void wakeup_cause_record(uint32_t data);
  *
  * @param data   shutdown cause ID(32bit)
  */
-
 void shutdown_cause_record(uint32_t data);
 
-
+/**
+ * write mfg data to flash
+ *
+ * @param index   mfg data index 
+ * @param data    mfg data
+ */
 void mfg_data_write(uint8_t index, uint8_t data);
 
-
+/**
+ * read mfg data to flash
+ *
+ * @param index   mfg data index 
+ * @return        mfg data
+ */
 uint8_t mfg_data_read(uint8_t index);
 
 
