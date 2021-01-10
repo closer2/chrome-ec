@@ -180,39 +180,3 @@ DECLARE_CONSOLE_COMMAND(powerled, command_powerled,
         "[off | on | suspend | blink]",
         "Change power LED state");
 #endif
-
-static enum ec_status
-host_command_Switch(struct host_cmd_handler_args *args)
-{
-    const struct ec_switch_funtion *p = args->params;
-
-    if (!(p->type)) {
-       return EC_RES_INVALID_COMMAND; 
-    }
-    
-    if (p->type == 0x01) { /* Power LED turn on/off */
-        if (p->switchi == 0x01) {
-            powerled_set_state(POWERLED_STATE_ON);
-        } else if (p->switchi == 0x02) {
-            powerled_set_state(POWERLED_STATE_OFF);
-        }
-    } else if (p->type == 0x02) { /* WakeOnLan Wake */
-        if (p->switchi == 0x01) {
-            gpio_set_level(GPIO_EC_LAN_WAKE_L, 0);
-        } else if (p->switchi == 0x02) {
-            gpio_set_level(GPIO_EC_LAN_WAKE_L, 1);
-        }  
-    } else if (p->type == 0x03) { /* WakeOnWLan Wake */
-        if (p->switchi == 0x01) {
-            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 0);
-        } else if (p->switchi == 0x02){
-            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 1);
-        }         
-    }
-    
-    return EC_RES_SUCCESS;
-}
-DECLARE_HOST_COMMAND(EC_CMD_SWITCH_FUNTION,
-            host_command_Switch,
-            EC_VER_MASK(0));
-

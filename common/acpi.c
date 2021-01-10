@@ -20,6 +20,7 @@
 #include "usb_charge.h"
 #include "util.h"
 #include "softwareWatchdog.h"
+#include "power_led.h"
 
 
 /* Console output macros */
@@ -236,13 +237,102 @@ static void oem_bios_to_ec_command(void)
         CPRINTS("shutdown WDT=[%d]", g_shutdownWDT.time);
         break;
         
+    case 0x06 : /* power LED control */
+        if (0x01 == *(bios_cmd+2)) {        /* on */
+           powerled_set_state(POWERLED_STATE_ON);
+        } else if(0x02 == *(bios_cmd+2)) {  /* off */
+            powerled_set_state(POWERLED_STATE_OFF);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x07 : /* LAN wake control */
+        if (0x01 == *(bios_cmd+2)) {        /* enable */
+            gpio_set_level(GPIO_EC_LAN_WAKE_L, 0);
+        } else if(0x02 == *(bios_cmd+2)) {  /* disable */
+            gpio_set_level(GPIO_EC_LAN_WAKE_L, 1);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x08 : /* WLAN wake control */
+        if (0x01 == *(bios_cmd+2)) {        /* enable */
+            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 0);
+        } else if(0x02 == *(bios_cmd+2)) {  /* disable */
+            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 1);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+        
+    case 0x09 : /* crisis recovery mode control */
+        if (0x01 == *(bios_cmd+2)) {        /* enter */
+            /* TODO beep function */
+        } else if(0x02 == *(bios_cmd+2)) {  /* exit */
+            /* TODO beep function */
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+        
+    case 0x0A : /* Notify EC GraphicCard */
+        if (0x01 == *(bios_cmd+2)) {        /* exist */
+            /* TODO */
+        } else if(0x02 == *(bios_cmd+2)) {  /* inexistence */
+            /* TODO */
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x0B : /* crate inbreak data */
+        if (0x01 == *(bios_cmd+2)) {        /* get */
+            /* TODO */
+        } else if(0x02 == *(bios_cmd+2)) {  /* clear */
+            /* TODO */
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x0C : /* AC recovery state */
+        if (0x01 == *(bios_cmd+2)) {        /* AC recovery on */
+            /* TODO */
+        } else if(0x02 == *(bios_cmd+2)) {  /* AC recovery off */
+            /* TODO */
+        } else if(0x03 == *(bios_cmd+2)) {  /* AC recovery previous */
+            /* TODO */
+        }else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
+
+    case 0x0D : /* wakeup WDT count */
+        if (0x01 == *(bios_cmd+2)) {        /* get */
+            /* TODO */
+        } else if(0x02 == *(bios_cmd+2)) {  /* clear */
+            /* TODO */
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;
     }
 
-    CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
     if (0x00 == *(bios_cmd+1)) {
+        CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
         *(bios_cmd+1) = *bios_cmd; /* set status */
     }
     
@@ -334,12 +424,99 @@ static int console_command_to_ec(int argc, char **argv)
             CPRINTS("shutdown WDT %s, time=%d",
                 (0x01==flag)?("enable"):("disable"), time);
         }
+        else if(!strcasecmp(argv[1], "powerled_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x06;
+        }
+        else if(!strcasecmp(argv[1], "lanwake_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x07;
+        }
+        else if(!strcasecmp(argv[1], "wlanwake_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x08;
+        }
+        else if(!strcasecmp(argv[1], "crisis_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x09;
+        }
+        else if(!strcasecmp(argv[1], "inbreak_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "get"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "cls"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x0B;
+        }
+        else if(!strcasecmp(argv[1], "recovry_ctrl") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "on"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "off"))
+                flag = 0x02;
+            else if(!strcasecmp(argv[2], "pre"))
+                flag = 0x03;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x0C;
+        }
+        else if(!strcasecmp(argv[1], "wdt_count") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "get"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "cls"))
+                flag = 0x02;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x0D;
+        }
         else
         {
             return EC_ERROR_PARAM2;
         }
     }
-    
+
+    oem_bios_to_ec_command();
     return EC_SUCCESS;
 }
 DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
@@ -347,7 +524,14 @@ DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
         "[psw_ctrl <1/0>]\n"
         "[g3_ctrl <1/0>]\n"
         "[wake_wdt_ctrl <en/dis> time]\n"
-        "[shutdown_wdt_ctrl <en/dis> time]\n",
+        "[shutdown_wdt_ctrl <en/dis> time]\n"
+        "[powerled_ctrl <en/dis>\n"
+        "[lanwake_ctrl <en/dis>\n"
+        "[wlanwake_ctrl <en/dis>\n"
+        "[crisis_ctrl <en/dis>]"
+        "[inbreak_ctrl <get/cls>]"
+        "[recovry_ctrl <on/off/pre>]"
+        "[wdt_count <get/cls>]",
         "Simulate a bios command");
 #endif
 
@@ -384,22 +568,6 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
             result = dptf_get_fan_duty_target();
             break;
 #endif
-#ifdef CONFIG_DPTF
-        case EC_ACPI_MEM_TEMP_ID:
-            result = dptf_query_next_sensor_event();
-            break;
-#endif
-
-        case EC_ACPI_MEM_DEVICE_ORIENTATION:
-            result = 0;
-#ifdef CONFIG_DPTF
-            result |= (acpi_dptf_get_profile_num() &
-               EC_ACPI_MEM_DDPN_MASK)
-               EC_ACPI_MEM_DDPN_SHIFT;
-#endif
-            break;
-
-
         default:
             result = acpi_read(acpi_addr);
             break;
@@ -418,24 +586,6 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
             dptf_set_fan_duty_target(data);
             break;
 #endif
-
-#ifdef CONFIG_DPTF
-        case EC_ACPI_MEM_TEMP_ID:
-            dptf_temp_sensor_id = data;
-            break;
-        case EC_ACPI_MEM_TEMP_THRESHOLD:
-            dptf_temp_threshold = data + EC_TEMP_SENSOR_OFFSET;
-            break;
-        case EC_ACPI_MEM_TEMP_COMMIT:
-        {
-            int idx = data & EC_ACPI_MEM_TEMP_COMMIT_SELECT_MASK;
-            int enable = data & EC_ACPI_MEM_TEMP_COMMIT_ENABLE_MASK;
-            dptf_set_temp_threshold(dptf_temp_sensor_id,
-                    dptf_temp_threshold, idx, enable);
-            break;
-        }
-#endif
-
         default:
             acpi_write(acpi_addr, data);
             oem_bios_to_ec_command();
