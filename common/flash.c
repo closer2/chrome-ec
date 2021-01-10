@@ -1982,15 +1982,17 @@ static void mfg_data_init(void)
 
     /* initialize read AC recovery state */
     mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
-    if (0xFF == mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]) {
+    if (0xFF == mfg_data_map[MFG_AC_RECOVERY_OFFSET]) {
+        mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x01); /* set deflat data */
         *mfgMode = 0x01; /* default is AC recovery to power on */
     } else {
-        *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
+        *mfgMode = mfg_data_map[MFG_AC_RECOVERY_OFFSET];
     }
 
     /* initialize wakeup timeout count */
     mfgMode = host_get_memmap(EC_MEMMAP_WDT_TIMEOUT_COUNT);
     if (0xFF == mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]) {
+        mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, 0); /* set deflat data */
         *mfgMode = 0;
     } else {
         *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
@@ -2021,11 +2023,24 @@ static int console_command_mfg_data(int argc, char **argv)
                 return EC_ERROR_PARAM2;
             mfg_data_write(index, d);
         }
+        else if(!strcasecmp(argv[1], "read") && (3==argc))
+        {
+            index = strtoi(argv[2], &e, 0);
+            if (*e)
+                return EC_ERROR_PARAM2;
+            
+            mfg_data_read(index);
+        }
         else if(!strcasecmp(argv[1], "show"))
         {
             /* TODO, Maybe you need to parse the MFG data here */
+            ccprintf("MFG data : \n");
+            for(d=0; d<16; d++)
+            {
+                ccprintf("0x%X ", mfg_data_map[d]);
+            }
             /* default 0xFF is MFG mode enable */
-            ccprintf("MFG Mode    : %s\n",
+            ccprintf("\nMFG Mode    : %s\n",
                 (0xFF==mfg_data_map[MFG_MODE_OFFSET])?("Enable"):("Disable"));
 
             /* AC recovery state, 1:on, 2:off, 3:pre */
@@ -2042,7 +2057,7 @@ static int console_command_mfg_data(int argc, char **argv)
             }
 
             /* wakeup WDT timeout count*/
-            ccprintf("wakeup WDT timeout count=%d\n",
+            ccprintf("wakeup WDT timeout count : %d\n",
                         mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]);
         }
         else

@@ -217,6 +217,8 @@ static void oem_bios_to_ec_command(void)
             g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
             g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+            g_wakeupWDT.timeoutNum = 0;
+            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -323,6 +325,7 @@ static void oem_bios_to_ec_command(void)
             *(bios_cmd+3) = g_wakeupWDT.timeoutNum;
         } else if(0x02 == *(bios_cmd+2)) {  /* clear */
             g_wakeupWDT.timeoutNum = 0;
+            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -530,9 +533,9 @@ DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
         "[powerled_ctrl <en/dis>\n"
         "[lanwake_ctrl <en/dis>\n"
         "[wlanwake_ctrl <en/dis>\n"
-        "[crisis_ctrl <en/dis>]"
-        "[inbreak_ctrl <get/cls>]"
-        "[recovry_ctrl <on/off/pre>]"
+        "[crisis_ctrl <en/dis>]\n"
+        "[inbreak_ctrl <get/cls>]\n"
+        "[recovry_ctrl <on/off/pre>]\n"
         "[wdt_count <get/cls>]",
         "Simulate a bios command");
 #endif

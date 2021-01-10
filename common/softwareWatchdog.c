@@ -16,6 +16,7 @@
 #include "system.h"
 #include "power.h"
 #include "power_button.h"
+#include "flash.h"
 
 
 /* Console output macros */
@@ -78,7 +79,7 @@ static void system_sw_wdt_service(void)
             }
         }
 
-        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM)
+        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM2)
         {
             g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
         }
@@ -86,6 +87,7 @@ static void system_sw_wdt_service(void)
         if(POWER_S5 == power_get_state()) {
             CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
             power_button_pch_pulse();
+            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         }
     } else {
         g_wakeupWDT.time = 0;
