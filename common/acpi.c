@@ -331,6 +331,19 @@ static void oem_bios_to_ec_command(void)
             break;
         }
         break;
+
+    case 0x0E : /* MFG mode control */
+        if (0x01 == *(bios_cmd+2)) {        /* enable, 0xFF*/
+            mfg_data_write(MFG_MODE_OFFSET, 0xFF);
+        } else if(0x02 == *(bios_cmd+2)) {  /* disable, 0xBE*/
+           mfg_data_write(MFG_MODE_OFFSET, 0xBE);
+        } else if(0x03 == *(bios_cmd+2)) {  /* get */
+           *(bios_cmd+3) = mfg_data_read(MFG_MODE_OFFSET);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;
@@ -515,6 +528,20 @@ static int console_command_to_ec(int argc, char **argv)
             *(bios_cmd+2) = flag;
             *(bios_cmd) = 0x0D;
         }
+        else if(!strcasecmp(argv[1], "mfg_mode") && (3==argc))
+        {
+            if(!strcasecmp(argv[2], "en"))
+                flag = 0x01;
+            else if(!strcasecmp(argv[2], "dis"))
+                flag = 0x02;
+            else if(!strcasecmp(argv[2], "get"))
+                flag = 0x03;
+            else
+                return EC_ERROR_PARAM2;
+
+            *(bios_cmd+2) = flag;
+            *(bios_cmd) = 0x0E;
+        }
         else
         {
             return EC_ERROR_PARAM2;
@@ -536,7 +563,8 @@ DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
         "[crisis_ctrl <en/dis>]\n"
         "[inbreak_ctrl <get/cls>]\n"
         "[recovry_ctrl <on/off/pre>]\n"
-        "[wdt_count <get/cls>]",
+        "[wdt_count <get/cls>]"
+        "[mfg_mode <en/dis/get>]",
         "Simulate a bios command");
 #endif
 
