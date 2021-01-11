@@ -23,15 +23,210 @@
 #define CPUTS(outstr) cputs(CC_THERMAL, outstr)
 #define CPRINTS(format, args...) cprints(CC_THERMAL, format, ## args)
 
-/*****************************************************************************/
-/* EC-specific thermal controls */
 
-test_mockable_static void smi_sensor_failure_warning(void)
-{
-	CPRINTS("can't read any temp sensors!");
-	host_set_single_event(EC_HOST_EVENT_THERMAL);
-}
+#define UMP_SYS_FAN_START_TEMP 36 
+#define UMP_CPU_FAN_START_TEMP 36 
+#define GFX_SYS_FAN_START_TEMP 39 
+#define GFX_CPU_FAN_START_TEMP 40 
 
+enum thermal_mode {
+    THERMAL_UMP = 0,
+    THERMAL_WITH_GFX,
+};
+
+enum thermal_mode g_thermalMode;
+
+enum thermal_fan_mode {
+    UMP_THERMAL_SYS_FAN = 0,
+    UMP_THERMAL_CPU_FAN,    
+    GFX_THERMAL_SYS_FAN,
+    GFX_THERMAL_CPU_FAN, 
+};
+
+enum thermal_level {
+    LEVEL1 = 0,
+    LEVEL2,
+    LEVEL3,
+    LEVEL4,
+    LEVEL5,
+    LEVEL6,
+    LEVEL_COUNT
+};
+
+struct thermal_params_s {
+    uint8_t   level;
+    int  rpm_target;
+    int   cpuCore; /* name = "CPU Core" */
+    int   socNear; /* name = "SOC Near" */
+    int   ssdNear; /* name = "SSD Near" */
+    int   VramNear; /* name = "VRAM Near" */
+    int   pcieNear; /* name = "PCIE16 Near" */
+    int   ramNear; /* name = "Memory Near" */
+};
+
+struct thermal_params_s g_fanLevel[CONFIG_FANS] = {0};
+struct thermal_params_s g_fanRPM[CONFIG_FANS] ={0};
+
+uint8_t Sensorauto = 0;	/* Number of data pairs. */
+int g_tempSensors[TEMP_SENSOR_COUNT] = {0};
+
+struct thermal_level_ags {
+    uint8_t    level;
+    int        RPM;
+    uint16_t   HowTri;
+    uint16_t   lowTri;
+};
+
+struct thermal_level_s {
+    const char *name;
+    uint8_t num_pairs;	/* Number of data pairs. */
+    const struct thermal_level_ags *data;
+};
+
+/* UMP sys fan sensor SSD near*/
+const struct thermal_level_ags UMP_thermal_sys_fan_SSD_near[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     600,      53,   UMP_SYS_FAN_START_TEMP}, 
+    {1,     800,      54,   51},  
+    {2,     1000,     55,   52},  
+    {3,     1300,     58,   53},
+    {4,     1600,     62,   56},  
+    {5,     2800,     62,   60} 
+};
+const struct thermal_level_s t_UMP_thermal_sys_fan_SSD_near = {
+    .name = "SSD Near",
+    .num_pairs = ARRAY_SIZE(UMP_thermal_sys_fan_SSD_near),
+    .data = UMP_thermal_sys_fan_SSD_near,
+};
+
+/* UMP sys fan sensor memory near*/
+const struct thermal_level_ags UMP_thermal_sys_fan_ram[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     600,      55,   UMP_SYS_FAN_START_TEMP}, 
+    {1,     800,      60,   63},  
+    {2,     1000,     65,   58},  
+    {3,     1300,     69,   63},
+    {4,     1600,     72,   67},  
+    {5,     2800,     72,   70}             
+};
+const struct thermal_level_s t_UMP_thermal_sys_fan_ram = {
+    .name = "Memory Near",
+    .num_pairs = ARRAY_SIZE(UMP_thermal_sys_fan_ram),
+    .data = UMP_thermal_sys_fan_ram,
+};
+        
+/* UMP CPU fan sensor soc cor*/
+const struct thermal_level_ags  UMP_thermal_cpu_soc_core[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      60,   UMP_CPU_FAN_START_TEMP}, 
+    {1,     900,      70,   57},  
+    {2,     1100,     78,   67},  
+    {3,     1300,     89,   75},
+    {4,     1600,     96,   87},  
+    {5,     2800,     96,   95}             
+};
+const struct thermal_level_s t_UMP_thermal_cpu_soc_core = {
+    .name = "SOC Near",
+    .num_pairs = ARRAY_SIZE(UMP_thermal_cpu_soc_core),
+    .data = UMP_thermal_cpu_soc_core,
+};
+        
+/* UMP CPU fan sensor VRAM*/    
+const struct thermal_level_ags UMP_thermal_cpu_VRAM[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      60,   UMP_CPU_FAN_START_TEMP}, 
+    {1,     900,      68,   57},  
+    {2,     1100,     75,   65},  
+    {3,     1300,     82,   72},
+    {4,     1600,     88,   79},  
+    {5,     2800,     88,   86}             
+}; 
+const struct thermal_level_s t_UMP_thermal_cpu_VRAM = {
+    .name = "VRAM Near",
+    .num_pairs = ARRAY_SIZE(UMP_thermal_cpu_VRAM),
+    .data = UMP_thermal_cpu_VRAM,
+};
+
+/*****************************************************************/
+/* GFX sys fan sensor SSD near*/
+const struct thermal_level_ags GFX_thermal_sys_fan_SSD_near[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     500,      60,   GFX_SYS_FAN_START_TEMP}, 
+    {1,     600,      62,   52},  
+    {2,     900,      65,   56},  
+    {3,     1300,     67,   59},
+    {4,     1600,     71,   61},  
+    {5,     2800,     66,   64} 
+};
+const struct thermal_level_s t_GFX_thermal_sys_fan_SSD_near = {
+    .name = "SSD Near",
+    .num_pairs = ARRAY_SIZE(GFX_thermal_sys_fan_SSD_near),
+    .data = GFX_thermal_sys_fan_SSD_near,
+};
+
+/* GFX sys fan sensor RAM*/  
+const struct thermal_level_ags GFX_thermal_sys_fan_RAM[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     500,      55,   GFX_SYS_FAN_START_TEMP}, 
+    {1,     600,      60,   53},  
+    {2,     900,      65,   58},  
+    {3,     1300,     69,   63},
+    {4,     1500,     72,   67},  
+    {5,     2800,     72,   70}               
+};
+const struct thermal_level_s t_GFX_thermal_sys_fan_RAM = {
+    .name = "RAM Near",
+    .num_pairs = ARRAY_SIZE(GFX_thermal_sys_fan_RAM),
+    .data = GFX_thermal_sys_fan_RAM,
+};
+
+/* GFX sys fan sensor PCIEx16 */  
+const struct thermal_level_ags GFX_thermal_sys_fan_PCIEx16[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     500,      54,   GFX_SYS_FAN_START_TEMP}, 
+    {1,     600,      57,   50},  
+    {2,     900,      60,   54},  
+    {3,     1300,     64,   58},
+    {4,     1500,     71,   62},  
+    {5,     2800,     71,   69}               
+};
+const struct thermal_level_s t_GFX_thermal_sys_fan_PCIEx16 = {
+    .name = "PCIEX16 Near",
+    .num_pairs = ARRAY_SIZE(GFX_thermal_sys_fan_PCIEx16),
+    .data = GFX_thermal_sys_fan_PCIEx16,
+};            
+/* GFX cpu fan soc_core */      
+const struct thermal_level_ags GFX_thermal_cpu_fan_soc_core[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     800,      60,   GFX_CPU_FAN_START_TEMP}, 
+    {1,     900,      70,   57},  
+    {2,     1100,     78,   67},  
+    {3,     1300,     89,   75},
+    {4,     1600,     96,   87},  
+    {5,     2800,     96,   95}               
+};
+const struct thermal_level_s t_GFX_thermal_cpu_fan_soc_core = {
+    .name = "SOC Core",
+    .num_pairs = ARRAY_SIZE(GFX_thermal_cpu_fan_soc_core),
+    .data = GFX_thermal_cpu_fan_soc_core,
+};
+            
+/* GFX cpu fan VRAM */      
+const struct thermal_level_ags GFX_thermal_cpu_fan_VRAM[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     800,      60,   GFX_CPU_FAN_START_TEMP}, 
+    {1,     900,      68,   57},  
+    {2,     1100,     75,   65},  
+    {3,     1300,     82,   72},
+    {4,     1600,     88,   79},  
+    {5,     2800,     87,   86}                   
+};
+const struct thermal_level_s t_GFX_thermal_cpu_fan_VRAM = {
+    .name = "VRAM Near",
+    .num_pairs = ARRAY_SIZE(GFX_thermal_cpu_fan_VRAM),
+    .data = GFX_thermal_cpu_fan_VRAM,
+};
+     
 int thermal_fan_percent(int low, int high, int cur)
 {
 	if (cur < low)
@@ -46,170 +241,352 @@ int thermal_fan_percent(int low, int high, int cur)
  */
 BUILD_ASSERT(EC_TEMP_THRESH_COUNT == 3);
 
-/* Keep track of which thresholds have triggered */
-static cond_t cond_hot[EC_TEMP_THRESH_COUNT];
+static uint8_t get_fan_level(uint16_t temp, uint8_t fan_level, const struct thermal_level_s *fantable)
+{
+	uint8_t new_level = 0x0;
+    const struct thermal_level_ags *data = fantable->data;
+
+	new_level = fan_level;
+	if(fan_level < (LEVEL_COUNT - 1))
+	{
+		if(temp >= data[fan_level].HowTri)
+		{
+			new_level++;
+		}
+	}
+	if(fan_level > 0)
+	{
+		if(temp < data[fan_level].lowTri)
+		{
+			new_level--;
+		}
+	}
+	return new_level;
+
+}
+
+static uint16_t get_fan_RPM(uint8_t fan_level, const struct thermal_level_s *fantable)
+{
+    const struct thermal_level_ags *data = fantable->data;
+    return data[fan_level].RPM;
+}
+
+#define  UMP_CPU_FAN_START (UMP_CPU_FAN_START_TEMP - 10)
+#define  GFX_CPU_FAN_START (GFX_CPU_FAN_START_TEMP - 10)
+static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
+{
+    uint8_t status = 0x0;
+
+    switch(thermalMode) { 
+        case THERMAL_UMP:
+            if ((g_tempSensors[TEMP_SENSOR_SOC_CORE] < UMP_CPU_FAN_START)
+                && (g_tempSensors[TEMP_SENSOR_VRAM] < UMP_CPU_FAN_START)) {
+                status = 0x0;
+             } else {
+                status = 0x55;
+              }
+             break;
+         case THERMAL_WITH_GFX:
+             if ((g_tempSensors[TEMP_SENSOR_SOC_CORE] < GFX_CPU_FAN_START)
+                && (g_tempSensors[TEMP_SENSOR_VRAM] < GFX_CPU_FAN_START)) {
+                status = 0x0;
+             } else {
+                status = 0x55;
+              }
+             break;
+        default:
+            break;
+    }
+    return status;
+}
+
+static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
+{
+    uint8_t fan = PWM_CH_CPU_FAN;
+    int rpm_target = 0x0;
+
+
+    /* sensor model form the configuration table board.c */
+    switch(thermalMode) { 
+        case THERMAL_UMP:
+            /* cpu fan start status  */ 
+            if (!cpu_fan_start_temp(THERMAL_UMP)) {
+                rpm_target = 0x0;
+                return rpm_target;
+            }
+            
+            /* cpu fan check SOC core */      
+            g_fanLevel[fan].cpuCore =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_SOC_CORE], 
+                    g_fanLevel[fan].cpuCore, &t_UMP_thermal_cpu_soc_core);
+            g_fanRPM[fan].cpuCore = get_fan_RPM(g_fanLevel[fan].cpuCore, 
+                &t_UMP_thermal_cpu_soc_core);
+
+            /* cpu fan check Vram near */    
+            g_fanLevel[fan].VramNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_VRAM], 
+                    g_fanLevel[fan].VramNear, &t_UMP_thermal_cpu_VRAM); 
+            g_fanRPM[fan].VramNear = get_fan_RPM(g_fanLevel[fan].VramNear
+                , &t_UMP_thermal_cpu_VRAM);
+
+
+            rpm_target = (g_fanRPM[fan].cpuCore > g_fanRPM[fan].VramNear)
+                            ?  g_fanRPM[fan].cpuCore : g_fanRPM[fan].VramNear;
+            break;
+        case THERMAL_WITH_GFX:
+            /* cpu fan start status  */ 
+            if (!cpu_fan_start_temp(THERMAL_WITH_GFX)) {
+                rpm_target = 0x0;
+                return rpm_target;
+            }
+        
+            /* cpu fan check SOC core */      
+            g_fanLevel[fan].cpuCore =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_SOC_CORE], 
+                    g_fanLevel[fan].cpuCore, &t_GFX_thermal_cpu_fan_soc_core);
+            g_fanRPM[fan].cpuCore = get_fan_RPM(g_fanLevel[fan].cpuCore, 
+                &t_GFX_thermal_cpu_fan_soc_core);
+
+            /* sys fan check Vram near */    
+            g_fanLevel[fan].VramNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_VRAM], 
+                    g_fanLevel[fan].VramNear, &t_GFX_thermal_cpu_fan_VRAM); 
+            g_fanRPM[fan].VramNear = get_fan_RPM(g_fanLevel[fan].VramNear
+                , &t_GFX_thermal_cpu_fan_VRAM);
+
+            rpm_target = (g_fanRPM[fan].cpuCore > g_fanRPM[fan].VramNear)
+                            ?  g_fanRPM[fan].cpuCore: g_fanRPM[fan].VramNear;
+            break;  
+        default:
+            break;
+    }
+    return rpm_target;
+}
+
+#define  UMP_SYS_FAN_START (UMP_SYS_FAN_START_TEMP - 10)
+#define  GFX_SYS_FAN_START (GFX_SYS_FAN_START_TEMP - 10)
+static uint8_t sys_fan_start_temp(uint8_t thermalMode)
+{
+    uint8_t status = 0x0;
+
+    switch(thermalMode) { 
+        case THERMAL_UMP:
+            if ((g_tempSensors[TEMP_SENSOR_SSD_NEAR] < UMP_SYS_FAN_START)
+                && (g_tempSensors[TEMP_SENSOR_MEMORY_NEAR] < UMP_SYS_FAN_START)) {
+                status = 0x0;
+             } else {
+                status = 0x55;
+              }
+             break;
+         case THERMAL_WITH_GFX:
+             if ((g_tempSensors[TEMP_SENSOR_SSD_NEAR] < GFX_SYS_FAN_START)
+                && (g_tempSensors[TEMP_SENSOR_MEMORY_NEAR] < GFX_SYS_FAN_START)
+                && (g_tempSensors[TEMP_SENSOR_PCIEX16_NEAR] < GFX_SYS_FAN_START)) {
+                status = 0x0;
+             } else {
+                status = 0x55;
+              }
+             break;
+        default:
+            break;
+    }
+    return status;
+}
+
+static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
+{
+    uint8_t fan = PWM_CH_SYS_FAN;
+    int rpm_target = 0x0;
+
+    /* sensor model form the configuration table board.c */
+    switch(thermalMode) { 
+        case THERMAL_UMP: 
+            /* sys fan start status  */ 
+            if (!sys_fan_start_temp(THERMAL_UMP)) {
+                rpm_target = 0x0;
+                return rpm_target;
+            }
+
+            /* sys fan check ssd near */
+            g_fanLevel[fan].ssdNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_SSD_NEAR], 
+                    g_fanLevel[fan].ssdNear, &t_UMP_thermal_sys_fan_SSD_near);     
+            g_fanRPM[fan].ssdNear = get_fan_RPM(g_fanLevel[fan].ssdNear, 
+                &t_UMP_thermal_sys_fan_SSD_near);
+
+            /* sys fan check ram near */
+            g_fanLevel[fan].ramNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_MEMORY_NEAR], 
+                    g_fanLevel[fan].ramNear, &t_UMP_thermal_sys_fan_ram);  
+            g_fanRPM[fan].ramNear = get_fan_RPM(g_fanLevel[fan].ramNear
+                , &t_UMP_thermal_sys_fan_ram);
+        
+           rpm_target = (g_fanRPM[fan].ssdNear > g_fanRPM[fan].ramNear)
+                            ?  g_fanRPM[fan].ssdNear : g_fanRPM[fan].ramNear;
+            break;
+
+        case THERMAL_WITH_GFX:  
+            /* sys fan start status  */ 
+            if (!sys_fan_start_temp(THERMAL_WITH_GFX)) {
+                rpm_target = 0x0;
+                return rpm_target;
+            }
+            
+            /* sys fan check ssd near */
+            g_fanLevel[fan].ssdNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_SSD_NEAR], 
+                    g_fanLevel[fan].ssdNear, &t_GFX_thermal_sys_fan_SSD_near);     
+            g_fanRPM[fan].ssdNear = get_fan_RPM(g_fanLevel[fan].ssdNear, 
+                &t_GFX_thermal_sys_fan_SSD_near);
+
+            /* sys fan check ram near */
+            g_fanLevel[fan].ramNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_MEMORY_NEAR], 
+                    g_fanLevel[fan].ramNear, &t_GFX_thermal_sys_fan_RAM);     
+            g_fanRPM[fan].ramNear = get_fan_RPM(g_fanLevel[fan].ramNear, 
+                &t_GFX_thermal_sys_fan_RAM);
+            
+            rpm_target = (g_fanRPM[fan].ssdNear > g_fanRPM[fan].ramNear)
+                            ?  g_fanRPM[fan].ssdNear : g_fanRPM[fan].ramNear;
+            
+            /* sys fan check pcie near */
+            g_fanLevel[fan].pcieNear =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_PCIEX16_NEAR], 
+                    g_fanLevel[fan].pcieNear, &t_GFX_thermal_sys_fan_PCIEx16);     
+            g_fanRPM[fan].pcieNear = get_fan_RPM(g_fanLevel[fan].pcieNear, 
+                &t_GFX_thermal_sys_fan_PCIEx16);
+
+
+            rpm_target = (rpm_target > g_fanRPM[fan].pcieNear)
+                            ?  rpm_target : g_fanRPM[fan].pcieNear;
+
+            break;  
+        default:
+            break;
+    }
+    return rpm_target;
+}
 
 static void thermal_control(void)
 {
-	int i, j, t, rv, f;
-	int count_over[EC_TEMP_THRESH_COUNT];
-	int count_under[EC_TEMP_THRESH_COUNT];
-	int num_valid_limits[EC_TEMP_THRESH_COUNT];
-	int num_sensors_read;
-	int fmax;
-	int temp_fan_configured;
-
-#ifdef CONFIG_CUSTOM_FAN_CONTROL
-	int temp[TEMP_SENSOR_COUNT];
-#endif
-
-	/* Get ready to count things */
-	memset(count_over, 0, sizeof(count_over));
-	memset(count_under, 0, sizeof(count_under));
-	memset(num_valid_limits, 0, sizeof(num_valid_limits));
-	num_sensors_read = 0;
-	fmax = 0;
-	temp_fan_configured = 0;
+	uint8_t fan, rv, i;
+    int tempSensors;
+    int rpm_target[CONFIG_FANS] = {0x0};
 
 	/* go through all the sensors */
-	for (i = 0; i < TEMP_SENSOR_COUNT; ++i) {
-
+	for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
 		/* read one */
-		rv = temp_sensor_read(i, &t);
+		rv= temp_sensor_read(i, &tempSensors);
 
-#ifdef CONFIG_CUSTOM_FAN_CONTROL
-		/* Store all sensors value */
-		temp[i] = K_TO_C(t);
-#endif
+        if (rv != EC_SUCCESS)
+		continue;
+        tempSensors = K_TO_C(tempSensors);
+        if (!Sensorauto) {
+            g_tempSensors[i] = tempSensors;
+        }
+    }
 
-		if (rv != EC_SUCCESS)
-			continue;
-		else
-			num_sensors_read++;
+    g_thermalMode = THERMAL_UMP;
+    /* cpu thermal control */
+    fan = PWM_CH_CPU_FAN;
+    if (is_thermal_control_enabled(fan)) {   
+        rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
+        fan_set_rpm_target(fan, rpm_target[fan]);
+    }
 
-		/* check all the limits */
-		for (j = 0; j < EC_TEMP_THRESH_COUNT; j++) {
-			int limit = thermal_params[i].temp_host[j];
-			int release = thermal_params[i].temp_host_release[j];
-			if (limit) {
-				num_valid_limits[j]++;
-				if (t > limit) {
-					count_over[j]++;
-				} else if (release) {
-					if (t < release)
-						count_under[j]++;
-				} else if (t < limit) {
-					count_under[j]++;
-				}
-			}
-		}
-
-		/* figure out the max fan needed, too */
-		if (thermal_params[i].temp_fan_off &&
-		    thermal_params[i].temp_fan_max) {
-			f = thermal_fan_percent(thermal_params[i].temp_fan_off,
-						thermal_params[i].temp_fan_max,
-						t);
-			if (f > fmax)
-				fmax = f;
-
-			temp_fan_configured = 1;
-		}
-	}
-
-	if (!num_sensors_read) {
-		/*
-		 * Trigger a SMI event if we can't read any sensors.
-		 *
-		 * In theory we could do something more elaborate like forcing
-		 * the system to shut down if no sensors are available after
-		 * several retries.  This is a very unlikely scenario -
-		 * particularly on LM4-based boards, since the LM4 has its own
-		 * internal temp sensor.  It's most likely to occur during
-		 * bringup of a new board, where we haven't debugged the I2C
-		 * bus to the sensors; forcing a shutdown in that case would
-		 * merely hamper board bringup.
-		 *
-		 * If in G3, then there is no need trigger an SMI event since
-		 * the AP is off and this can be an expected state if
-		 * temperature sensors are powered by a power rail that's only
-		 * on if the AP is out of G3. Note this could be 'ANY_OFF' as
-		 * well, but that causes the thermal unit test to fail.
-		 */
-		if (!chipset_in_state(CHIPSET_STATE_HARD_OFF))
-			smi_sensor_failure_warning();
-		return;
-	}
-
-	/* See what the aggregated limits are. Any temp over the limit
-	 * means it's hot, but all temps have to be under the limit to
-	 * be cool again.
-	 */
-	for (j = 0; j < EC_TEMP_THRESH_COUNT; j++) {
-		if (count_over[j])
-			cond_set_true(&cond_hot[j]);
-		else if (count_under[j] == num_valid_limits[j])
-			cond_set_false(&cond_hot[j]);
-	}
-
-	/* What do we do about it? (note hard-coded logic). */
-
-	if (cond_went_true(&cond_hot[EC_TEMP_THRESH_HALT])) {
-		CPRINTS("thermal SHUTDOWN");
-		chipset_force_shutdown(CHIPSET_SHUTDOWN_THERMAL);
-	} else if (cond_went_false(&cond_hot[EC_TEMP_THRESH_HALT])) {
-		/* We don't reboot automatically - the user has to push
-		 * the power button. It's likely that we can't even
-		 * detect this sensor transition until then, but we
-		 * do have to check in order to clear the cond_t.
-		 */
-		CPRINTS("thermal no longer shutdown");
-	}
-
-	if (cond_went_true(&cond_hot[EC_TEMP_THRESH_HIGH])) {
-		CPRINTS("thermal HIGH");
-		throttle_ap(THROTTLE_ON, THROTTLE_HARD, THROTTLE_SRC_THERMAL);
-	} else if (cond_went_false(&cond_hot[EC_TEMP_THRESH_HIGH])) {
-		CPRINTS("thermal no longer high");
-		throttle_ap(THROTTLE_OFF, THROTTLE_HARD, THROTTLE_SRC_THERMAL);
-	}
-
-	if (cond_went_true(&cond_hot[EC_TEMP_THRESH_WARN])) {
-		CPRINTS("thermal WARN");
-		throttle_ap(THROTTLE_ON, THROTTLE_SOFT, THROTTLE_SRC_THERMAL);
-	} else if (cond_went_false(&cond_hot[EC_TEMP_THRESH_WARN])) {
-		CPRINTS("thermal no longer warn");
-		throttle_ap(THROTTLE_OFF, THROTTLE_SOFT, THROTTLE_SRC_THERMAL);
-	}
-
-	if (temp_fan_configured) {
-#ifdef CONFIG_FANS
-#ifdef CONFIG_CUSTOM_FAN_CONTROL
-		for (i = 0; i < fan_get_count(); i++) {
-			if (!is_thermal_control_enabled(i))
-				continue;
-
-			board_override_fan_control(i, temp);
-		}
-#else
-		/* TODO(crosbug.com/p/23797): For now, we just treat all
-		 * fans the same. It would be better if we could assign
-		 * different thermal profiles to each fan - in case one
-		 * fan cools the CPU while another cools the radios or
-		 * battery.
-		 */
-		for (i = 0; i < fan_get_count(); i++)
-			fan_set_percent_needed(i, fmax);
-#endif
-#endif
-	}
+    /* sys thermal control */
+    fan = PWM_CH_SYS_FAN;
+    if (is_thermal_control_enabled(fan)) {    
+        rpm_target[fan] = sys_fan_check_RPM(g_thermalMode);
+        fan_set_rpm_target(fan, rpm_target[fan]);
+    }
 }
 
 /* Wait until after the sensors have been read */
 DECLARE_HOOK(HOOK_SECOND, thermal_control, HOOK_PRIO_TEMP_SENSOR_DONE);
 
+
 /*****************************************************************************/
 /* Console commands */
+#ifdef CONFIG_CONSOLE_THERMAL_TEST
+static int sensor_count = EC_TEMP_SENSOR_ENTRIES;
+static int cc_Sensorinfo(int argc, char **argv)
+{
+	char leader[20] = "";
+
+    if (!Sensorauto) {
+        ccprintf("%sSensorauto: YES\n", leader);  
+    } else {
+        ccprintf("%sSensorauto: NO\n", leader);  
+    }
+    
+	ccprintf("%sCPU Core: %4d C\n", leader, g_tempSensors[0]);
+    ccprintf("%sSOC Near: %4d C\n", leader, g_tempSensors[1]);
+    ccprintf("%sSSD Near: %4d C\n", leader, g_tempSensors[2]);
+    ccprintf("%sPCIEX16 Near: %4d C\n", leader, g_tempSensors[3]);        
+	ccprintf("%sVRAM Near: %4d C\n", leader, g_tempSensors[4]);
+    ccprintf("%sMemory Near: %4d C\n", leader, g_tempSensors[5]);
+
+	return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(Sensorinfo, cc_Sensorinfo,
+			NULL,
+			"Print Sensor info");
+
+static int cc_sensorauto(int argc, char **argv)
+{
+    if (!argc) {
+        Sensorauto = 0x00;
+    } else {
+	    Sensorauto = 0x55;
+    }
+    
+	return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(sensorauto, cc_sensorauto,
+			"{sensor}",
+			"Enable thermal sensor control");
+
+
+static int cc_sensorset(int argc, char **argv)
+{
+	int temp = 0;
+	char *e;
+	int sensor = 0;
+
+	if (sensor_count == 0) {
+		ccprintf("sensor count is zero\n");
+		return EC_ERROR_INVAL;
+	}
+
+	if (sensor_count > 1) {
+		if (argc < 2) {
+			ccprintf("sensor number is required as the first arg\n");
+			return EC_ERROR_PARAM_COUNT;
+		}
+		sensor = strtoi(argv[1], &e, 0);
+		if (*e || sensor >= sensor_count)
+			return EC_ERROR_PARAM1;
+		argc--;
+		argv++;
+	}
+
+	if (argc < 2)
+		return EC_ERROR_PARAM_COUNT;
+
+	temp = strtoi(argv[1], &e, 0);
+	if (*e)
+		return EC_ERROR_PARAM1;
+
+	ccprintf("Setting sensor %d temp to %d%%\n", sensor, temp);
+    g_tempSensors[sensor] = temp;
+
+	return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(sensorset, cc_sensorset,
+			"{sensor} percent",
+			"Set sensor temp cycle");
+#endif
 
 static int command_thermalget(int argc, char **argv)
 {

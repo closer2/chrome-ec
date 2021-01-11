@@ -144,10 +144,12 @@
 	#undef CONFIG_FAN_INIT_SPEED
 	#define CONFIG_FAN_INIT_SPEED 50
 #endif */
-#define CONFIG_FAN_FAULT_CHECK_SPEED   50      /* fan check fault percent */
-#define FAN_CHECK_FAULT_TIME           15     /* timebase 200ms */
+#define CONFIG_FAN_FAULT_CHECK_SPEED   50    /* fan check fault percent */
+#define FAN_CHECK_FAULT_TIME           15    /* timebase 200ms */
 #define FAN_THERMAL_CONTROL_ENABLE     30    /* timebase 200ms*/
-#define FAN_DUTY_50_RPM                800     /* fan set duty 50%, check rpm > 800 */
+#define FAN_DUTY_50_RPM                500   /* fan set duty 50%, check rpm > 500 */
+#undef CONFIG_CONSOLE_THERMAL_TEST           /* console thermal test */
+
 
 /*------------------------------------------------------------------------------
 * USB-C define for pangu-l
@@ -370,7 +372,7 @@ enum adc_channel {
     ADC_SENSOR_SOC_NEAR = 0,
     ADC_SENSOR_SSD_NEAR,
     ADC_SENSOR_PCIEX16_NEAR,
-    ADC_SENSOR_ENVIRONMENT,
+    ADC_SENSOR_VRAM,
     ADC_SENSOR_MEMORY_NEAR,
 	ADC_CH_COUNT
 };
@@ -381,7 +383,7 @@ enum temp_sensor_id {
         TEMP_SENSOR_SOC_NEAR,
         TEMP_SENSOR_SSD_NEAR,
         TEMP_SENSOR_PCIEX16_NEAR,
-        TEMP_SENSOR_ENVIRONMENT,
+        TEMP_SENSOR_VRAM,
         TEMP_SENSOR_MEMORY_NEAR,
         TEMP_SENSOR_COUNT
 };

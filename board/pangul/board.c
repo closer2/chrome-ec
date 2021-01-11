@@ -135,8 +135,8 @@ int board_get_temp(int idx, int *temp_k)
         case TEMP_SENSOR_PCIEX16_NEAR:
             channel = ADC_SENSOR_PCIEX16_NEAR;
             break;
-        case TEMP_SENSOR_ENVIRONMENT:
-            channel = ADC_SENSOR_ENVIRONMENT;
+        case TEMP_SENSOR_VRAM:
+            channel = ADC_SENSOR_VRAM;
             break;
         case TEMP_SENSOR_MEMORY_NEAR:
             channel = ADC_SENSOR_MEMORY_NEAR;
@@ -176,8 +176,8 @@ const struct adc_t adc_channels[] = {
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-    [ADC_SENSOR_ENVIRONMENT] = {
-		.name = "Environment Near",
+    [ADC_SENSOR_VRAM] = {
+		.name = "VRAM Near",
 		.input_ch = NPCX_ADC_CH7,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
@@ -213,16 +213,16 @@ const struct temp_sensor_t temp_sensors[] = {
         .idx = TEMP_SENSOR_SSD_NEAR,
     },
     [TEMP_SENSOR_PCIEX16_NEAR] = {
-        .name = "PCIE16 Near",
+        .name = "PCIEX16 Near",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_PCIEX16_NEAR,
     },
-    [TEMP_SENSOR_ENVIRONMENT] = {
-        .name = "Environment Near",
+    [TEMP_SENSOR_VRAM] = {
+        .name = "VRAM Near",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
-        .idx = TEMP_SENSOR_ENVIRONMENT,
+        .idx = TEMP_SENSOR_VRAM,
     },
     [TEMP_SENSOR_MEMORY_NEAR] = {
         .name = "Memory Near",
@@ -278,7 +278,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(10),
 	    .temp_fan_max = C_TO_K(40)
 	},
-	[TEMP_SENSOR_ENVIRONMENT] = {
+	[TEMP_SENSOR_VRAM] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -329,7 +329,6 @@ const struct i2c_port_t i2c_ports[] = {
 };
 const unsigned int i2c_ports_used = ARRAY_SIZE(i2c_ports);
 
-
 /******************************************************************************/
 /* PWM channels. Must be in the exactly same order as in enum pwm_channel. pwm_init. */
 const struct pwm_t pwm_channels[] = {
@@ -377,13 +376,13 @@ const struct fan_conf fan_conf_1 = {
 const struct fan_rpm fan_rpm_0 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2500,
+	.rpm_max = 2800,
 };
 
 const struct fan_rpm fan_rpm_1 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2500,
+	.rpm_max = 2800,
 };
 
 const struct fan_t fans[] = {
