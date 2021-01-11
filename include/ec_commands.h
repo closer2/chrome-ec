@@ -192,17 +192,17 @@ extern "C" {
 /* Unused 0x1E -0x1F */
 
 /* Sensor temperature, offset 0x20--0x2F */
-#define EC_MEMMAP_TEMP_SENSOR_00            0x20 /* CPU internal */
-#define EC_MEMMAP_TEMP_SENSOR_01            0x21 /* CPU external */
-#define EC_MEMMAP_TEMP_SENSOR_02            0x22 /* GPU internal */
-#define EC_MEMMAP_TEMP_SENSOR_03            0x23 /* GPU external */
-#define EC_MEMMAP_TEMP_SENSOR_04            0x24 /* Environment */
-#define EC_MEMMAP_TEMP_SENSOR_05            0x25 /* SSD */
-#define EC_MEMMAP_TEMP_SENSOR_06            0x26 /* Memory */
-#define EC_MEMMAP_TEMP_SENSOR_07            0x27 /* Battery */
-#define EC_MEMMAP_TEMP_SENSOR_08            0x28 /* Charger */
-#define EC_MEMMAP_TEMP_SENSOR_09            0x29 /* Type-C port-0 */
-#define EC_MEMMAP_TEMP_SENSOR_0A            0x2A /* Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_00            0x20 /* CPU Core */
+#define EC_MEMMAP_TEMP_SENSOR_01            0x21 /* SOC Near */
+#define EC_MEMMAP_TEMP_SENSOR_02            0x22 /* SSD Near */
+#define EC_MEMMAP_TEMP_SENSOR_03            0x23 /* PCIEX16 Near */
+#define EC_MEMMAP_TEMP_SENSOR_04            0x24 /* VRAM Near */
+#define EC_MEMMAP_TEMP_SENSOR_05            0x25 /* Memory Near */
+#define EC_MEMMAP_TEMP_SENSOR_06            0x26 /* Battery */
+#define EC_MEMMAP_TEMP_SENSOR_07            0x27 /* Charger */
+#define EC_MEMMAP_TEMP_SENSOR_08            0x28 /* Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_09            0x29 /* Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0A            0x2A 
 #define EC_MEMMAP_TEMP_SENSOR_0B            0x2B
 #define EC_MEMMAP_TEMP_SENSOR_0C            0x2C
 #define EC_MEMMAP_TEMP_SENSOR_0D            0x2D
