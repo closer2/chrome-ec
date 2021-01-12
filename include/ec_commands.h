@@ -147,7 +147,8 @@ extern "C" {
 /* Unused 0x11 */
 #define EC_MEMMAP_POWER_FLAG1               0x12 /* EC power flag 1 */
 #define EC_MEMMAP_DISABLE_G3        BIT(0) /* 1:disable G3, 0:enable G3 */
-#define EC_MEMMAP_CRISIS_RECOVERY   BIT(1) /* 1:BIOS crisis recovery, 0:normal*/
+#define EC_MEMMAP_CRISIS_RECOVERY   BIT(1) /* 1:BIOS crisis recovery, 0:normal */
+#define EC_MEMMAP_CRISIS_CLEAR      BIT(2) /* 1:Chassis Intrusion Status Clear */
 #define EC_MEMMAP_POWER_LOCK        BIT(7) /* 1:Lock power button */
 
 /* Unused 0x13 -0x14 */

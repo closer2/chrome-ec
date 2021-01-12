@@ -297,10 +297,11 @@ static void oem_bios_to_ec_command(void)
         break;
 
     case 0x0B : /* crate inbreak data */
-        if (0x01 == *(bios_cmd+2)) {        /* get */
-            /* TODO */
-        } else if(0x02 == *(bios_cmd+2)) {  /* clear */
-            /* TODO */
+        mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+        if (0x01 == *(bios_cmd+2)) {        /* get crisis data */
+            *(bios_cmd+3) = get_chassisIntrusion_data();
+        } else if(0x02 == *(bios_cmd+2)) {  /* clear crisis data */
+            *mptr |= EC_MEMMAP_CRISIS_CLEAR;
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

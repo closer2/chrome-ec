@@ -32,8 +32,6 @@ GPIO_INT(APU_PCIE_RST_L,	PIN(2, 1), GPIO_INT_BOTH,			apu_pcie_reset_interrupt)	/
 
 /* TODO: We need write the following two interrupt handler */
 /* GPIO_INT(THERMTRIP_L,		PIN(6, 0), GPIO_INT_BOTH,			thermal_trip_interrupt) */
-/* GPIO_INT(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INT_BOTH,       case_open_interrupt)	*/
-
 
 /* Replace of the above for PanGuL board */
 GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)			/* Power OK to SOC, EC_FCH_PWRGD */
@@ -68,10 +66,10 @@ GPIO(M2_2280_SSD1_RST_L,	PIN(1, 7), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass throu
 GPIO(PCIEX16_RST_L,		    PIN(2, 0), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
 GPIO(EC_LAN_WAKE_L,		    PIN(2, 2), GPIO_OUT_LOW)		    /* Waked up LAN */
 GPIO(EC_WLAN_WAKE_L,		PIN(1, 1), GPIO_OUT_LOW)		    /* Waked up WLAN */
+GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_OUT_HIGH)			/* Chassis Intrusion Status Clear */
 
 /* KBRST# as gpio */
 GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_HIGH)			/* KBRST# */
-
 
 /* Input */
 GPIO(2230_ID1,			    PIN(D, 6), GPIO_INPUT)				/* 2230_ID1 */
@@ -88,11 +86,11 @@ GPIO(EC_1103_PRON_Q,		PIN(8, 3), GPIO_INPUT)				/* TODO: confirm tis function, E
 GPIO(EC_AUD_MUTE_L,		    PIN(1, 4), GPIO_INPUT)				/* Reserved Pin, HW no populate components, set it as INPUT */
 GPIO(EC_1103_AP_WAKE_WL,	PIN(2, 3), GPIO_INPUT)				/* Reserved Pin */
 GPIO(BAT_12V_SEL,		    PIN(2, 4), GPIO_INPUT)				/* Reserved Pin */
-GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_INPUT)				/* TODO: should be OUPUT, then HOW TO USE IT? */
 GPIO(EC_DDR_VDDQ_EN,		PIN(C, 1), GPIO_INPUT)				/* reserved(not used), EC enable VDDQ power */
 GPIO(EC_DDR_VPP_EN,		    PIN(D, 3), GPIO_INPUT)				/* reserved(not used), EC eanble VPP power */
 GPIO(EC_WLAN_PWR_EN,		PIN(9, 5), GPIO_INPUT)				/* Not used, reserved for WLAN power en, EC_WLAN_PWR_EN */
 GPIO(APU_RST_L,			    PIN(E, 2), GPIO_INPUT)				/* reserved, not real usage */
+GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detection is inbreak? */
 
 /* CLKRUN# as input with pull up */
 UNUSED(PIN(0, 6))								/* EC_3VSBSW */

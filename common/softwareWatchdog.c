@@ -25,6 +25,14 @@
 
 ec_wakeup_WDT g_wakeupWDT = {0};
 ec_shutdown_WDT g_shutdownWDT = {0};
+
+struct chassis_Intrusion {
+    uint8_t   getChassisIntrusionData;
+    uint8_t   clearChassisIntrusionData;
+};
+
+struct chassis_Intrusion  *pdata = {0};
+
 static enum ec_status
 host_command_WDT(struct host_cmd_handler_args *args)
 {
@@ -128,4 +136,58 @@ static void system_sw_wdt_service(void)
     }
 }
 DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);
- 
+
+uint8_t get_chassisIntrusion_data(void)
+{
+   return pdata->getChassisIntrusionData;
+}
+
+static void Chassis_Intrusion_service(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+    struct chassis_Intrusion *mptrdata = pdata;
+
+    /* exit crisis recovery mode */
+    if (!(*mptr & EC_MEMMAP_CRISIS_RECOVERY)) {
+        return;
+    }
+
+    if (!gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
+        /* get crisis recovery data */
+        mptrdata->getChassisIntrusionData = 0x01;
+    } else {
+        /* clear crisis recovery data */
+        if (*mptr & EC_MEMMAP_CRISIS_CLEAR) {
+            mptrdata->getChassisIntrusionData = 0x00;
+            *mptr &= ~((uint8_t)EC_MEMMAP_CRISIS_CLEAR);
+            gpio_set_level(GPIO_EC_CASE_OPEN_CLR, 0);
+        }
+    }
+}
+
+DECLARE_HOOK(HOOK_SECOND, Chassis_Intrusion_service, HOOK_PRIO_INIT_CHIPSET);
+
+#ifdef CONFIG_CONSOLE_CHASSIS_TEST
+static int cc_chassisinfo(int argc, char **argv)
+{
+    char leader[20] = "";
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+
+    ccprintf("%sgetChassisIntrusionData: %2d C\n", leader,
+        pdata->getChassisIntrusionData);
+
+    ccprintf("%sGPIO_EC_CASE_OPEN_CLR status: %2d C\n", leader,
+        gpio_get_level(GPIO_EC_CASE_OPEN_CLR));
+
+    ccprintf("%sGPIO_EC_GPIO0_CASE_OPEN_L status: %2d C\n", leader,
+        gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L));
+
+    ccprintf("%sEC_MEMMAP_POWER_FLAG1: %2d C\n", leader, *mptr);
+    
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(chassisinfo, cc_chassisinfo,
+            NULL,
+            "Print Sensor info");
+#endif
+

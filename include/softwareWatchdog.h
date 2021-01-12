@@ -33,5 +33,7 @@ typedef struct EC_SHUTDOAN_WDT {
 extern ec_wakeup_WDT g_wakeupWDT;
 extern ec_shutdown_WDT g_shutdownWDT;
 
+extern uint8_t get_chassisIntrusion_data(void);
+
 #endif  /* __CROS_EC_SOFTWARE_WATCHDOG_H */
 
