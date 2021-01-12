@@ -126,20 +126,20 @@ int board_get_temp(int idx, int *temp_k)
 
     /* idx is the sensor index set in board temp_sensors[] */
     switch (idx) {
-        case TEMP_SENSOR_SOC_NEAR:
-            channel = ADC_SENSOR_SOC_NEAR;
+        case TEMP_SENSOR_AMBIENCE_NTC:
+            channel = ADC_SENSOR_AMBIENCE_NTC;
             break;    
-        case TEMP_SENSOR_SSD_NEAR:
-            channel = ADC_SENSOR_SSD_NEAR;
+        case TEMP_SENSOR_SSD1_NTC:
+            channel = ADC_SENSOR_SSD1_NTC;
             break;
-        case TEMP_SENSOR_PCIEX16_NEAR:
-            channel = ADC_SENSOR_PCIEX16_NEAR;
+        case TEMP_SENSOR_PCIEX16_NTC:
+            channel = ADC_SENSOR_PCIEX16_NTC;
             break;
-        case TEMP_SENSOR_VRAM:
-            channel = ADC_SENSOR_VRAM;
+        case TEMP_SENSOR_CPU_NTC:
+            channel = ADC_SENSOR_CPU_NTC;
             break;
-        case TEMP_SENSOR_MEMORY_NEAR:
-            channel = ADC_SENSOR_MEMORY_NEAR;
+        case TEMP_SENSOR_MEMORY_NTC:
+            channel = ADC_SENSOR_MEMORY_NTC;
             break;  
         default:
             return EC_ERROR_INVAL;
@@ -155,36 +155,36 @@ int board_get_temp(int idx, int *temp_k)
 }
 
 const struct adc_t adc_channels[] = {
-	[ADC_SENSOR_SOC_NEAR] = {
-		.name = "SOC Near",
+	[ADC_SENSOR_AMBIENCE_NTC] = {
+		.name = "Ambience NTC",
 		.input_ch = NPCX_ADC_CH0,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-    [ADC_SENSOR_SSD_NEAR] = {
-		.name = "SSD Near",
+    [ADC_SENSOR_SSD1_NTC] = {
+		.name = "SSD1 NTC",
 		.input_ch = NPCX_ADC_CH6,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-	[ADC_SENSOR_PCIEX16_NEAR] = {
-		.name = "PCIE16 Near",
+	[ADC_SENSOR_PCIEX16_NTC] = {
+		.name = "PCIEX16 NTC",
 		.input_ch = NPCX_ADC_CH1,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-    [ADC_SENSOR_VRAM] = {
-		.name = "VRAM Near",
+    [ADC_SENSOR_CPU_NTC] = {
+		.name = "CPU NTC",
 		.input_ch = NPCX_ADC_CH7,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
-    [ADC_SENSOR_MEMORY_NEAR] = {
-		.name = "Memory Near",
+    [ADC_SENSOR_MEMORY_NTC] = {
+		.name = "Memory NTC",
 		.input_ch = NPCX_ADC_CH8,
 		.factor_mul = ADC_MAX_VOLT,
 		.factor_div = ADC_READ_MAX + 1,
@@ -194,47 +194,47 @@ const struct adc_t adc_channels[] = {
 BUILD_ASSERT(ARRAY_SIZE(adc_channels) == ADC_CH_COUNT);
 
 const struct temp_sensor_t temp_sensors[] = {
-	[TEMP_SENSOR_SOC_CORE] = {
-		.name = "CPU Core",
+	[TEMP_SENSOR_CPU_DTS] = {
+		.name = "CPU DTS",
 		.type = TEMP_SENSOR_TYPE_CPU,
 		.read = sb_tsi_get_val,
-		.idx = TEMP_SENSOR_SOC_CORE,
+		.idx = TEMP_SENSOR_CPU_DTS,
 	},	
-	[TEMP_SENSOR_SOC_NEAR] = {
-		.name = "SOC Near",
+	[TEMP_SENSOR_AMBIENCE_NTC] = {
+		.name = "Ambience NTC",
 		.type = TEMP_SENSOR_TYPE_BOARD,
 		.read = board_get_temp,
-		.idx = TEMP_SENSOR_SOC_NEAR,
+		.idx = TEMP_SENSOR_AMBIENCE_NTC,
 	},
-    [TEMP_SENSOR_SSD_NEAR] = {
-        .name = "SSD Near",
+    [TEMP_SENSOR_SSD1_NTC] = {
+        .name = "SSD1 NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
-        .idx = TEMP_SENSOR_SSD_NEAR,
+        .idx = TEMP_SENSOR_SSD1_NTC,
     },
-    [TEMP_SENSOR_PCIEX16_NEAR] = {
-        .name = "PCIEX16 Near",
+    [TEMP_SENSOR_PCIEX16_NTC] = {
+        .name = "PCIEX16 NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
-        .idx = TEMP_SENSOR_PCIEX16_NEAR,
+        .idx = TEMP_SENSOR_PCIEX16_NTC,
     },
-    [TEMP_SENSOR_VRAM] = {
-        .name = "VRAM Near",
+    [TEMP_SENSOR_CPU_NTC] = {
+        .name = "CPU NTC ",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
-        .idx = TEMP_SENSOR_VRAM,
+        .idx = TEMP_SENSOR_CPU_NTC,
     },
-    [TEMP_SENSOR_MEMORY_NEAR] = {
-        .name = "Memory Near",
+    [TEMP_SENSOR_MEMORY_NTC] = {
+        .name = "Memory NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
-        .idx = TEMP_SENSOR_MEMORY_NEAR,
+        .idx = TEMP_SENSOR_MEMORY_NTC,
     },
 };
 BUILD_ASSERT(ARRAY_SIZE(temp_sensors) == TEMP_SENSOR_COUNT);
 
 __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
-	[TEMP_SENSOR_SOC_CORE] = {
+	[TEMP_SENSOR_CPU_DTS] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -245,7 +245,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(25),
 	    .temp_fan_max = C_TO_K(45)
 	},
-    [TEMP_SENSOR_SOC_NEAR] = {
+    [TEMP_SENSOR_AMBIENCE_NTC] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -256,7 +256,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(10),
 	    .temp_fan_max = C_TO_K(40)
 	},
-	[TEMP_SENSOR_SSD_NEAR] = {
+	[TEMP_SENSOR_SSD1_NTC] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -267,7 +267,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(35),
 	    .temp_fan_max = C_TO_K(50)
 	},
-	[TEMP_SENSOR_PCIEX16_NEAR] = {
+	[TEMP_SENSOR_PCIEX16_NTC] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -278,7 +278,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(10),
 	    .temp_fan_max = C_TO_K(40)
 	},
-	[TEMP_SENSOR_VRAM] = {
+	[TEMP_SENSOR_CPU_NTC] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
@@ -289,7 +289,7 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(25),
 	    .temp_fan_max = C_TO_K(45)
 	},
-	[TEMP_SENSOR_MEMORY_NEAR] = {
+	[TEMP_SENSOR_MEMORY_NTC] = {
 		.temp_host = {
 			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
 			[EC_TEMP_THRESH_HALT] = C_TO_K(92),

@@ -369,22 +369,22 @@ enum sensor_id {
 
 /* TODO: need confirm with real hardware */
 enum adc_channel {
-    ADC_SENSOR_SOC_NEAR = 0,
-    ADC_SENSOR_SSD_NEAR,
-    ADC_SENSOR_PCIEX16_NEAR,
-    ADC_SENSOR_VRAM,
-    ADC_SENSOR_MEMORY_NEAR,
+    ADC_SENSOR_AMBIENCE_NTC = 0,
+    ADC_SENSOR_SSD1_NTC,
+    ADC_SENSOR_PCIEX16_NTC,
+    ADC_SENSOR_CPU_NTC,
+    ADC_SENSOR_MEMORY_NTC,
 	ADC_CH_COUNT
 };
 
 /* TODO: need confirm with real hardware */
 enum temp_sensor_id {
-        TEMP_SENSOR_SOC_CORE = 0,
-        TEMP_SENSOR_SOC_NEAR,
-        TEMP_SENSOR_SSD_NEAR,
-        TEMP_SENSOR_PCIEX16_NEAR,
-        TEMP_SENSOR_VRAM,
-        TEMP_SENSOR_MEMORY_NEAR,
+        TEMP_SENSOR_CPU_DTS = 0,
+        TEMP_SENSOR_AMBIENCE_NTC,
+        TEMP_SENSOR_SSD1_NTC,
+        TEMP_SENSOR_PCIEX16_NTC,
+        TEMP_SENSOR_CPU_NTC,
+        TEMP_SENSOR_MEMORY_NTC,
         TEMP_SENSOR_COUNT
 };
 
