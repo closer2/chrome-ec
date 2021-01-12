@@ -34,42 +34,42 @@ GPIO_INT(APU_PCIE_RST_L,	PIN(2, 1), GPIO_INT_BOTH,			apu_pcie_reset_interrupt)	/
 /* GPIO_INT(THERMTRIP_L,		PIN(6, 0), GPIO_INT_BOTH,			thermal_trip_interrupt) */
 
 /* Replace of the above for PanGuL board */
-GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)			/* Power OK to SOC, EC_FCH_PWRGD */
-GPIO(EC_FCH_SCI_ODL,		PIN(7, 6), GPIO_OUT_HIGH)			/* SCI to SOC, EC_SCI_N */
-GPIO(EC_FCH_PWR_BTN_L,		PIN(7, 4), GPIO_OUT_HIGH)			/* Power Button to SOC, EC_PWRBTN_OUT_N */
-GPIO(EC_1V8_AUX_EN,		    PIN(7, 0), GPIO_OUT_HIGH)			/* 1.8V AUX Enable, EC_1.8V_AUX_EN */
-GPIO(PCH_SMI_L,			    PIN(C, 6), GPIO_OUT_HIGH)			/* SMI to SOC, EC_SMI_N */
-GPIO(EC_WP_ROM,			    PIN(A, 3), GPIO_OUT_LOW)			/* TODO: confirm its function, 1130_EC_WP_ROM */
-GPIO(EC_SLP_S5_L,		    PIN(A, 4), GPIO_OUT_LOW)			/* EC_SLP_S5#, output, passthrough SLP_S5_L */
-GPIO(TYPEC_VBUS_CTRL,		PIN(D, 7), GPIO_OUT_HIGH)			/* EC control Type-C VBUS power, default to H, no output 5V */
-GPIO(PROCHOT_ODL,		    PIN(D, 4), GPIO_OUT_HIGH)			/* PROCHOT# */
-GPIO(PWRGD_140MS,		    PIN(B, 0), GPIO_OUT_HIGH)			/* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
-GPIO(EC_3V_5V_ALW_EN,		PIN(A, 0), GPIO_OUT_HIGH)			/* Control 3V/5V ALW power */
-GPIO(USB_PWR_EN_L,		    PIN(E, 4), GPIO_OUT_HIGH)			/* USB_PWR_EN# */
-GPIO(EC_LAN_OFF,		    PIN(3, 2), GPIO_OUT_LOW)			/* EC_LAN_OFF */
-GPIO(EC_TO_USB_SWITCH,		PIN(A, 2), GPIO_OUT_LOW)			/* G3 to low, other state should to High, connect usb to APU */
-GPIO(EC_AUDIO_MUTE_L,		PIN(E, 3), GPIO_OUT_HIGH)			/* EC_AUDIO_MUTE_L */
-GPIO(EC_PSON_L,			    PIN(E, 5), GPIO_OUT_HIGH)			/* EC_PSO_N, PSU 12V enable, default to high */
-GPIO(PROM19_EN,			    PIN(D, 2), GPIO_OUT_LOW)			/* Refer to Power Sequence */
-GPIO(USB_FING_BLUE_EN_L,	PIN(9, 7), GPIO_OUT_HIGH)			/* Finger KBD USB port power enable */
-GPIO(EC_SLP_S3_L,		    PIN(D, 5), GPIO_OUT_LOW)			/* EC_SLP_S3#, output, passthrough SLP_S3_L */
-GPIO(DGPU_PROCHOT_L,		PIN(9, 3), GPIO_OUT_HIGH)			/* DGPU_PROCHOT_L */
-GPIO(RV_SELECT,			    PIN(6, 6), GPIO_OUT_LOW)			/* Default High, Set Low after EC load, we do not use it, set it to low directly */
-GPIO(EC_FCH_RSMRST_L,		PIN(A, 7), GPIO_OUT_LOW)			/* RSMRST_L */
-GPIO(EC_PORT0_PD0,		    PIN(6, 1), GPIO_OUT_LOW)			/* TODO: confirm its intial output, EC_PORT0_PD0 */
-GPIO(EC_ALERT_L,		    PIN(B, 7), GPIO_OUT_HIGH)			/* TODO: confirm its function, EC_ALERT# */
-GPIO(EC_LOM_PWR_EN,		    PIN(0, 5), GPIO_OUT_LOW)			/* EC_LOM_PWR_EN */
-GPIO(APU_NMI_L,			    PIN(9, 2), GPIO_OUT_HIGH)			/* APU_NMI# */
-GPIO(EC_ALW_EN,			    PIN(D, 0), GPIO_OUT_LOW)			/* EC_ALW_EN */
-GPIO(PCIEX1_RST_L,		    PIN(1, 6), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
-GPIO(M2_2280_SSD1_RST_L,	PIN(1, 7), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
-GPIO(PCIEX16_RST_L,		    PIN(2, 0), GPIO_OUT_LOW)			/* APU_PCIE_RST_L pass through to this signal */
-GPIO(EC_LAN_WAKE_L,		    PIN(2, 2), GPIO_OUT_LOW)		    /* Waked up LAN */
-GPIO(EC_WLAN_WAKE_L,		PIN(1, 1), GPIO_OUT_LOW)		    /* Waked up WLAN */
-GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_OUT_HIGH)			/* Chassis Intrusion Status Clear */
+GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_FCH_PWRGD */
+GPIO(EC_FCH_SCI_ODL,        PIN(7, 6), GPIO_OUT_LOW)        /* SCI to SOC, EC_SCI_N */
+GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_OUT_LOW)        /* Power Button to SOC, EC_PWRBTN_OUT_N */
+GPIO(EC_1V8_AUX_EN,         PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
+GPIO(PCH_SMI_L,             PIN(C, 6), GPIO_OUT_LOW)        /* SMI to SOC, EC_SMI_N */
+GPIO(EC_WP_ROM,             PIN(A, 3), GPIO_OUT_LOW)        /* TODO: confirm its function, 1130_EC_WP_ROM */
+GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, output, passthrough SLP_S5_L */
+GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
+GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_OUT_LOW)        /* PROCHOT# */
+GPIO(PWRGD_140MS,           PIN(B, 0), GPIO_OUT_LOW)        /* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
+GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power */
+GPIO(USB_PWR_EN_L,          PIN(E, 4), GPIO_OUT_HIGH)       /* USB_PWR_EN# */
+GPIO(EC_LAN_OFF,            PIN(3, 2), GPIO_OUT_LOW)        /* EC_LAN_OFF */
+GPIO(EC_TO_USB_SWITCH,      PIN(A, 2), GPIO_OUT_LOW)        /* G3 to low, other state should to High, connect usb to APU */
+GPIO(EC_AUDIO_MUTE_L,       PIN(E, 3), GPIO_OUT_HIGH)       /* EC_AUDIO_MUTE_L */
+GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V enable, default to high */
+GPIO(PROM19_EN,             PIN(D, 2), GPIO_OUT_LOW)        /* Refer to Power Sequence */
+GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_LOW)        /* Finger KBD USB port power enable */
+GPIO(EC_SLP_S3_L,           PIN(D, 5), GPIO_OUT_LOW)        /* EC_SLP_S3#, output, passthrough SLP_S3_L */
+GPIO(DGPU_PROCHOT_L,        PIN(9, 3), GPIO_OUT_LOW)        /* DGPU_PROCHOT_L */
+GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */
+GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
+GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
+GPIO(EC_ALERT_L,            PIN(B, 7), GPIO_OUT_HIGH)       /* TODO: confirm its function, EC_ALERT# */
+GPIO(EC_LOM_PWR_EN,         PIN(0, 5), GPIO_OUT_LOW)        /* EC_LOM_PWR_EN */
+GPIO(APU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
+GPIO(EC_ALW_EN,             PIN(D, 0), GPIO_OUT_LOW)        /* EC_ALW_EN */
+GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
+GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
+GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
+GPIO(EC_LAN_WAKE_L,         PIN(2, 2), GPIO_OUT_LOW)        /* Waked up LAN */
+GPIO(EC_WLAN_WAKE_L,        PIN(1, 1), GPIO_OUT_LOW)        /* Waked up WLAN */
+GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_HIGH)       /* Chassis Intrusion Status Clear */
 
 /* KBRST# as gpio */
-GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_HIGH)			/* KBRST# */
+GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* KBRST# */
 
 /* Input */
 GPIO(2230_ID1,			    PIN(D, 6), GPIO_INPUT)				/* 2230_ID1 */

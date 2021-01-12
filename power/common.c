@@ -33,7 +33,7 @@
  * Default timeout in us; if we've been waiting this long for an input
  * transition, just jump to the next state.
  */
-#define DEFAULT_TIMEOUT SECOND
+#define DEFAULT_TIMEOUT (2*SECOND)
 
 /* Timeout for dropping back from S5 to G3 */
 #define S5_INACTIVITY_TIMEOUT (10 * SECOND)

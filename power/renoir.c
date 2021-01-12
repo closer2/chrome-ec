@@ -62,12 +62,16 @@ static void chipset_force_g3(void)
 
     gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
 
-    /* ec output high when system enter g3.
-    * There is no need to pull it down at any time.
+    /* ec pull down gpio when system enter g3.
     */
-    gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
-    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
-    gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+    gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
+    gpio_set_level(GPIO_PCH_SMI_L, 0);
+    gpio_set_level(GPIO_PROCHOT_ODL, 0);
+    gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
+    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
+    gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 0);
+    gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
+    gpio_set_level(GPIO_KBRST_L, 0);
 
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
@@ -85,16 +89,15 @@ void chipset_reset(enum chipset_reset_reason reason)
     report_ap_reset(reason);
     
     /*
-    * Send a pulse to SYS_RST to trigger a warm reset.
+    * Send a pulse to KBRST_L to trigger a warm reset.
     */
     /* This Windows Platform do not support chipset_reset,
     * its SYS_RST# pin not connected to EC
     */
-    /*
-    gpio_set_level(GPIO_SYS_RESET_L, 0);
+    /*gpio_set_level(GPIO_SYS_RESET_L, 0);
     usleep(32 * MSEC);
-    gpio_set_level(GPIO_SYS_RESET_L, 1);
-    */
+    gpio_set_level(GPIO_SYS_RESET_L, 1);*/
+
 }
 
 void chipset_throttle_cpu(int throttle)
@@ -214,6 +217,16 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_G3S5:
         /* Exit SOC G3 */
+        gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
+        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
+        gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+        gpio_set_level(GPIO_PROCHOT_ODL, 1);
+        gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
+        gpio_set_level(GPIO_PCH_SMI_L, 1);
+        gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
+        gpio_set_level(GPIO_KBRST_L, 1);
+        msleep(10);
+        
         /* Enable system power ("*_A" rails) in S5. */
         gpio_set_level(GPIO_PROM19_EN, 1);
         gpio_set_level(GPIO_EC_ALW_EN, 1);
@@ -375,7 +388,7 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_EC_PSON_L, 1);
 
         /* withdraw USB_PWR_EN_L */
-        gpio_set_level(GPIO_USB_PWR_EN_L, 0);
+        gpio_set_level(GPIO_USB_PWR_EN_L, 1);
 
         /* switch FingerPrint USB connection to MCU */
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
