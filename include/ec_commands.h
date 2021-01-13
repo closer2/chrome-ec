@@ -162,7 +162,7 @@ extern "C" {
 #define EC_MEMMAP_MIC_MODE          BIT(4) /* 1:Microphone mute, 0:Mic un-mute. */
 
 #define EC_MEMMAP_AC_RECOVERY               0x17 /* AC recovery state(1:on, 2:0ff, 3:pre)*/ 
-#define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(!0xFF:NO MODE; 0xFF:MFG MODE) */
+#define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(0xBF:NO MFG MODE; 0xFF:MFG MODE) */
 #define EC_MEMMAP_WDT_TIMEOUT_COUNT         0x19 /* wakeup wdt timeout count */
 
 #define EC_MEMMAP_SYS_MISC1                 0x1A /* SYS_MISC1 */ 
