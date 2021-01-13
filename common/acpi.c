@@ -275,10 +275,12 @@ static void oem_bios_to_ec_command(void)
         
     case 0x09 : /* crisis recovery mode control */
         mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
-        if (0x01 == *(bios_cmd+2)) {        /* enter */
+        if (0x01 == *(bios_cmd+2)) {        /* enter CRISIS mode */
             (*mptr) |= EC_MEMMAP_CRISIS_RECOVERY;
-        } else if(0x02 == *(bios_cmd+2)) {  /* exit */
+            set_chassisIntrusion_mode_flag(CHASSIS_INTRUSION_MODE_FLAG);
+        } else if(0x02 == *(bios_cmd+2)) {  /* exit CRISIS mode */
             (*mptr) &= (~EC_MEMMAP_CRISIS_RECOVERY);
+            set_chassisIntrusion_mode_flag(CHASSIS_INTRUSION_MODE_FLAG);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

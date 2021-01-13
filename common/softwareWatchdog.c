@@ -27,11 +27,15 @@ ec_wakeup_WDT g_wakeupWDT = {0};
 ec_shutdown_WDT g_shutdownWDT = {0};
 
 struct chassis_Intrusion {
-    uint8_t   getChassisIntrusionData;
-    uint8_t   clearChassisIntrusionData;
+    uint8_t   chassisIntrusionData;
+    uint8_t   chassisIntrusionMode;
+    uint8_t   chassisIntrusionModeFlag;
+    uint8_t   chassisWriteFlashData;
 };
 
-struct chassis_Intrusion  *pdata = {0};
+struct chassis_Intrusion  pdata = {
+    .chassisIntrusionData = 0, .chassisIntrusionMode = 0,
+    .chassisIntrusionModeFlag = 0, .chassisWriteFlashData = 0};
 
 static enum ec_status
 host_command_WDT(struct host_cmd_handler_args *args)
@@ -139,33 +143,106 @@ DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);
 
 uint8_t get_chassisIntrusion_data(void)
 {
-   return pdata->getChassisIntrusionData;
+   return pdata.chassisIntrusionData;
 }
 
-static void Chassis_Intrusion_service(void)
+void set_chassisIntrusion_data(uint8_t data)
+{
+    pdata.chassisIntrusionData = data;
+}
+
+void set_chassisIntrusion_mode(uint8_t data)
+{
+    pdata.chassisIntrusionMode = data;
+}
+
+void set_chassisIntrusion_mode_flag(uint8_t data)
+{
+    pdata.chassisIntrusionModeFlag = data;
+}
+
+/* set clear crisis circuit host to ec*/
+void clear_chassisIntrusion(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
-    struct chassis_Intrusion *mptrdata = pdata;
 
-    /* exit crisis recovery mode */
-    if (!(*mptr & EC_MEMMAP_CRISIS_RECOVERY)) {
+    /* clear crisis recovery data */
+    if (!(*mptr & EC_MEMMAP_CRISIS_CLEAR)) {
         return;
     }
 
-    if (!gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
-        /* get crisis recovery data */
-        mptrdata->getChassisIntrusionData = 0x01;
-    } else {
-        /* clear crisis recovery data */
-        if (*mptr & EC_MEMMAP_CRISIS_CLEAR) {
-            mptrdata->getChassisIntrusionData = 0x00;
-            *mptr &= ~((uint8_t)EC_MEMMAP_CRISIS_CLEAR);
-            gpio_set_level(GPIO_EC_CASE_OPEN_CLR, 0);
-        }
+    *mptr &= ~((uint8_t)EC_MEMMAP_CRISIS_CLEAR);
+
+    if (gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
+
+        pdata.chassisIntrusionData = 0x00;
+        mfg_data_write(MFG_CHASSIS_INTRUSION_DATA_OFFSET,
+            pdata.chassisIntrusionData);
+
+        gpio_set_level(GPIO_EC_CASE_OPEN_CLR, 1);
+        msleep(5);
+        gpio_set_level(GPIO_EC_CASE_OPEN_CLR, 0);
     }
 }
 
-DECLARE_HOOK(HOOK_SECOND, Chassis_Intrusion_service, HOOK_PRIO_INIT_CHIPSET);
+/* set crisis mode  host to ec*/
+void set_chassisIntrusion_mode_s(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
+
+    if (pdata.chassisIntrusionModeFlag != CHASSIS_INTRUSION_MODE_FLAG) {
+        return;
+    }
+
+    pdata.chassisIntrusionModeFlag = 0x00;
+
+    if (*mptr & EC_MEMMAP_CRISIS_RECOVERY) {
+        pdata.chassisIntrusionMode = 0x01;
+    } else {
+        pdata.chassisIntrusionMode = 0x00;
+    }
+    mfg_data_write(MFG_CHASSIS_INTRUSION_MODE_OFFSET,
+        pdata.chassisIntrusionMode);
+}
+
+/*
+ * The Fash value of the first boot read is 0xff.
+ * For the first time boot pdata->chassisIntrusionMode = 0xff.
+ * For the first time boot pdata->chassisIntrusiondata = 0xff.
+ * For the first time boot chassisIntrusionMode is open.
+ * For the first time boot BIOS notify ec to clear chassis intrusion.
+ */
+static void Chassis_Intrusion_service(void)
+{
+    /* set Chassis Intrusion mode */
+    set_chassisIntrusion_mode_s();
+
+    /* exit crisis recovery mode */
+    if (!pdata.chassisIntrusionMode) {
+        return;
+    }
+
+    /* enter crisis recovery mode */
+    if (pdata.chassisIntrusionData != 0x01) {
+        if (gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
+            /* get crisis recovery data */
+            pdata.chassisIntrusionData = 0x01;
+        } else {
+            pdata.chassisIntrusionData = 0x00;
+        }
+        if (pdata.chassisWriteFlashData 
+            != pdata.chassisIntrusionData) {
+            pdata.chassisWriteFlashData = pdata.chassisIntrusionData;
+            mfg_data_write(MFG_CHASSIS_INTRUSION_DATA_OFFSET,
+                pdata.chassisIntrusionData);
+        }
+    }
+
+    /* clear chassis intrusion */
+    clear_chassisIntrusion();
+}
+
+DECLARE_HOOK(HOOK_SECOND, Chassis_Intrusion_service, HOOK_PRIO_DEFAULT);
 
 #ifdef CONFIG_CONSOLE_CHASSIS_TEST
 static int cc_chassisinfo(int argc, char **argv)
@@ -173,8 +250,11 @@ static int cc_chassisinfo(int argc, char **argv)
     char leader[20] = "";
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
 
-    ccprintf("%sgetChassisIntrusionData: %2d C\n", leader,
-        pdata->getChassisIntrusionData);
+    ccprintf("%sChassisIntrusionMode: %2d C\n", leader,
+            pdata.chassisIntrusionMode);
+
+    ccprintf("%sChassisIntrusionData: %2d C\n", leader,
+            pdata.chassisIntrusionData);
 
     ccprintf("%sGPIO_EC_CASE_OPEN_CLR status: %2d C\n", leader,
         gpio_get_level(GPIO_EC_CASE_OPEN_CLR));

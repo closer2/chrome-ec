@@ -66,7 +66,7 @@ GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pa
 GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(EC_LAN_WAKE_L,         PIN(2, 2), GPIO_OUT_LOW)        /* Waked up LAN */
 GPIO(EC_WLAN_WAKE_L,        PIN(1, 1), GPIO_OUT_LOW)        /* Waked up WLAN */
-GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_HIGH)       /* Chassis Intrusion Status Clear */
+GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_OUT_LOW)			/* Chassis Intrusion Status Clear */
 
 /* KBRST# as gpio */
 GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* KBRST# */

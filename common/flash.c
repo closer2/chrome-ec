@@ -17,6 +17,7 @@
 #include "system.h"
 #include "util.h"
 #include "vboot_hash.h"
+#include "softwareWatchdog.h"
 
 /*
  * Contents of erased flash, as a 32-bit value.  Most platforms erase flash
@@ -2002,6 +2003,13 @@ static void mfg_data_init(void)
     } else {
         *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
     }
+
+    /* initialize chassis Intrusion data */
+    *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_DATA_OFFSET];
+    set_chassisIntrusion_data(*mfgMode);
+
+    *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_MODE_OFFSET];
+    set_chassisIntrusion_mode(*mfgMode);
 }
 DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
 
