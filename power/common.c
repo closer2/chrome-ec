@@ -76,24 +76,35 @@ static uint32_t hibernate_delay = CONFIG_HIBERNATE_DELAY_SEC;
 static int pause_in_s5;
 #endif
 
-static bool want_reboot_ap_at_g3;/* Want to reboot AP from G3? */
+uint8_t want_reboot_ap_at_g3;/* Want to reboot AP from G3? */
 /* Want to reboot AP from G3 with delay? */
-static uint64_t reboot_ap_at_g3_delay;
+uint32_t reboot_ap_at_g3_delay;
+uint32_t reboot_ap_at_g3_delay_backup;
+uint32_t reboot_ap_at_g3_cyclecount;
 
 static enum ec_status
 host_command_reboot_ap_on_g3(struct host_cmd_handler_args *args)
 {
 	const struct ec_params_reboot_ap_on_g3_v1 *cmd = args->params;
-
-	/* Store request for processing at g3 */
-	want_reboot_ap_at_g3 = true;
-
+    
 	switch (args->version) {
 	case 0:
 		break;
 	case 1:
 		/* Store user specified delay to wait in G3 state */
 		reboot_ap_at_g3_delay = cmd->reboot_ap_at_g3_delay;
+        reboot_ap_at_g3_delay_backup = cmd->reboot_ap_at_g3_delay;
+        reboot_ap_at_g3_cyclecount = cmd->reboot_ap_at_g3_cyclecount;
+        
+        if(reboot_ap_at_g3_cyclecount>0) {
+            /* Store request for processing at g3 */
+	        want_reboot_ap_at_g3 = true;
+        } else {
+            want_reboot_ap_at_g3 = false;
+            reboot_ap_at_g3_delay = 0;
+            reboot_ap_at_g3_delay_backup = 0;
+        }
+        
 		break;
 	default:
 		return EC_RES_INVALID_PARAM;
@@ -433,29 +444,18 @@ static enum power_state power_common_state(enum power_state state)
 {
 	switch (state) {
 	case POWER_G3:
-		if (want_g3_exit || want_reboot_ap_at_g3) {
-			uint64_t i;
+		if (want_g3_exit) {
 
 			want_g3_exit = 0;
-			want_reboot_ap_at_g3 = false;
-			reboot_ap_at_g3_delay = reboot_ap_at_g3_delay * MSEC;
-			/*
-			 * G3->S0 transition should happen only after the
-			 * user specified delay. Hence, wait until the
-			 * user specified delay times out.
-			 */
-			for (i = 0; i < reboot_ap_at_g3_delay; i += 100)
-				msleep(100);
-			reboot_ap_at_g3_delay = 0;
-
+            
 			return POWER_G3S5;
 		}
 
 		in_want = 0;
 #ifdef CONFIG_HIBERNATE
 		{
-			uint64_t target, now, wait;
-
+		    uint64_t target, now, wait;
+            
 			now = get_time().val;
 			target = last_shutdown_time + hibernate_delay * SECOND;
 			switch (board_system_is_idle(last_shutdown_time,
@@ -464,14 +464,6 @@ static enum power_state power_common_state(enum power_state state)
 				CPRINTS("Hibernate due to G3 idle");
 				system_hibernate(0, 0);
 				break;
-#ifdef CONFIG_BATTERY_CUT_OFF
-			case CRITICAL_SHUTDOWN_CUTOFF:
-				CPRINTS("Cutoff due to G3 idle");
-				/* Ensure logs are flushed. */
-				cflush();
-				board_cut_off_battery();
-				break;
-#endif
 			case CRITICAL_SHUTDOWN_IGNORE:
 			default:
 				break;
@@ -502,7 +494,7 @@ static enum power_state power_common_state(enum power_state state)
 
             /* Wait for inactivity timeout */
             power_wait_signals(0);
-            if ((*mptr) & EC_MEMMAP_DISABLE_G3) {
+            if (((*mptr) & EC_MEMMAP_DISABLE_G3) || (want_reboot_ap_at_g3)) {
                 task_wait_event(-1); /* chipset task pause for wait wakeup */
             } else {
             	if (task_wait_event(S5_INACTIVITY_TIMEOUT) ==
