@@ -150,6 +150,10 @@ int board_get_temp(int idx, int *temp_k)
         return EC_ERROR_INVAL;
 
     temp_c = thermistor_linear_interpolate(mv, &thermistor_info);
+    if (temp_c < 0) {
+        temp_c = 0;
+    }
+
     *temp_k = C_TO_K(temp_c);
     return EC_SUCCESS;
 }

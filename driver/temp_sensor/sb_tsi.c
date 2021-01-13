@@ -34,8 +34,11 @@ int sb_tsi_get_val(int idx, int *temp_ptr)
 		return EC_ERROR_NOT_POWERED;
 	/* Read the value over I2C */
 	ret = raw_read8(SB_TSI_TEMP_H, temp_ptr);
-	if (ret)
-		return ret;
-	*temp_ptr = C_TO_K(*temp_ptr);
-	return EC_SUCCESS;
+     if (ret)
+        return ret;
+    if (*temp_ptr < 0)
+        *temp_ptr = 0;
+
+    *temp_ptr = C_TO_K(*temp_ptr);
+    return EC_SUCCESS;
 }

@@ -279,16 +279,14 @@ static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
 
     switch(thermalMode) { 
         case THERMAL_UMA:
-            if ((g_tempSensors[TEMP_SENSOR_CPU_DTS] < UMP_CPU_FAN_START)
-                && (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] < UMP_CPU_FAN_START)) {
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMP_CPU_FAN_START) {
                 status = 0x0;
              } else {
                 status = 0x55;
               }
              break;
          case THERMAL_WITH_GFX:
-             if ((g_tempSensors[TEMP_SENSOR_CPU_DTS] < GFX_CPU_FAN_START)
-                && (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] < GFX_CPU_FAN_START)) {
+             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_CPU_FAN_START) {
                 status = 0x0;
              } else {
                 status = 0x55;
@@ -371,17 +369,14 @@ static uint8_t sys_fan_start_temp(uint8_t thermalMode)
 
     switch(thermalMode) { 
         case THERMAL_UMA:
-            if ((g_tempSensors[TEMP_SENSOR_SSD1_NTC] < UMP_SYS_FAN_START)
-                && (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] < UMP_SYS_FAN_START)) {
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMP_SYS_FAN_START) {
                 status = 0x0;
              } else {
                 status = 0x55;
               }
              break;
          case THERMAL_WITH_GFX:
-             if ((g_tempSensors[TEMP_SENSOR_SSD1_NTC] < GFX_SYS_FAN_START)
-                && (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] < GFX_SYS_FAN_START)
-                && (g_tempSensors[TEMP_SENSOR_PCIEX16_NTC] < GFX_SYS_FAN_START)) {
+             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_SYS_FAN_START) {
                 status = 0x0;
              } else {
                 status = 0x55;
