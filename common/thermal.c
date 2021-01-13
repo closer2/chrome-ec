@@ -23,11 +23,13 @@
 #define CPUTS(outstr) cputs(CC_THERMAL, outstr)
 #define CPRINTS(format, args...) cprints(CC_THERMAL, format, ## args)
 
+#define FAN_START_TEMP 10
+#define UMA_SYS_FAN_START_TEMP (36 - FAN_START_TEMP)
+#define UMA_CPU_FAN_START_TEMP (36 - FAN_START_TEMP)
+#define GFX_SYS_FAN_START_TEMP (39 - FAN_START_TEMP)
+#define GFX_CPU_FAN_START_TEMP (40 - FAN_START_TEMP)
 
-#define UMA_SYS_FAN_START_TEMP 36 
-#define UMA_CPU_FAN_START_TEMP 36 
-#define GFX_SYS_FAN_START_TEMP 39 
-#define GFX_CPU_FAN_START_TEMP 40 
+#define CPU_DTS_PROCHOT_TEMP   98
 
 enum thermal_mode {
     THERMAL_UMA = 0,
@@ -66,6 +68,10 @@ struct thermal_params_s {
 
 struct thermal_params_s g_fanLevel[CONFIG_FANS] = {0};
 struct thermal_params_s g_fanRPM[CONFIG_FANS] ={0};
+struct thermal_params_s g_fanProtect[TEMP_SENSOR_COUNT] ={0};
+
+uint8_t g_sensorsProtect = 0;	/* Number of data pairs. */
+#define TEMP_SENSORS_PROTECT    BIT(0)
 
 uint8_t Sensorauto = 0;	/* Number of data pairs. */
 int g_tempSensors[TEMP_SENSOR_COUNT] = {0};
@@ -271,22 +277,20 @@ static uint16_t get_fan_RPM(uint8_t fan_level, const struct thermal_level_s *fan
     return data[fan_level].RPM;
 }
 
-#define  UMP_CPU_FAN_START (UMA_CPU_FAN_START_TEMP - 10)
-#define  GFX_CPU_FAN_START (GFX_CPU_FAN_START_TEMP - 10)
 static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
 {
     uint8_t status = 0x0;
 
     switch(thermalMode) { 
         case THERMAL_UMA:
-            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMP_CPU_FAN_START) {
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMA_CPU_FAN_START_TEMP) {
                 status = 0x0;
              } else {
                 status = 0x55;
               }
              break;
          case THERMAL_WITH_GFX:
-             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_CPU_FAN_START) {
+             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_CPU_FAN_START_TEMP) {
                 status = 0x0;
              } else {
                 status = 0x55;
@@ -361,22 +365,20 @@ static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
     return rpm_target;
 }
 
-#define  UMP_SYS_FAN_START (UMA_SYS_FAN_START_TEMP - 10)
-#define  GFX_SYS_FAN_START (GFX_SYS_FAN_START_TEMP - 10)
 static uint8_t sys_fan_start_temp(uint8_t thermalMode)
 {
     uint8_t status = 0x0;
 
     switch(thermalMode) { 
         case THERMAL_UMA:
-            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMP_SYS_FAN_START) {
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMA_SYS_FAN_START_TEMP) {
                 status = 0x0;
              } else {
                 status = 0x55;
               }
              break;
          case THERMAL_WITH_GFX:
-             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_SYS_FAN_START) {
+             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_SYS_FAN_START_TEMP) {
                 status = 0x0;
              } else {
                 status = 0x55;
@@ -462,24 +464,114 @@ static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
     return rpm_target;
 }
 
+/* Device high temperature protection mechanism */
+#define TEMP_CPU_DTS_PROTECTION        105
+#define TEMP_CPU_NTC_PROTECTION        105
+#define TEMP_SSD1_NTC_PROTECTION        90
+#define TEMP_MEMORY_NTC_PROTECTION      90
+#define TEMP_AMBIENT_NTC_PROTECTION     70
+
+#define TEMP_PROTECTION_COUNT 5
+static void temperature_protection_mechanism(void)
+{
+    /* Device high temperature protection mechanism */
+    if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > CPU_DTS_PROCHOT_TEMP) {
+        gpio_set_level(GPIO_PROCHOT_ODL, 0); /* low Prochot enable */
+    } else if (g_tempSensors[TEMP_SENSOR_CPU_DTS] < CPU_DTS_PROCHOT_TEMP - 6) {
+        gpio_set_level(GPIO_PROCHOT_ODL, 1); /* high Prochot disable */
+    }
+    /* CPU DTS */
+    if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > CPU_DTS_PROCHOT_TEMP) {
+        g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > 0) {
+            g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > TEMP_PROTECTION_COUNT) {
+        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts = 0;
+    }
+
+    /* CPU NTC */
+    if (g_tempSensors[TEMP_SENSOR_CPU_NTC] > TEMP_CPU_NTC_PROTECTION) {
+        g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc > 0) {
+            g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts = 0;
+    }
+
+    /* SSD NTC */
+    if (g_tempSensors[TEMP_SENSOR_SSD1_NTC] > TEMP_SSD1_NTC_PROTECTION) {
+        g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts > 0) {
+            g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts = 0;
+    }
+
+    /* memory NTC */
+    if (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] > TEMP_MEMORY_NTC_PROTECTION) {
+        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc > 0) {
+            g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts = 0;
+    }
+
+    /* ambience NTC */
+    if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] > TEMP_AMBIENT_NTC_PROTECTION) {
+        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc > 0) {
+            g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts = 0;
+    }
+
+    if (IS_BIT_SET(g_sensorsProtect, TEMP_SENSORS_PROTECT)) {
+        CLEAR_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(CHIPSET_SHUTDOWN_THERMAL);
+    }
+}
+
 static void thermal_control(void)
 {
-	uint8_t fan, rv, i;
+    uint8_t fan, rv, i;
     int tempSensors;
     int rpm_target[CONFIG_FANS] = {0x0};
 
-	/* go through all the sensors */
-	for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
-		/* read one */
-		rv= temp_sensor_read(i, &tempSensors);
+    /* go through all the sensors */
+    for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
+        /* read one */
+        rv= temp_sensor_read(i, &tempSensors);
 
         if (rv != EC_SUCCESS)
-		continue;
+            continue;
         tempSensors = K_TO_C(tempSensors);
         if (!Sensorauto) {
             g_tempSensors[i] = tempSensors;
         }
     }
+
+    /* Device high temperature protection mechanism */
+    temperature_protection_mechanism();
 
     g_thermalMode = THERMAL_UMA;
     /* cpu thermal control */
