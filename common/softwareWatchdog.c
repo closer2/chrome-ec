@@ -242,7 +242,7 @@ static void Chassis_Intrusion_service(void)
     clear_chassisIntrusion();
 }
 
-DECLARE_HOOK(HOOK_SECOND, Chassis_Intrusion_service, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_MSEC, Chassis_Intrusion_service, HOOK_PRIO_DEFAULT);
 
 #ifdef CONFIG_CONSOLE_CHASSIS_TEST
 static int cc_chassisinfo(int argc, char **argv)
