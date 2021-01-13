@@ -481,6 +481,17 @@ DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN, board_chipset_shutdown, HOOK_PRIO_DEFAULT);
 
 static void board_chipset_startup(void)
 {
+    /* re-set cold boot */
+    if(want_reboot_ap_at_g3 && (reboot_ap_at_g3_cyclecount>0)) {
+        reboot_ap_at_g3_cyclecount--;
+        reboot_ap_at_g3_delay = reboot_ap_at_g3_delay_backup;
+        
+        if(!reboot_ap_at_g3_cyclecount) {
+            want_reboot_ap_at_g3 = false;
+            reboot_ap_at_g3_delay = 0;
+        }
+    }
+    
     wakeup_cause_record(LOG_ID_WAKEUP_0x06);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -515,6 +526,20 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
     return;
 }
 
+static void system_cold_boot(void)
+{
+    if(POWER_S5 == power_get_state()) {
+        if((reboot_ap_at_g3_delay>0) && (reboot_ap_at_g3_cyclecount>0)) {
+            reboot_ap_at_g3_delay--;
+            ccprints("S5 cold boot count down time=%dsec", reboot_ap_at_g3_delay);
+            
+            if(!reboot_ap_at_g3_delay) {
+                power_button_pch_pulse();
+            }
+        }
+    }
+}
+DECLARE_HOOK(HOOK_SECOND, system_cold_boot, HOOK_PRIO_INIT_CHIPSET);
 
 /*******************************************************************************
  * EC firmware version set

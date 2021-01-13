@@ -6270,6 +6270,7 @@ struct ec_response_locate_chip {
 struct ec_params_reboot_ap_on_g3_v1 {
 	/* configurable delay in seconds in G3 state */
 	uint32_t reboot_ap_at_g3_delay;
+    uint32_t reboot_ap_at_g3_cyclecount;
 } __ec_align4;
 
 /*****************************************************************************/

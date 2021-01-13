@@ -21,6 +21,13 @@
 #endif /* CONFIG_ZTEST */
 #endif /* CONFIG_ZEPHYR */
 
+extern uint8_t want_reboot_ap_at_g3;/* Want to reboot AP from G3? */
+/* Want to reboot AP from G3 with delay? */
+extern uint32_t reboot_ap_at_g3_delay;
+extern uint32_t reboot_ap_at_g3_delay_backup;
+extern uint32_t reboot_ap_at_g3_cyclecount;
+
+
 /*
  * Macros to concatenate 2 - 4 tokens together to form a single token.
  * Multiple levels of nesting are required to convince the preprocessor to
