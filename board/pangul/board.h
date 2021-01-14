@@ -303,6 +303,16 @@
 /* 07--3F reserve */
 
 /* 40--CF for ODM define */
+/* ec reset cause reference <./include/reset_flag_desc.inc>*/
+#define LOG_ID_WAKEUP_0x40      0x40    /* EC reset cause is reset-pin */
+#define LOG_ID_WAKEUP_0x41      0x41    /* EC reset cause is power-on */
+#define LOG_ID_WAKEUP_0x42      0x42    /* EC reset cause is watchdog */
+#define LOG_ID_WAKEUP_0x43      0x43    /* EC reset cause is soft */
+#define LOG_ID_WAKEUP_0x44      0x44    /* EC reset cause is hard */
+#define LOG_ID_WAKEUP_0x45      0x45
+#define LOG_ID_WAKEUP_0x46      0x46
+#define LOG_ID_WAKEUP_0x47      0x47
+#define LOG_ID_WAKEUP_0x48      0x48
 
 #define LOG_ID_WAKEUP_0xD1      0xD1    /* system wakeup after BIOS update */
 #define LOG_ID_WAKEUP_0xD2      0xD2    /* system wakeup from sleep */

@@ -501,7 +501,24 @@ DECLARE_HOOK(HOOK_CHIPSET_STARTUP, board_chipset_startup, HOOK_PRIO_DEFAULT);
 
 static void board_init_config(void)
 {
+    uint32_t current_reset_flags;
     gpio_config_module(MODULE_HOST_UART, 0);
+
+    /* save EC reset cause to flash */
+    /* ec reset cause reference <./include/reset_flag_desc.inc>*/
+    current_reset_flags = system_get_reset_flags();
+    
+    if (IS_BIT_SET(current_reset_flags, 1)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x40);
+    } else if (IS_BIT_SET(current_reset_flags, 3)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x41);
+    } else if (IS_BIT_SET(current_reset_flags, 4)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x42);
+    } else if (IS_BIT_SET(current_reset_flags, 5)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x43);
+    } else if (IS_BIT_SET(current_reset_flags, 11)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x44);
+    }
 }
 DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_DEFAULT);
 
