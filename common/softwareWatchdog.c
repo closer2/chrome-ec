@@ -26,6 +26,8 @@
 ec_wakeup_WDT g_wakeupWDT = {0};
 ec_shutdown_WDT g_shutdownWDT = {0};
 
+static uint8_t wdt_wakeup_delay=0;
+
 struct chassis_Intrusion {
     uint8_t   chassisIntrusionData;
     uint8_t   chassisIntrusionMode;
@@ -88,18 +90,26 @@ static void system_sw_wdt_service(void)
             if(POWER_S0 == power_get_state()) {
                 CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
                 chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
-            }
+                wdt_wakeup_delay = 0x01;
+            }  
         }
 
         if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM2)
         {
             g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+            g_wakeupWDT.countTime = 0;
         }
 
-        if(POWER_S5 == power_get_state()) {
-            CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
-            power_button_pch_pulse();
-            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
+        if((POWER_S5 == power_get_state()) || (POWER_G3 == power_get_state())) {
+            if(wdt_wakeup_delay>0) {
+                wdt_wakeup_delay++;
+                if(wdt_wakeup_delay>3) {
+                    CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
+                    power_button_pch_pulse();
+                    wdt_wakeup_delay = 0;
+                    mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
+                }
+            }
         }
     }
 
@@ -126,6 +136,7 @@ static void system_sw_wdt_service(void)
         if (g_shutdownWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM)
         {
             g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+            g_shutdownWDT.countTime = 0;
         }
 
         if((POWER_S5==power_get_state()) ||
