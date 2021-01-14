@@ -121,7 +121,7 @@ int board_get_temp(int idx, int *temp_k)
     enum adc_channel channel;
 
     /* thermistor is not powered in G3 */
-    if (chipset_in_state(CHIPSET_STATE_HARD_OFF))
+    if (!chipset_in_state(CHIPSET_STATE_ON))
         return EC_ERROR_NOT_POWERED;
 
     /* idx is the sensor index set in board temp_sensors[] */

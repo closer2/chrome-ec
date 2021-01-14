@@ -18,6 +18,7 @@
 #include "throttle_ap.h"
 #include "timer.h"
 #include "util.h"
+#include "power.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_THERMAL, outstr)
@@ -40,7 +41,7 @@ enum thermal_mode g_thermalMode;
 
 enum thermal_fan_mode {
     UMA_THERMAL_SYS_FAN = 0,
-    UMA_THERMAL_CPU_FAN,    
+    UMA_THERMAL_CPU_FAN,
     GFX_THERMAL_SYS_FAN,
     GFX_THERMAL_CPU_FAN, 
 };
@@ -69,9 +70,6 @@ struct thermal_params_s {
 struct thermal_params_s g_fanLevel[CONFIG_FANS] = {0};
 struct thermal_params_s g_fanRPM[CONFIG_FANS] ={0};
 struct thermal_params_s g_fanProtect[TEMP_SENSOR_COUNT] ={0};
-
-uint8_t g_sensorsProtect = 0;	/* Number of data pairs. */
-#define TEMP_SENSORS_PROTECT    BIT(0)
 
 uint8_t Sensorauto = 0;	/* Number of data pairs. */
 int g_tempSensors[TEMP_SENSOR_COUNT] = {0};
@@ -478,7 +476,7 @@ static void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > TEMP_PROTECTION_COUNT) {
-        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x30);
         g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts = 0;
     }
 
@@ -491,7 +489,7 @@ static void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
-        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x31);
         g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts = 0;
     }
 
@@ -504,7 +502,7 @@ static void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
-        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x38);
         g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts = 0;
     }
 
@@ -517,7 +515,7 @@ static void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
-        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x35);
         g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts = 0;
     }
 
@@ -530,37 +528,32 @@ static void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
-        SET_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x37);
         g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts = 0;
-    }
-
-    if (IS_BIT_SET(g_sensorsProtect, TEMP_SENSORS_PROTECT)) {
-        CLEAR_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
-        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x30);
     }
 }
 
 static void thermal_control(void)
 {
-    uint8_t fan, rv, i;
+    uint8_t fan, i;
     int tempSensors;
     int rpm_target[CONFIG_FANS] = {0x0};
+    uint8_t *mptr = (uint8_t *)host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
 
     /* go through all the sensors */
     for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
         /* read one */
-        rv= temp_sensor_read(i, &tempSensors);
 
-        if (rv != EC_SUCCESS)
-            continue;
-        tempSensors = K_TO_C(tempSensors);
+        tempSensors = *(mptr + i);
         if (!Sensorauto) {
             g_tempSensors[i] = tempSensors;
         }
     }
 
     /* Device high temperature protection mechanism */
-    temperature_protection_mechanism();
+    if (power_get_state() == POWER_S0) {
+        temperature_protection_mechanism();
+    }
 
     g_thermalMode = THERMAL_UMA;
     /* cpu thermal control */
@@ -579,7 +572,7 @@ static void thermal_control(void)
 }
 
 /* Wait until after the sensors have been read */
-DECLARE_HOOK(HOOK_SECOND, thermal_control, HOOK_PRIO_TEMP_SENSOR_DONE);
+DECLARE_HOOK(HOOK_SECOND, thermal_control, HOOK_PRIO_TEMP_SENSOR_DONE + 1);
 
 
 /*****************************************************************************/
