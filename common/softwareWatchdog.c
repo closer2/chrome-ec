@@ -87,7 +87,7 @@ static void system_sw_wdt_service(void)
             //TODO: force shutdown and then power on
             if(POWER_S0 == power_get_state()) {
                 CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
-                chipset_force_shutdown(CHIPSET_WAKEUP_WDT);
+                chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
             }
         }
 
@@ -116,7 +116,7 @@ static void system_sw_wdt_service(void)
                 CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
                             g_shutdownWDT.time);
                 /* force shutdwon when beta*/
-                chipset_force_shutdown(CHIPSET_SHUTDOWN_WDT);
+                chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
 
                 /* notify BIOS NMI when development*/
                 /* gpio_set_level(GPIO_APU_NMI_L, 0); */

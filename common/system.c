@@ -980,7 +980,7 @@ void system_enter_hibernate(uint32_t seconds, uint32_t microseconds)
 		hibernate_seconds = seconds;
 		hibernate_microseconds = microseconds;
 
-		chipset_force_shutdown(CHIPSET_SHUTDOWN_CONSOLE_CMD);
+		chipset_force_shutdown(LOG_ID_SHUTDOWN_0x43);
 	}
 }
 

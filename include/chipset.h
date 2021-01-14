@@ -159,7 +159,7 @@ void chipset_throttle_cpu(int throttle);
  * This is intended for use when the system is too hot or battery power is
  * critical.
  */
-void chipset_force_shutdown(enum chipset_shutdown_reason reason);
+void chipset_force_shutdown(uint32_t shutdown_id);
 
 /**
  * Reset the CPU and/or chipset.
@@ -201,7 +201,7 @@ static inline int chipset_in_or_transitioning_to_state(int state_mask)
 
 static inline void chipset_exit_hard_off(void) { }
 static inline void chipset_throttle_cpu(int throttle) { }
-static inline void chipset_force_shutdown(enum chipset_shutdown_reason reason)
+static inline void chipset_force_shutdown(uint32_t shutdown_id)
 {
 }
 

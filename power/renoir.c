@@ -22,6 +22,7 @@
 #include "util.h"
 #include "wireless.h"
 #include "registers.h"
+#include "flash.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -29,14 +30,15 @@
 
 static int forcing_shutdown; /* Forced shutdown in progress? */
 
-void chipset_force_shutdown(enum chipset_shutdown_reason reason)
+void chipset_force_shutdown(uint32_t shutdown_id)
 {
-    CPRINTS("%s -> %s()", __FILE__, __func__);
+    CPRINTS("%s -> %s(), shutdown_id=[0x%02x]", __FILE__, __func__, shutdown_id);
 
     if (!chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
         forcing_shutdown = 1;
         power_button_pch_press();
-        report_ap_reset(reason);
+
+        shutdown_cause_record(shutdown_id);
     }
 }
 

@@ -536,7 +536,7 @@ static void temperature_protection_mechanism(void)
 
     if (IS_BIT_SET(g_sensorsProtect, TEMP_SENSORS_PROTECT)) {
         CLEAR_BIT(g_sensorsProtect, TEMP_SENSORS_PROTECT);
-        chipset_force_shutdown(CHIPSET_SHUTDOWN_THERMAL);
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x30);
     }
 }
 

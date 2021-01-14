@@ -56,7 +56,7 @@
 
 #define CONFIG_ADC
 #define CONFIG_PRESERVE_LOGS                /* init UART TX buffer and save some log*/
-#define CONFIG_CMD_AP_RESET_LOG             /* reset UART TX buffer*/
+/*#define CONFIG_CMD_AP_RESET_LOG*/         /* reset UART TX buffer*/
 
 /*
  * Use PSL (Power Switch Logic) for hibernating. It turns off VCC power rail
@@ -239,7 +239,7 @@
 #define LOG_ID_SHUTDOWN_0x06    0x06    /* Power button 4s timeout */
 #define LOG_ID_SHUTDOWN_0x07    0x07    /* Power button 10s timeout */
 #define LOG_ID_SHUTDOWN_0x08    0x08    /* S0, HWPG pull down */
-#define LOG_ID_SHUTDOWN_0x09    0x09    /* Sx to S0, Power on WDT */
+#define LOG_ID_SHUTDOWN_0x09    0x09    /* wakeup WDT timeout */
 #define LOG_ID_SHUTDOWN_0x0A    0x0A    /* Sx to S0, HWPG timeout WDT */
 #define LOG_ID_SHUTDOWN_0x0B    0x0B    /* Sx to S0, SUSB timeout WDT */
 #define LOG_ID_SHUTDOWN_0x0C    0x0C    /* Sx to S0, SUSC timeout WDT */
@@ -270,6 +270,8 @@
 #define LOG_ID_SHUTDOWN_0x40    0x40    /* Power button pressed */
 #define LOG_ID_SHUTDOWN_0x41    0x41    /* Power button released */
 #define LOG_ID_SHUTDOWN_0x42    0x42    /* EC reset after BIOS tool update EC */
+#define LOG_ID_SHUTDOWN_0x43    0x43    /* Console command apshutdown */
+#define LOG_ID_SHUTDOWN_0x44    0x44    /* shutdown wdt timeout */
 
 /* 50--CF reserve */
 

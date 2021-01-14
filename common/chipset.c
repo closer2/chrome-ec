@@ -15,6 +15,7 @@
 #include "task.h"
 #include "timer.h"
 #include "util.h"
+#include "board.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -37,7 +38,7 @@ DECLARE_CONSOLE_COMMAND(apreset, command_apreset,
 
 static int command_apshutdown(int argc, char **argv)
 {
-	chipset_force_shutdown(CHIPSET_SHUTDOWN_CONSOLE_CMD);
+	chipset_force_shutdown(LOG_ID_SHUTDOWN_0x43);
 	return EC_SUCCESS;
 }
 DECLARE_CONSOLE_COMMAND(apshutdown, command_apshutdown,
