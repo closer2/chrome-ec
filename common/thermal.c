@@ -23,13 +23,13 @@
 #define CPUTS(outstr) cputs(CC_THERMAL, outstr)
 #define CPRINTS(format, args...) cprints(CC_THERMAL, format, ## args)
 
-#define FAN_START_TEMP 10
-#define UMA_SYS_FAN_START_TEMP (36 - FAN_START_TEMP)
-#define UMA_CPU_FAN_START_TEMP (36 - FAN_START_TEMP)
-#define GFX_SYS_FAN_START_TEMP (39 - FAN_START_TEMP)
-#define GFX_CPU_FAN_START_TEMP (40 - FAN_START_TEMP)
+#define UMA_SYS_FAN_START_TEMP  36
+#define UMA_CPU_FAN_START_TEMP  36
+#define GFX_SYS_FAN_START_TEMP  39
+#define GFX_CPU_FAN_START_TEMP  40
 
 #define CPU_DTS_PROCHOT_TEMP   98
+#define TEMP_MULTIPLE  100 /* TEMP_AMBIENCE_NTC */
 
 enum thermal_mode {
     THERMAL_UMA = 0,
@@ -279,45 +279,40 @@ static uint16_t get_fan_RPM(uint8_t fan_level, const struct thermal_level_s *fan
 
 static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
 {
-    uint8_t status = 0x0;
+    uint8_t temp = 0x0;
 
-    switch(thermalMode) { 
+    switch(thermalMode) {
         case THERMAL_UMA:
-            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMA_CPU_FAN_START_TEMP) {
-                status = 0x0;
-             } else {
-                status = 0x55;
-              }
-             break;
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] >= UMA_CPU_FAN_START_TEMP) {
+                temp = (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC]
+                    - UMA_CPU_FAN_START_TEMP) * TEMP_MULTIPLE;
+            }
+            break;
          case THERMAL_WITH_GFX:
-             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_CPU_FAN_START_TEMP) {
-                status = 0x0;
-             } else {
-                status = 0x55;
-              }
-             break;
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] >= GFX_CPU_FAN_START_TEMP) {
+                temp = (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC]
+                    - GFX_CPU_FAN_START_TEMP) * TEMP_MULTIPLE;
+            }
+            break;
         default:
             break;
     }
-    return status;
+    return temp;
 }
 
 static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
 {
     uint8_t fan = PWM_CH_CPU_FAN;
     int rpm_target = 0x0;
-
+    uint8_t temp = 0x0;
 
     /* sensor model form the configuration table board.c */
     switch(thermalMode) { 
         case THERMAL_UMA:
             /* cpu fan start status  */ 
-            if (!cpu_fan_start_temp(THERMAL_UMA)) {
-                rpm_target = 0x0;
-                return rpm_target;
-            }
-            
-            /* cpu fan check CPU DTS */      
+            temp = cpu_fan_start_temp(THERMAL_UMA);
+
+            /* cpu fan check CPU DTS */
             g_fanLevel[fan].cpuDts =
                 get_fan_level(g_tempSensors[TEMP_SENSOR_CPU_DTS], 
                     g_fanLevel[fan].cpuDts, &t_uma_thermal_cpu_fan_cpu_dts);
@@ -334,14 +329,12 @@ static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
 
             rpm_target = (g_fanRPM[fan].cpuDts > g_fanRPM[fan].cpuNtc)
                             ?  g_fanRPM[fan].cpuDts : g_fanRPM[fan].cpuNtc;
+            rpm_target += temp;
             break;
         case THERMAL_WITH_GFX:
             /* cpu fan start status  */ 
-            if (!cpu_fan_start_temp(THERMAL_WITH_GFX)) {
-                rpm_target = 0x0;
-                return rpm_target;
-            }
-        
+            temp = cpu_fan_start_temp(THERMAL_WITH_GFX);
+
             /* cpu fan check CPU DTS */      
             g_fanLevel[fan].cpuDts =
                 get_fan_level(g_tempSensors[TEMP_SENSOR_CPU_DTS], 
@@ -358,6 +351,7 @@ static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
 
             rpm_target = (g_fanRPM[fan].cpuDts > g_fanRPM[fan].cpuNtc)
                             ?  g_fanRPM[fan].cpuDts: g_fanRPM[fan].cpuNtc;
+            rpm_target += temp;
             break;  
         default:
             break;
@@ -365,44 +359,41 @@ static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
     return rpm_target;
 }
 
+/* ambience NTC */
 static uint8_t sys_fan_start_temp(uint8_t thermalMode)
 {
-    uint8_t status = 0x0;
+    uint8_t temp = 0x0;
 
     switch(thermalMode) { 
         case THERMAL_UMA:
-            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < UMA_SYS_FAN_START_TEMP) {
-                status = 0x0;
-             } else {
-                status = 0x55;
-              }
-             break;
+            if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] >= UMA_SYS_FAN_START_TEMP) {
+                temp = (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] 
+                    - UMA_SYS_FAN_START_TEMP) * TEMP_MULTIPLE;
+            }
+            break;
          case THERMAL_WITH_GFX:
-             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] < GFX_SYS_FAN_START_TEMP) {
-                status = 0x0;
-             } else {
-                status = 0x55;
-              }
+             if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] >= GFX_SYS_FAN_START_TEMP) {
+                 temp = (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] 
+                     - GFX_SYS_FAN_START_TEMP) * TEMP_MULTIPLE;
+             }
              break;
         default:
             break;
     }
-    return status;
+    return temp;
 }
 
 static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
 {
     uint8_t fan = PWM_CH_SYS_FAN;
     int rpm_target = 0x0;
+    uint8_t temp = 0x0;
 
     /* sensor model form the configuration table board.c */
-    switch(thermalMode) { 
-        case THERMAL_UMA: 
-            /* sys fan start status  */ 
-            if (!sys_fan_start_temp(THERMAL_UMA)) {
-                rpm_target = 0x0;
-                return rpm_target;
-            }
+    switch(thermalMode) {
+        case THERMAL_UMA:
+            /* sys fan start status ambience NTC */
+            temp = sys_fan_start_temp(THERMAL_UMA);
 
             /* sys fan check SSD1 NTC */
             g_fanLevel[fan].ssd1Ntc =
@@ -420,15 +411,13 @@ static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
         
            rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].memoryNtc)
                             ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].memoryNtc;
-            break;
+           rpm_target += temp;
+           break;
 
         case THERMAL_WITH_GFX:
-            /* sys fan start status  */ 
-            if (!sys_fan_start_temp(THERMAL_WITH_GFX)) {
-                rpm_target = 0x0;
-                return rpm_target;
-            }
-            
+            /* sys fan start status ambience NTC */
+            temp = sys_fan_start_temp(THERMAL_WITH_GFX);
+
             /* sys fan check SSD1 NTC */
             g_fanLevel[fan].ssd1Ntc =
                 get_fan_level(g_tempSensors[TEMP_SENSOR_SSD1_NTC], 
@@ -456,7 +445,7 @@ static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
 
             rpm_target = (rpm_target > g_fanRPM[fan].pcie16Ntc)
                             ?  rpm_target : g_fanRPM[fan].pcie16Ntc;
-
+            rpm_target += temp;
             break;
         default:
             break;
