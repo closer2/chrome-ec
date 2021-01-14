@@ -101,10 +101,6 @@ static void system_sw_wdt_service(void)
             power_button_pch_pulse();
             mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         }
-    } else {
-        g_wakeupWDT.time = 0;
-        g_wakeupWDT.countTime = 0;
-        g_wakeupWDT.timeoutNum = 0;
     }
 
     /* shutdown software WDT */
@@ -120,7 +116,7 @@ static void system_sw_wdt_service(void)
                 CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
                             g_shutdownWDT.time);
                 /* force shutdwon when beta*/
-                chipset_force_shutdown(CHIPSET_WAKEUP_WDT);
+                chipset_force_shutdown(CHIPSET_SHUTDOWN_WDT);
 
                 /* notify BIOS NMI when development*/
                 /* gpio_set_level(GPIO_APU_NMI_L, 0); */
@@ -131,11 +127,15 @@ static void system_sw_wdt_service(void)
         {
             g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
         }
-    } else {
-        g_shutdownWDT.time = 0;
-        g_shutdownWDT.countTime = 0;
-        g_shutdownWDT.timeoutNum = 0;
 
+        if((POWER_S5==power_get_state()) ||
+           (POWER_S3==power_get_state())) {
+            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+            g_shutdownWDT.timeoutNum = 0;
+            g_shutdownWDT.countTime = 0;
+            g_shutdownWDT.time = 0;
+        }
+    } else {
         /* gpio_set_level(GPIO_APU_NMI_L, 1); */
     }
 }
