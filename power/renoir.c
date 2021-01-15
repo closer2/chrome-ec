@@ -373,6 +373,9 @@ enum power_state power_handle_state(enum power_state state)
         /* withdraw EC_FCH_PWRGD */
         gpio_set_level(GPIO_EC_FCH_PWRGD, 0);
 
+        /* notify HC32F460 power state */
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
+
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
         
@@ -402,7 +405,6 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_USB_PWR_EN_L, 1);
 
         /* notify HC32F460 power state */
-        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
         gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
     
         /* switch FingerPrint USB connection to MCU */

@@ -1710,6 +1710,7 @@ void shutdown_cause_record(uint32_t data)
     uint32_t end_address;
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
+    uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
 
     // check shutdown cause write index
     base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
@@ -1781,6 +1782,16 @@ void shutdown_cause_record(uint32_t data)
             shutdown_write_index = SHUTDOWN_DATA_OFFSET+(4*LOG_SIZE);
         }
     }
+
+    // copy new data to ec ram
+    *(mptr+0) = *(mptr+2);
+    *(mptr+1) = *(mptr+3);
+    *(mptr+2) = *(mptr+4);
+    *(mptr+3) = *(mptr+5);
+    *(mptr+4) = *(mptr+6);
+    *(mptr+5) = *(mptr+7);
+    *(mptr+6) = log_Data.log_id;
+    *(mptr+7) = log_Data.log_timestamp;
 }
 
 /**
@@ -1800,6 +1811,7 @@ void wakeup_cause_record(uint32_t data)
     uint32_t end_address;
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
+    uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_WAKEUP_CAUSE);
 
     // check wakeup cause write index
     base_address = (uint32_t)WAKEUP_DATA_OFFSET;
@@ -1871,6 +1883,16 @@ void wakeup_cause_record(uint32_t data)
             wakeup_write_index = WAKEUP_DATA_OFFSET+(4*LOG_SIZE);
         }
     }
+
+    // copy new data to ec ram
+    *(mptr+0) = *(mptr+2);
+    *(mptr+1) = *(mptr+3);
+    *(mptr+2) = *(mptr+4);
+    *(mptr+3) = *(mptr+5);
+    *(mptr+4) = *(mptr+6);
+    *(mptr+5) = *(mptr+7);
+    *(mptr+6) = log_Data.log_id;
+    *(mptr+7) = log_Data.log_timestamp;
 }
 
 static enum ec_status host_command_write_flash_log(struct host_cmd_handler_args *args)

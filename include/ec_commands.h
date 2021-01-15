@@ -255,12 +255,14 @@ extern "C" {
 #define EC_MEMMAP_EVENT_TYPEC         BIT(6) /* CPU event */
 #define EC_MEMMAP_EVENT_CHARGER       BIT(7) /* Charger event */
 #define EC_MEMMAP_WATCHDOG_TIMEOUT         0x70 /* EC watchdog timeout high byte(0x70), low byte(0x71) */ 
-#define EC_MEMMAP_SHUTDOWN_CAUSE           0x72 /* ShutDown Cause */ 
-#define EC_MEMMAP_WAKEUP_CAUSE             0x73 /* Wakeup Cause */ 
+
 #define EC_MEMMAP_S4S5_RESTORE             0x74 /* S4/S5 restore for EC 1 Byte */ 
 #define EC_MEMMAP_HOST_CMD_FLAGS           0x75 /* Host cmd interface flags (8 bits) */
 #define EC_MEMMAP_HOST_EVENTS              0x76 /* 64 bits */
 /* Unused 0x77 - 0xdf */
+
+#define EC_MEMMAP_SHUTDOWN_CAUSE            0xA0
+#define EC_MEMMAP_WAKEUP_CAUSE              0xC0
 
 /* E0--FF, write protect disable*/
 #define EC_MEMMAP_BIOS_CMD                  0xE0
