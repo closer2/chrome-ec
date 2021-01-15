@@ -345,7 +345,6 @@
 enum pwm_channel {
     PWM_CH_CPU_FAN = 0,
     PWM_CH_SYS_FAN,
-    PWM_CH_SPKR,
     PWM_CH_POWER_LED,
     PWM_CH_COUNT
 };

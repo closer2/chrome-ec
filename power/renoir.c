@@ -203,6 +203,13 @@ static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
             gpio_get_name(pin_out), gpio_get_level(pin_out));
 }
 
+static void s5_to_s0_deferred(void)
+{
+    gpio_set_level(GPIO_HC32F460_PB1_SLP3, 1);
+    gpio_set_level(GPIO_HC32F460_PB0_SLP5, 1);
+}
+DECLARE_DEFERRED(s5_to_s0_deferred);
+
 enum power_state power_handle_state(enum power_state state)
 {
     handle_slp_sx_pass_through(GPIO_SLP_S5_L, GPIO_EC_SLP_S5_L);
@@ -339,6 +346,8 @@ enum power_state power_handle_state(enum power_state state)
         disable_sleep(SLEEP_MASK_AP_RUN);
 
         CPRINTS("%s -> %s, Power state S3->S0", __FILE__, __func__);
+
+        hook_call_deferred(&s5_to_s0_deferred_data, (500 * MSEC));
         return POWER_S0;
 
     case POWER_S0:
@@ -392,6 +401,10 @@ enum power_state power_handle_state(enum power_state state)
         /* withdraw USB_PWR_EN_L */
         gpio_set_level(GPIO_USB_PWR_EN_L, 1);
 
+        /* notify HC32F460 power state */
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
+        gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
+    
         /* switch FingerPrint USB connection to MCU */
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
 
