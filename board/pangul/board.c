@@ -353,12 +353,6 @@ const struct pwm_t pwm_channels[] = {
         .flags = PWM_CONFIG_DSLEEP,
         .freq = 100,
    },
-
-	[PWM_CH_SPKR] = {
-		.channel = 6,
-		.flags = PWM_CONFIG_DSLEEP,
-		.freq = 100,
-	},
 };
 BUILD_ASSERT(ARRAY_SIZE(pwm_channels) == PWM_CH_COUNT);
 /******************************************************************************/

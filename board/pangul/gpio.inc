@@ -30,9 +30,6 @@ GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)
 GPIO_INT(APU_PCIE_RST_L,	PIN(2, 1), GPIO_INT_BOTH,			apu_pcie_reset_interrupt)	/* Pass through to other xxx_RST_L (PCIEX1/PCIEX16/M2_2280_SSD1) */
 
 
-/* TODO: We need write the following two interrupt handler */
-/* GPIO_INT(THERMTRIP_L,		PIN(6, 0), GPIO_INT_BOTH,			thermal_trip_interrupt) */
-
 /* Replace of the above for PanGuL board */
 GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_FCH_PWRGD */
 GPIO(EC_FCH_SCI_ODL,        PIN(7, 6), GPIO_OUT_LOW)        /* SCI to SOC, EC_SCI_N */
@@ -66,7 +63,9 @@ GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pa
 GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(EC_LAN_WAKE_L,         PIN(2, 2), GPIO_OUT_LOW)        /* Waked up LAN */
 GPIO(EC_WLAN_WAKE_L,        PIN(1, 1), GPIO_OUT_LOW)        /* Waked up WLAN */
-GPIO(EC_CASE_OPEN_CLR,		PIN(1, 0), GPIO_OUT_LOW)			/* Chassis Intrusion Status Clear */
+GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
+GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
+GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */
 
 /* KBRST# as gpio */
 GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* KBRST# */
@@ -153,8 +152,8 @@ ALTERNATE(PIN_MASK(3, BIT(4) | BIT(7)), 1, MODULE_ADC, 0)			/* ADC5: TYPEC_VBUS_
 ALTERNATE(PIN_MASK(E, BIT(1)), 0, MODULE_ADC, 0)				/* ADC7: VR_THERMAL */
 ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)			/* ADC8: MEM_THERMAL, ADC9:EC_VIN33 */
 
-ALTERNATE(PIN_MASK(C, BIT(0) | BIT(2) | BIT(3)), 1, MODULE_PWM, 0)		/* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM, PWM6: SPKR */
-ALTERNATE(PIN_MASK(B, BIT(6)), 1, MODULE_PWM, 0)		                /* power-on led*/
+ALTERNATE(PIN_MASK(C, BIT(2) | BIT(3)), 1, MODULE_PWM, 0)       /* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM */
+ALTERNATE(PIN_MASK(B, BIT(6)), 1, MODULE_PWM, 0)                /* power-on led*/
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */
