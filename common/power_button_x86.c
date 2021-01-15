@@ -55,7 +55,11 @@
  *     @S0   make code             break code
  */
 #define PWRBTN_DELAY_T0    (32 * MSEC)  /* 32ms (PCH requires >16ms) */
-#define PWRBTN_DELAY_T1    (4 * SECOND - PWRBTN_DELAY_T0)  /* 4 secs - t0 */
+/* #define PWRBTN_DELAY_T1    (4 * SECOND - PWRBTN_DELAY_T0)*/  /* 4 secs - t0 */
+
+/* modify 8sec force shutdown to 4sec*/
+#define PWRBTN_DELAY_T1    (64 * MSEC - PWRBTN_DELAY_T0)
+
 /*
  * Length of time to stretch initial power button press to give chipset a
  * chance to wake up (~100ms) and react to the press (~16ms).  Also used as
