@@ -68,11 +68,15 @@ void port_80_write(int data)
 		/* Ignore special event codes */
 		if (prev < 0x100) {
             last_boot = prev;
-        #ifdef CONFIG_WMI_PORT
-            post_last_code(data);
-        #endif
         }
 	}
+
+#ifdef CONFIG_WMI_PORT
+    /* Ignore special event codes */
+    if (data < 0x100) {
+        post_last_code(data);
+     }
+#endif
 
 	history[writes % ARRAY_SIZE(history)] = data;
 	writes++;
