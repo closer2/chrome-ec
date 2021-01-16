@@ -157,7 +157,7 @@
 * USB-C define for pangu-l
 ------------------------------------------------------------------------------*/
 #define CONFIG_USB
-#define CONFIG_USB_PID 0x1641
+#define CONFIG_USB_PID 0x3b00
 #define CONFIG_USB_POWER_DELIVERY
 #define CONFIG_USB_PD_TCPMV1
 #define CONFIG_USB_PD_CUSTOM_PDO
@@ -172,7 +172,7 @@
 #define CONFIG_USB_PD_VBUS_DETECT_TCPC
 #define CONFIG_USB_PD_TCPC_LOW_POWER
 #define CONFIG_USB_PD_TCPM_RT1715
-#define CONFIG_USB_PD_REV30             /* more than zinger */
+/*#define CONFIG_USB_PD_REV30*/         /* more than zinger */
 #define CONFIG_USBC_VCONN               /* more than zinger */
 /* #define CONFIG_USB_PD_SIMPLE_DFP
 #define CONFIG_USB_PD_VBUS_DETECT_GPIO

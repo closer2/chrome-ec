@@ -781,9 +781,11 @@ struct pd_cable {
 #define USB_SID_PD          0xff00 /* power delivery */
 #define USB_SID_DISPLAYPORT 0xff01
 
-#define USB_GOOGLE_TYPEC_URL "http://www.google.com/chrome/devices/typec"
-/* USB Vendor ID assigned to Google Inc. */
-#define USB_VID_GOOGLE 0x18d1
+#define USB_TYPEC_URL "http://www.usg.org/"
+
+/* USB Vendor ID assigned to HUAWEI Inc. */
+/* Modify google vid to huawei vid*/
+#define USB_VID_GOOGLE 0x12d1
 
 /* Other Vendor IDs */
 #define USB_VID_APPLE  0x05ac

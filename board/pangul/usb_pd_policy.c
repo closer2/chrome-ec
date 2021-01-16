@@ -46,7 +46,7 @@ void pd_set_input_current_limit(int port, uint32_t max_ma,
 				uint32_t supply_voltage)
 {
 	/* No battery, nothing to do */
-	CPRINTS("pd_set_input_current_limit %d, %d\n",
+	CPRINTS("pd_set_input_current_limit %d, %d",
 			max_ma, supply_voltage);
 	return;
 }
@@ -54,7 +54,7 @@ void pd_set_input_current_limit(int port, uint32_t max_ma,
 int pd_is_valid_input_voltage(int mv)
 {
 	/* Any voltage less than the max is allowed */
-	CPRINTS("pd_is_valid_input_voltage %d\n", mv);
+	CPRINTS("pd_is_valid_input_voltage %d", mv);
 	return 1;
 }
 
@@ -63,12 +63,12 @@ void pd_transition_voltage(int idx)
 	/* TODO: discharge, PPS */
 	switch (idx - 1) {
 	case PDO_IDX_9V:
-		CPRINTS("pd_transition_voltage to 9v\n");
+		CPRINTS("pd_transition_voltage to 9v");
 		board_set_usb_output_voltage(9000);
 		break;
 	case PDO_IDX_5V:
 	default:
-		CPRINTS("pd_transition_volatage to 5v\n");
+		CPRINTS("pd_transition_volatage to 5v");
 		board_set_usb_output_voltage(5000);
 		break;
 	}
@@ -76,7 +76,7 @@ void pd_transition_voltage(int idx)
 
 int pd_set_power_supply_ready(int port)
 {
-	CPRINTS("pd_set_power_supply_read, 5v\n");
+	CPRINTS("pd_set_power_supply_read, 5v");
 	board_set_usb_output_voltage(5000);
 
 	return EC_SUCCESS;
@@ -84,7 +84,7 @@ int pd_set_power_supply_ready(int port)
 
 void pd_power_supply_reset(int port)
 {
-	CPRINTS("pd_power_supply_reset, shutdown voltage\n");
+	CPRINTS("pd_power_supply_reset, shutdown voltage");
 	board_set_usb_output_voltage(-1);
 }
 
@@ -123,7 +123,7 @@ void pd_check_pr_role(int port,
 		      enum pd_power_role pr_role,
 		      int flags)
 {
-	CPRINTS("pd_check_pr_role\n");
+	CPRINTS("pd_check_pr_role");
 }
 
 /* TODO: to be checked */
@@ -131,7 +131,7 @@ void pd_check_dr_role(int port,
 		      enum pd_data_role dr_role,
 		      int flags)
 {
-	CPRINTS("pd_check_dr_role, dr_role(%d), flags(%d)\n",
+	CPRINTS("pd_check_dr_role, dr_role(%d), flags(%d)",
 			dr_role, flags);
 
 	if ((flags & PD_FLAGS_PARTNER_DR_DATA) && dr_role == PD_ROLE_DFP)

@@ -24,10 +24,10 @@
 
 #include "genvif.h"
 
-#define VIF_APP_VENDOR_VALUE	"Google"
+#define VIF_APP_VENDOR_VALUE	"BXC"
 #define VIF_APP_NAME_VALUE	"EC GENVIF"
 #define VIF_APP_VERSION_VALUE	"3.0.0.9"
-#define VENDOR_NAME_VALUE	"Google"
+#define VENDOR_NAME_VALUE	"HUAWEI"
 
 #define DEFAULT_MISSING_TID	0xFFFF
 #define DEFAULT_MISSING_PID	0xFFFF
@@ -3224,7 +3224,7 @@ static void init_vif_component_usb_data_dfp_fields(
 	/*
 	 * TOTO(b:172438944) Adjust the speed based on CONFIG_
 	 */
-	enum usb_speed ds = USB_GEN11;
+	enum usb_speed ds = USB_2;
 	bool supports_usb_data;
 	bool is_dfp_on_hub;
 
