@@ -353,7 +353,11 @@ static void oem_bios_to_ec_command(void)
 
     case 0x0E : /* MFG mode control */
         if (0x01 == *(bios_cmd+2)) {        /* enable, 0xFF*/
+        #ifdef CONFIG_MFG_MODE_FORBID_WRITE
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+        #else
             mfg_data_write(MFG_MODE_OFFSET, 0xFF);
+        #endif
         } else if(0x02 == *(bios_cmd+2)) {  /* disable, 0xBE*/
            mfg_data_write(MFG_MODE_OFFSET, 0xBE);
         } else if(0x03 == *(bios_cmd+2)) {  /* get */
