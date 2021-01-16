@@ -14,6 +14,9 @@
 #include "task.h"
 #include "timer.h"
 #include "util.h"
+#ifdef CONFIG_WMI_PORT
+#include "wmi_port.h"
+#endif
 
 #define CPRINTF(format, args...) cprintf(CC_PORT80, format, ## args)
 
@@ -63,8 +66,12 @@ void port_80_write(int data)
 		int prev = history[(writes-1) % ARRAY_SIZE(history)];
 
 		/* Ignore special event codes */
-		if (prev < 0x100)
-			last_boot = prev;
+		if (prev < 0x100) {
+            last_boot = prev;
+        #ifdef CONFIG_WMI_PORT
+            post_last_code(data);
+        #endif
+        }
 	}
 
 	history[writes % ARRAY_SIZE(history)] = data;

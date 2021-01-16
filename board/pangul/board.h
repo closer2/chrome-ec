@@ -108,6 +108,7 @@
 
 #define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
 #define CONFIG_UART_HOST                    /* Turn on serial port */
+#define CONFIG_WMI_PORT                     /* os to ec wmi port */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2

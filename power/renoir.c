@@ -23,6 +23,7 @@
 #include "wireless.h"
 #include "registers.h"
 #include "flash.h"
+#include "wmi_port.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -418,6 +419,9 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S5G3:
         chipset_force_g3();
+#ifdef CONFIG_WMI_PORT
+        post_last_code_s();
+#endif
 
         CPRINTS("%s -> %s, Power state S5->G3", __FILE__, __func__);
         return POWER_G3;

@@ -1784,14 +1784,14 @@ void shutdown_cause_record(uint32_t data)
     }
 
     // copy new data to ec ram
-    *(mptr+0) = *(mptr+2);
-    *(mptr+1) = *(mptr+3);
-    *(mptr+2) = *(mptr+4);
-    *(mptr+3) = *(mptr+5);
-    *(mptr+4) = *(mptr+6);
-    *(mptr+5) = *(mptr+7);
-    *(mptr+6) = log_Data.log_id;
-    *(mptr+7) = log_Data.log_timestamp;
+    *(mptr+7) = *(mptr+5);
+    *(mptr+6) = *(mptr+4);
+    *(mptr+5) = *(mptr+3);
+    *(mptr+4) = *(mptr+2);
+    *(mptr+3) = *(mptr+1);
+    *(mptr+2) = *(mptr+0);
+    *(mptr+1) = log_Data.log_timestamp;
+    *(mptr+0) = log_Data.log_id;
 }
 
 /**
@@ -1885,14 +1885,14 @@ void wakeup_cause_record(uint32_t data)
     }
 
     // copy new data to ec ram
-    *(mptr+0) = *(mptr+2);
-    *(mptr+1) = *(mptr+3);
-    *(mptr+2) = *(mptr+4);
-    *(mptr+3) = *(mptr+5);
-    *(mptr+4) = *(mptr+6);
-    *(mptr+5) = *(mptr+7);
-    *(mptr+6) = log_Data.log_id;
-    *(mptr+7) = log_Data.log_timestamp;
+    *(mptr+7) = *(mptr+5);
+    *(mptr+6) = *(mptr+4);
+    *(mptr+5) = *(mptr+3);
+    *(mptr+4) = *(mptr+2);
+    *(mptr+3) = *(mptr+1);
+    *(mptr+2) = *(mptr+0);
+    *(mptr+1) = log_Data.log_timestamp;
+    *(mptr+0) = log_Data.log_id;
 }
 
 static enum ec_status host_command_write_flash_log(struct host_cmd_handler_args *args)

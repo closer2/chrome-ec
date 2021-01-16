@@ -7354,6 +7354,61 @@ struct ec_external_WDT {
     uint16_t time; 
 } __ec_align4;
 
+/* WMI get dfx log */
+#define EC_CMD_GET_DFX_LOG     0x0611
+
+/*
+ * struct ec_wmi_get_dfx_log - WMI Get dfx log Function.
+ * Byte 1~2: 0xB0 + 开机阶段码(高4位bit为上一次，低4位bit为当次)
+ * Byte 3~12: 0xB1 + 问题判断字节(1) + 本次开机最后POST码(2) + 前次POST码(2) + 时间(4)
+ * Byte 13~22: 0xB1 + 问题判断字节(1) + 上一次开机最后POST码(2) + 前次POST码(2) + 时间(4)
+ * Byte 23~31: 0xE0 + 问题判断字节(1) + shutdown cause(2) + 预留位(1) + 时间(4)
+ * Byte 32~40: 0xE0 + 问题判断字节(1) + shutdown cause(2) + 预留位(1) + 时间(4)
+ * Byte 41~49: 0xE0 + 问题判断字节(1) + shutdown cause(2) + 预留位(1) + 时间(4)
+ * Byte 50~58: 0xE0 + 问题判断字节(1) + shutdown cause(2) + 预留位(1) + 时间(4)
+ * Byte 59~67: 0xE1 + 问题判断字节(1) + wakeup cause(1) + 预留位(2) + 时间(4)
+ * Byte 68~76: 0xE1 + 问题判断字节(1) + wakeup cause(1) + 预留位(2) + 时间(4)
+ * Byte 77~85: 0xE1 + 问题判断字节(1) + wakeup cause(1) + 预留位(2) + 时间(4)
+ * Byte 86~94: 0xE1 + 问题判断字节(1) + wakeup cause(1) + 预留位(2) + 时间(4)
+ */
+struct wmi_post_code {
+    uint16_t type;
+    uint16_t code0;
+    uint16_t code1;
+    uint32_t time;
+};
+ struct wmi_shutdown_cause {
+    uint16_t type;
+    uint16_t value;
+    uint8_t reserve;
+    uint32_t time;
+};
+ struct wmi_wakeup_cause {
+     uint16_t type;
+     uint8_t value;
+     uint16_t reserve;
+     uint32_t time;
+};
+struct ec_wmi_get_dfx_log {
+    uint16_t startType;
+    /* post code*/
+    struct wmi_post_code postCode[2];
+    /* shutdown case*/
+    struct wmi_shutdown_cause shutdownCause[4];
+    /* wakeup case*/
+    struct wmi_wakeup_cause wakeupCause[4];
+} __ec_align4;
+
+
+/* get shutdownCase/wakeUpCase log */
+#define EC_CMD_GET_CASE_LOG     0x0612
+struct ec_wmi_get_cause_log {
+    /* shutdown case*/
+    struct wmi_shutdown_cause shutdownCause;
+    /* wakeup case*/
+    struct wmi_wakeup_cause wakeupCause;
+}__ec_align4;
+
 /*****************************************************************************/
 /*
  * Reserve a range of host commands for board-specific, experimental, or
