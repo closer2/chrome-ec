@@ -3846,7 +3846,11 @@ int main(int argc, char **argv)
 			return 1;
 	}
 
-	name_size = asprintf(&name, "%s/%s_vif.xml", out, board);
+    #if defined(CONFIG_USB_PD_MODEL_PART_NUMBER)
+	name_size = asprintf(&name, "%s/%s_vif.xml", out, CONFIG_USB_PD_MODEL_PART_NUMBER);
+    #else
+    name_size = asprintf(&name, "%s/%s_vif.xml", out, board);
+    #endif
 	if (name_size < 0) {
 		fprintf(stderr, "ERROR: Out of memory.\n");
 		return 1;

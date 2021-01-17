@@ -174,6 +174,11 @@
 #define CONFIG_USB_PD_TCPM_RT1715
 /*#define CONFIG_USB_PD_REV30*/         /* more than zinger */
 #define CONFIG_USBC_VCONN               /* more than zinger */
+
+#define CONFIG_NUM_FIXED_BATTERIES  0           /* Used duing VIF generation*/
+#define CONFIG_USB_PD_MODEL_PART_NUMBER "DT01"  /* Used duing VIF generation*/
+#define CONFIG_USB_PD_PRODUCT_REVISION  "V02"   /* Used duing VIF generation*/
+
 /* #define CONFIG_USB_PD_SIMPLE_DFP
 #define CONFIG_USB_PD_VBUS_DETECT_GPIO
 #define CONFIG_USBC_BACKWARDS_COMPATIBLE_DFP */
