@@ -1978,10 +1978,14 @@ DECLARE_DEFERRED(mfg_data_sync_deferred);
 #define FLASH_SYNC_DEBOUNCE_US  (30 * MSEC)
 void mfg_data_write(uint8_t index, uint8_t data)
 {
+    uint8_t *mfgMode = host_get_memmap(index);
+    
     if(index >= MFG_OFFSET_COUNT)
     {
         return;
     }
+
+    *mfgMode = data;
     mfg_data_map[index] = data;
     hook_call_deferred(&mfg_data_sync_deferred_data, FLASH_SYNC_DEBOUNCE_US);
 }
@@ -2011,7 +2015,7 @@ static void mfg_data_init(void)
     /* initialize read AC recovery state */
     mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
     if (0xFF == mfg_data_map[MFG_AC_RECOVERY_OFFSET]) {
-        mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x01); /* set deflat data */
+        mfg_data_write(MFG_AC_RECOVERY_OFFSET, 0x01); /* set default data */
         *mfgMode = 0x01; /* default is AC recovery to power on */
     } else {
         *mfgMode = mfg_data_map[MFG_AC_RECOVERY_OFFSET];
@@ -2108,33 +2112,6 @@ DECLARE_CONSOLE_COMMAND(mfg_data, console_command_mfg_data,
         "[read <index>]"
         "[write <index> <data>]",
         "read/Write mfg data to flash");
-
-static enum ec_status host_command_mfg_data_read(struct host_cmd_handler_args *args)
-{
-    const struct ec_params_mfg_data *p = args->params;
-    struct ec_response_mfg_data *r = args->response;
-
-    r->data = mfg_data_read(p->index);
-    args->response_size = sizeof(*r);
-    return EC_RES_SUCCESS;
-}
-DECLARE_HOST_COMMAND(EC_CMD_FLASH_GET_MFG_DATA,
-        host_command_mfg_data_read,
-        EC_VER_MASK(0));
-
-static enum ec_status host_command_mfg_data_write(struct host_cmd_handler_args *args)
-{
-    const struct ec_params_mfg_data *p = args->params;
-    uint8_t *mfgMode_target = (uint8_t *)host_get_memmap(EC_MEMMAP_MFG_MODE);
-
-    mfg_data_write(p->index, p->data);
-    /* Updata MFG mode to memory */
-    *mfgMode_target = p->data;
-    return EC_RES_SUCCESS;
-}
-DECLARE_HOST_COMMAND(EC_CMD_FLASH_SET_MFG_DATA,
-        host_command_mfg_data_write,
-        EC_VER_MASK(0));
 #else
 void shutdown_cause_record(uint32_t data)
 {

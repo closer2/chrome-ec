@@ -3654,24 +3654,10 @@ enum mfg_data_offset {
     MFG_WDT_TIMEOUT_COUNT_OFFSET = 0x02,
     MFG_CHASSIS_INTRUSION_DATA_OFFSET = 0x03,
     MFG_CHASSIS_INTRUSION_MODE_OFFSET = 0x04,
-
+    MFG_POWER_OFF_STATE_OFFSET = 0x05,
+    
     MFG_OFFSET_COUNT
 };
-
-struct ec_params_mfg_data {
-    uint8_t index;
-    uint8_t data;
-} __ec_align1;
-
-struct ec_response_mfg_data {
-    uint8_t index;
-    uint8_t data;
-} __ec_align1;
-
-/* These all use ec_params_mfg_data */
-#define EC_CMD_FLASH_GET_MFG_DATA   0x0058
-#define EC_CMD_FLASH_SET_MFG_DATA   0x0059
-
 
 /*****************************************************************************/
 /* MKBP - Matrix KeyBoard Protocol */
