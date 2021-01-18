@@ -1018,8 +1018,8 @@ static int send_source_cap(int port, enum ams_seq ams)
 	const uint32_t *src_pdo;
 	const int src_pdo_cnt = charge_manager_get_source_pdo(&src_pdo, port);
 #else
-	const uint32_t *src_pdo = pd_src_pdo;
-	const int src_pdo_cnt = pd_src_pdo_cnt;
+    const uint32_t *src_pdo;
+    const int src_pdo_cnt = pd_get_board_pdo(&src_pdo);
 #endif
 	uint16_t header;
 

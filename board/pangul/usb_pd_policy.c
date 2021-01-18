@@ -19,6 +19,7 @@
 #include "usb_pd.h"
 #include "util.h"
 #include "version.h"
+#include "power.h"
 
 #define CPRINTF(format, args...) cprintf(CC_USBPD, format, ## args)
 #define CPRINTS(format, args...) cprints(CC_USBPD, format, ## args)
@@ -41,6 +42,23 @@ const uint32_t pd_src_pdo[] = {
 };
 const int pd_src_pdo_cnt = ARRAY_SIZE(pd_src_pdo);
 BUILD_ASSERT(ARRAY_SIZE(pd_src_pdo) == PDO_IDX_COUNT);
+
+/* S3 PDOs */
+const uint32_t pd_src_pdo_s3[] = {
+    [PDO_IDX_5V]  = PDO_FIXED(5000,  2000, PDO_FIXED_FLAGS),
+};
+const int pd_src_pdo_cnt_s3 = ARRAY_SIZE(pd_src_pdo_s3);
+
+int pd_get_board_pdo(const uint32_t **src_pdo)
+{
+    if(POWER_S0 == power_get_state()) {
+        *src_pdo = pd_src_pdo;
+        return pd_src_pdo_cnt;
+    } else {
+        *src_pdo = pd_src_pdo_s3;
+        return pd_src_pdo_cnt_s3;
+    }
+}
 
 void pd_set_input_current_limit(int port, uint32_t max_ma,
 				uint32_t supply_voltage)

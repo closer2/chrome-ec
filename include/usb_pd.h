@@ -1487,6 +1487,14 @@ void pd_set_vbus_discharge(int port, int enable);
 int pd_set_power_supply_ready(int port);
 
 /**
+ * Get PD source power data objects.
+ *
+ * @param src_pdo	Pointer to the data to return.
+ * @return number of PDOs returned.
+ */
+int pd_get_board_pdo(const uint32_t **src_pdo);
+
+/**
  * Ask the specified voltage from the PD source.
  *
  * It triggers a new negotiation sequence with the source.
