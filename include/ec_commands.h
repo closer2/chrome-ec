@@ -343,8 +343,8 @@ extern "C" {
 #define EC_TEMP_SENSOR_B_ENTRIES      8
 #endif
 /* Special values for mapped temperature sensors */
-#define EC_TEMP_SENSOR_NOT_POWERED    0x00
-#define EC_TEMP_SENSOR_NOT_PRESENT    0x01
+#define EC_TEMP_SENSOR_NOT_PRESENT    0x00
+#define EC_TEMP_SENSOR_NOT_POWERED    0x01
 #define EC_TEMP_SENSOR_ERROR          0x02
 #define EC_TEMP_SENSOR_NOT_CALIBRATED 0x03
 /*
