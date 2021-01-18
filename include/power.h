@@ -154,6 +154,15 @@ int power_wait_signals_timeout(uint32_t want, int timeout);
  */
 int power_wait_mask_signals_timeout(uint32_t want, uint32_t mask, int timeout);
 
+/**
+ * power state wait a while
+ *
+ * @param time      Time in usec to wait
+ *			state.
+ * @return EC_SUCCESS
+ */
+int power_wait_voltage(void);
+
 
 /**
  * Set the low-level power chipset state.

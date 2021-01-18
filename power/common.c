@@ -5,6 +5,7 @@
 
 /* Common functionality across all chipsets */
 
+#include "adc.h"
 #include "battery.h"
 #include "charge_state.h"
 #include "chipset.h"
@@ -234,6 +235,28 @@ int power_wait_mask_signals_timeout(uint32_t want, uint32_t mask, int timeout)
 		 */
 	}
 	return EC_SUCCESS;
+}
+
+int power_wait_voltage()
+{
+    int ret = adc_read_channel(ADC_12V);
+    int count;
+
+    for(count=0; count<40; count++)
+    {
+        ret = adc_read_channel(ADC_12V);
+        if(ret>1900)
+        {
+            CPRINTS("power voltage 12V wait pass Voltage=%d, count=%d", ret,count);
+            task_wait_event(100*MSEC);
+            return EC_SUCCESS;
+        }
+        
+        task_wait_event(50*MSEC);
+    }
+
+    CPRINTS("power voltage 12V wait fail Voltage=%d", ret);
+    return EC_ERROR_TIMEOUT;
 }
 
 void power_set_state(enum power_state new_state)

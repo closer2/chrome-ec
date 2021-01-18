@@ -50,34 +50,38 @@ static void chipset_force_g3(void)
      * system will enter G3,
      */
 
+    /* trun off S0/S3 power */
     gpio_set_level(GPIO_PWRGD_140MS, 0);
     gpio_set_level(GPIO_EC_FCH_PWRGD, 0);
-
     gpio_set_level(GPIO_EC_SLP_S3_L, 0);
     gpio_set_level(GPIO_EC_SLP_S5_L, 0);
-    
     gpio_set_level(GPIO_EC_PSON_L, 1);
+    gpio_set_level(GPIO_PCH_RSMRST_L, 0);
 
     /* Fingerprint keyboard USB port power always trun on*/
     gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
-    
-    gpio_set_level(GPIO_PCH_RSMRST_L, 0);
 
-    gpio_set_level(GPIO_EC_ALW_EN, 0);
-    gpio_set_level(GPIO_PROM19_EN, 0);
-
+    /* Fingerprint keyboard USB switch to HC32F460 MCU */
     gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
 
-    /* ec pull down gpio when system enter g3.
-    */
+    /* pass through SLP_S3/SLP_S5 to HC32F460 MCU */
+    gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
+    gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
+
+    /* turn off USB-A port power */
+    gpio_set_level(GPIO_USB_PWR_EN_L, 1);
+
+    /* trun off S5 power */
+    gpio_set_level(GPIO_EC_ALW_EN, 0);
+    gpio_set_level(GPIO_PROM19_EN, 0);
+    gpio_set_level(GPIO_KBRST_L, 0);
     gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
     gpio_set_level(GPIO_PCH_SMI_L, 0);
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
     gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
-    gpio_set_level(GPIO_KBRST_L, 0);
-
+    
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
 
@@ -179,6 +183,7 @@ enum power_state power_chipset_init(void)
     return POWER_G3;
 }
 
+#if 0
 static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
                     enum gpio_signal pin_out)
 {
@@ -205,7 +210,7 @@ static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
             gpio_get_name(pin_in), gpio_get_level(pin_in),
             gpio_get_name(pin_out), gpio_get_level(pin_out));
 }
-
+#endif
 static void s5_to_s0_deferred(void)
 {
     gpio_set_level(GPIO_HC32F460_PB1_SLP3, 1);
@@ -215,9 +220,6 @@ DECLARE_DEFERRED(s5_to_s0_deferred);
 
 enum power_state power_handle_state(enum power_state state)
 {
-    handle_slp_sx_pass_through(GPIO_SLP_S5_L, GPIO_EC_SLP_S5_L);
-    handle_slp_sx_pass_through(GPIO_SLP_S3_L, GPIO_EC_SLP_S3_L);
-
     if (state == POWER_S5 && forcing_shutdown) {
         power_button_pch_release();
         forcing_shutdown = 0;
@@ -231,12 +233,15 @@ enum power_state power_handle_state(enum power_state state)
         /* Exit SOC G3 */
         gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
         gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
-        gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
         gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
         gpio_set_level(GPIO_PCH_SMI_L, 1);
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
         gpio_set_level(GPIO_KBRST_L, 1);
+        gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+        gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
+        gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
         msleep(10);
         
         /* Enable system power ("*_A" rails) in S5. */
@@ -278,7 +283,7 @@ enum power_state power_handle_state(enum power_state state)
         /* Enable PSON#, low active */
         gpio_set_level(GPIO_EC_PSON_L, 0);
 
-        /* enable USB power, this signal is low active */
+        /* turn on USB-A port power, this signal is low active*/
         gpio_set_level(GPIO_USB_PWR_EN_L, 0);
         
         /* Call hooks now that rails are up */
@@ -292,6 +297,13 @@ enum power_state power_handle_state(enum power_state state)
             /* Required rail went away */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
+            
+            if(power_wait_voltage()) {
+                CPRINTS("power wait 12V timeout\n");
+                return POWER_S5G3;
+            }
+            gpio_set_level(GPIO_EC_SLP_S5_L, 1);
+            gpio_set_level(GPIO_EC_SLP_S3_L, 1);
             /* PCH SLP_S3 turn on, Power up to next state */
             return POWER_S3S0;
         } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 0) {
@@ -379,6 +391,9 @@ enum power_state power_handle_state(enum power_state state)
         /* notify HC32F460 power state */
         gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
 
+        /* EC pass through SLP_S3*/
+        gpio_set_level(GPIO_EC_SLP_S3_L, 0);
+
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
         
@@ -412,6 +427,9 @@ enum power_state power_handle_state(enum power_state state)
     
         /* switch FingerPrint USB connection to MCU */
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
+
+        /* EC pass through SLP_S5*/
+        gpio_set_level(GPIO_EC_SLP_S5_L, 0);
 
         /* Call hooks after we remove power rails */
         hook_notify(HOOK_CHIPSET_SHUTDOWN_COMPLETE);

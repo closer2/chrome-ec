@@ -391,6 +391,8 @@ enum adc_channel {
     ADC_SENSOR_PCIEX16_NTC,
     ADC_SENSOR_CPU_NTC,
     ADC_SENSOR_MEMORY_NTC,
+    ADC_3P3V,
+    ADC_12V,
 	ADC_CH_COUNT
 };
 
