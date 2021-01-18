@@ -48,7 +48,7 @@ GPIO(EC_TO_USB_SWITCH,      PIN(A, 2), GPIO_OUT_LOW)        /* G3 to low, other 
 GPIO(EC_AUDIO_MUTE_L,       PIN(E, 3), GPIO_OUT_HIGH)       /* EC_AUDIO_MUTE_L */
 GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V enable, default to high */
 GPIO(PROM19_EN,             PIN(D, 2), GPIO_OUT_LOW)        /* Refer to Power Sequence */
-GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_LOW)        /* Finger KBD USB port power enable */
+GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_HIGH)       /* Finger KBD USB port power enable */
 GPIO(EC_SLP_S3_L,           PIN(D, 5), GPIO_OUT_LOW)        /* EC_SLP_S3#, output, passthrough SLP_S3_L */
 GPIO(DGPU_PROCHOT_L,        PIN(9, 3), GPIO_OUT_LOW)        /* DGPU_PROCHOT_L */
 GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */

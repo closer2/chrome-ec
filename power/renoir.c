@@ -58,6 +58,9 @@ static void chipset_force_g3(void)
     
     gpio_set_level(GPIO_EC_PSON_L, 1);
 
+    /* Fingerprint keyboard USB port power always trun on*/
+    gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+    
     gpio_set_level(GPIO_PCH_RSMRST_L, 0);
 
     gpio_set_level(GPIO_EC_ALW_EN, 0);
@@ -72,7 +75,6 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
     gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
-    gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 0);
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
     gpio_set_level(GPIO_KBRST_L, 0);
 
@@ -195,7 +197,7 @@ static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
     * so ec only has to delay the slp5 signal
     */
     if(pin_in == GPIO_SLP_S5_L)
-        msleep(285);
+        msleep(685);
 
     gpio_set_level(pin_out, in_level);
     msleep(10);
