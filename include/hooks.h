@@ -119,6 +119,14 @@ enum hook_type {
 	 */
 	HOOK_CHIPSET_SUSPEND,
 
+    /*
+     * System will enter OS; all voltage rails are still
+     *
+     * Hook routines are called from the chipset task.
+     */
+    HOOK_CHIPSET_ACPI_MODE,
+    HOOK_CHIPSET_SYSTEM_S3,
+
 #ifdef CONFIG_CHIPSET_RESUME_INIT_HOOK
 	/*
 	 * Initialization before the system resumes, like enabling the SPI

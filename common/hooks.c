@@ -40,6 +40,8 @@ static const struct hook_ptrs hook_list[] = {
 	{__hooks_chipset_startup, __hooks_chipset_startup_end},
 	{__hooks_chipset_resume, __hooks_chipset_resume_end},
 	{__hooks_chipset_suspend, __hooks_chipset_suspend_end},
+    {__hooks_chipset_acpi_mode, __hooks_chipset_acpiMode_end},
+    {__hooks_chipset_system_s3, __hooks_chipset_systemS3_end},
 #ifdef CONFIG_CHIPSET_RESUME_INIT_HOOK
 	{__hooks_chipset_resume_init, __hooks_chipset_resume_init_end},
 	{__hooks_chipset_suspend_complete,

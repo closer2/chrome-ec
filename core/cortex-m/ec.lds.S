@@ -243,6 +243,14 @@ SECTIONS
 		KEEP(*(.rodata.HOOK_CHIPSET_SUSPEND))
 		__hooks_chipset_suspend_end = .;
 
+		__hooks_chipset_acpi_mode = .;
+		KEEP(*(.rodata.HOOK_CHIPSET_ACPI_MODE))
+		__hooks_chipset_acpiMode_end = .;
+		
+		__hooks_chipset_system_s3 = .;
+		KEEP(*(.rodata.HOOK_CHIPSET_SYSTEM_S3))
+		__hooks_chipset_systemS3_end = .;
+
 #ifdef CONFIG_CHIPSET_RESUME_INIT_HOOK
 		__hooks_chipset_resume_init = .;
 		KEEP(*(.rodata.HOOK_CHIPSET_RESUME_INIT))
