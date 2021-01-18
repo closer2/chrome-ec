@@ -123,7 +123,8 @@ void pd_check_pr_role(int port,
 		      enum pd_power_role pr_role,
 		      int flags)
 {
-	CPRINTS("pd_check_pr_role");
+    CPRINTS("pd_check_pr_role, pr_role(%s), flags=(0x%X)",
+        (PD_ROLE_SINK==pr_role)?("Sink"):("Source"), flags);
 }
 
 /* TODO: to be checked */
@@ -131,10 +132,11 @@ void pd_check_dr_role(int port,
 		      enum pd_data_role dr_role,
 		      int flags)
 {
-	CPRINTS("pd_check_dr_role, dr_role(%d), flags(%d)",
-			dr_role, flags);
+    CPRINTS("pd_check_dr_role, dr_role(%s), flags(0x%X)",
+        (PD_ROLE_UFP==dr_role)?("UFP"):("DFP"), flags);
 
-	if ((flags & PD_FLAGS_PARTNER_DR_DATA) && dr_role == PD_ROLE_DFP)
+    /* If UFP(USB Device), try to switch to DFP(USB Host) */
+    if ((flags & PD_FLAGS_PARTNER_DR_DATA) && dr_role == PD_ROLE_UFP)
 		pd_request_data_swap(port);
 }
 
