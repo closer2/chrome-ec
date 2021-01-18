@@ -1978,14 +1978,28 @@ DECLARE_DEFERRED(mfg_data_sync_deferred);
 #define FLASH_SYNC_DEBOUNCE_US  (30 * MSEC)
 void mfg_data_write(uint8_t index, uint8_t data)
 {
-    uint8_t *mfgMode = host_get_memmap(index);
+    uint8_t *mfgMode = NULL;
     
     if(index >= MFG_OFFSET_COUNT)
     {
         return;
     }
 
-    *mfgMode = data;
+    if(MFG_MODE_OFFSET == index) {
+        mfgMode = host_get_memmap(EC_MEMMAP_MFG_MODE);
+        *mfgMode = data;    /* sync to EC RAM*/
+    } else if(MFG_AC_RECOVERY_OFFSET == index) {
+        mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
+        *mfgMode = data;    /* sync to EC RAM*/
+    } else if(MFG_WDT_TIMEOUT_COUNT_OFFSET == index) {
+        mfgMode = host_get_memmap(EC_MEMMAP_WDT_TIMEOUT_COUNT);
+        *mfgMode = data;    /* sync to EC RAM*/
+    } else if(MFG_CHASSIS_INTRUSION_DATA_OFFSET == index) {
+    } else if(MFG_CHASSIS_INTRUSION_MODE_OFFSET == index) {
+    } else {
+        return;
+    }
+
     mfg_data_map[index] = data;
     hook_call_deferred(&mfg_data_sync_deferred_data, FLASH_SYNC_DEBOUNCE_US);
 }
