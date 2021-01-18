@@ -22,7 +22,7 @@
 #include "softwareWatchdog.h"
 #include "power_led.h"
 #include "flash.h"
-
+#include "fan.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_LPC, outstr)
@@ -367,6 +367,30 @@ static void oem_bios_to_ec_command(void)
             break;
         }
         break;
+    case 0x0F : /* system status  */
+        mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+        if (0x01 == *(bios_cmd+2)) {        /* system reboot */
+            *mptr |= EC_MEMMAP_SYSTEM_REBOOT;
+            clear_fan_fault_flag();
+        } else if(0x02 == *(bios_cmd+2)) {  /* System enters S3*/
+            *mptr |= EC_MEMMAP_SYSTEM_ENTER_S3;
+        } else if(0x03 == *(bios_cmd+2)) {  /* System enters S4 */
+            *mptr |= EC_MEMMAP_SYSTEM_ENTER_S4;
+        } else if(0x04 == *(bios_cmd+2)) {  /* System enters S5 */
+            *mptr |= EC_MEMMAP_SYSTEM_ENTER_S5;
+        } else if(0x05 == *(bios_cmd+2)) {
+            if (0x01 == *(bios_cmd+3)) {   /* acpi enable */
+                *mptr |= EC_MEMMAP_ACPI_MODE;
+                hook_notify(HOOK_CHIPSET_ACPI_MODE);
+            } else if (0x02 == *(bios_cmd+3)) {    /* acpi disable */
+                *mptr &= ~EC_MEMMAP_ACPI_MODE;
+            }
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+    break;
+
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;

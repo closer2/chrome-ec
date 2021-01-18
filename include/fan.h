@@ -130,4 +130,6 @@ int is_thermal_control_enabled(int idx);
 
 void pwm_fan_control(int fan, int enable);
 
+void clear_fan_fault_flag(void);
+
 #endif  /* __CROS_EC_FAN_H */

@@ -165,10 +165,15 @@ extern "C" {
 #define EC_MEMMAP_MFG_MODE                  0x18 /* Get MFG_MODE Status(0xBE:NO MFG MODE; 0xFF:MFG MODE) */
 #define EC_MEMMAP_WDT_TIMEOUT_COUNT         0x19 /* wakeup wdt timeout count */
 
-#define EC_MEMMAP_SYS_MISC1                 0x1A /* SYS_MISC1 */ 
-#define EC_MEMMAP_NC0               BIT(0) /* NC0 */
-#define EC_MEMMAP_NC1               BIT(1) /* NC1 */
-#define EC_MEMMAP_NMI_TRIGGER       BIT(2) /* NMI_TRIGGER: 1 => Trigger NMI# */
+#define EC_MEMMAP_SYS_MISC1                 0x1A /* SYS_MISC1 */
+/* Set AC_Recovery_MODE:10=>插AC进S0，01=>插AC进S5 ,11=>插AC进S0保持原来状态*/
+#define EC_MEMMAP_AC_RECOVERY_MASK0 BIT(0)
+#define EC_MEMMAP_AC_RECOVERY_MASK1 BIT(1)
+#define EC_MEMMAP_SYSTEM_REBOOT     BIT(2) /* System starts reboot */
+#define EC_MEMMAP_SYSTEM_ENTER_S3   BIT(3) /* System enters S3 */
+#define EC_MEMMAP_SYSTEM_ENTER_S4   BIT(4) /* System enters S4 */
+#define EC_MEMMAP_SYSTEM_ENTER_S5   BIT(5) /* System enters S5 */
+#define EC_MEMMAP_ACPI_MODE         BIT(6) /* ACPI MODE */
 
 #define EC_MEMMAP_SYS_MISC2                 0x1B /* SYS_MISC2 */
 #define EC_MEMMAP_AC_ADAPTER_FLAG   BIT(0) /* AC adapter Status (0:Off-line;1:On-line) */ 
