@@ -452,3 +452,27 @@ enum power_state power_handle_state(enum power_state state)
     
     return state;
 }
+
+
+/*****************************************************************************/
+/* Host commands */
+static enum ec_status
+switch_fingerprint_usb_connection(struct host_cmd_handler_args *args)
+{
+	const struct ec_params_fingerprint *p = args->params;
+
+	if(0 == p->role) {
+		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
+	}else if (1 == p->role){
+		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);
+	}else {
+		return EC_RES_INVALID_PARAM;
+	}
+
+	return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_SWITCH_FINGERPRINT,
+		     switch_fingerprint_usb_connection,
+		     EC_VER_MASK(0));
+
+

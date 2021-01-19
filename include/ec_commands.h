@@ -6900,6 +6900,16 @@ enum pchg_state {
 	}
 
 /*****************************************************************************/
+
+/* switch FingerPrint USB connection to MCU/CPU */
+#define EC_CMD_SWITCH_FINGERPRINT 0x0200
+
+struct ec_params_fingerprint {
+	uint8_t role;	/* set 0 to MCU, set 1 to CPU */ 
+} __ec_align4;
+
+
+/*****************************************************************************/
 /* The command range 0x200-0x2FF is reserved for Rotor. */
 
 /*****************************************************************************/
