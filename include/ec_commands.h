@@ -2071,6 +2071,10 @@ struct ec_response_sysinfo {
 /* Get fan target RPM */
 #define EC_CMD_PWM_GET_FAN_TARGET_RPM 0x0020
 
+struct ec_params_pwm_get_fan_rpm {
+	uint8_t fan_idx;
+} __ec_align4;
+
 struct ec_response_pwm_get_fan_rpm {
 	uint32_t rpm;
 } __ec_align4;
