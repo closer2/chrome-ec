@@ -2049,6 +2049,14 @@ static void mfg_data_init(void)
     *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_DATA_OFFSET];
     set_chassisIntrusion_data(*mfgMode);
 
+    /* Check MFG MODE when it isn't MFG MODE, force enable MFG MODE */
+#ifdef CONFIG_MFG_FACTORY_MODE
+    if (0xBE == mfg_data_map[MFG_MODE_OFFSET]) {
+        mfgMode = host_get_memmap(EC_MEMMAP_MFG_MODE);
+        *mfgMode = 0xFF;
+        mfg_data_write(MFG_MODE_OFFSET, 0xFF);
+    }
+#endif
 }
 DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
 
