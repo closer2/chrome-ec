@@ -390,13 +390,16 @@ void dptf_set_fan_duty_target(int pct)
 static enum ec_status
 hc_pwm_get_fan_target_rpm(struct host_cmd_handler_args *args)
 {
+	const struct ec_params_pwm_get_fan_rpm *p = args->params;
 	struct ec_response_pwm_get_fan_rpm *r = args->response;
+	int fan;
 
-	if (fan_count == 0)
+	fan = p->fan_idx;
+	if (fan >= fan_count)
 		return EC_RES_ERROR;
 
 	/* TODO(crosbug.com/p/23803) */
-	r->rpm = fan_get_rpm_target(FAN_CH(0));
+	r->rpm = fan_get_rpm_target(FAN_CH(fan));
 	args->response_size = sizeof(*r);
 
 	return EC_RES_SUCCESS;
