@@ -7377,19 +7377,19 @@ struct wmi_post_code {
     uint16_t code0;
     uint16_t code1;
     uint32_t time;
-};
+} __ec_align4;
  struct wmi_shutdown_cause {
     uint16_t type;
     uint16_t value;
     uint8_t reserve;
     uint32_t time;
-};
+} __ec_align4;
  struct wmi_wakeup_cause {
      uint16_t type;
      uint8_t value;
      uint16_t reserve;
      uint32_t time;
-};
+} __ec_align4;
 struct ec_wmi_get_dfx_log {
     uint16_t startType;
     /* post code*/
@@ -7403,11 +7403,25 @@ struct ec_wmi_get_dfx_log {
 
 /* get shutdownCase/wakeUpCase log */
 #define EC_CMD_GET_CASE_LOG     0x0612
+
+struct wmi_shutdown_cause_ags {
+    uint8_t type;
+    uint16_t value;
+    uint8_t reserve;
+    uint32_t time;
+}__ec_align4;
+ struct wmi_wakeup_cause_ags {
+     uint8_t type;
+     uint8_t value;
+     uint16_t reserve;
+     uint32_t time;
+}__ec_align4;
+
 struct ec_wmi_get_cause_log {
     /* shutdown case*/
-    struct wmi_shutdown_cause shutdownCause;
+    struct wmi_shutdown_cause_ags shutdownCause;
     /* wakeup case*/
-    struct wmi_wakeup_cause wakeupCause;
+    struct wmi_wakeup_cause_ags wakeupCause;
 }__ec_align4;
 
 /*****************************************************************************/

@@ -9,6 +9,10 @@
 #include "host_command.h"
 #include "util.h"
 
+/* Console output macros */
+#define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
+#define CPRINTS(format, args...) cprints(CC_CHIPSET, format, ##args)
+
 struct wmi_dfx_ags {
     uint8_t startType;
     uint8_t forntType;
@@ -27,13 +31,14 @@ struct wmi_dfx_ags g_dfxValue = {
     .wakeupType = 0xE1,
 };
 
-#define  wmi_postid(id)             (id == 0 ? 0xFF : id)
-#define  wmi_ptimeid(id, time)      (id == 0 ? 0xFFFFFFFF : time)
 
-#define  wmi_scauseid(id)            ((id >> 24) == 0 ? 0xFF : (id >> 24))
-#define  wmi_stimesid(id, time)      ((id >> 24) == 0 ? 0xFFFFFFFF : time)
-#define  wmi_wcauseid(id)            ((id >> 24) == 0 ? 0xFF : (id >> 24))
-#define  wmi_wtimesid(id, time)      ((id >> 24) == 0 ? 0xFFFFFFFF : time)
+#define  wmi_byteid(id)             (id == 0 ? 0xFF : id)
+#define  wmi_byteid_s(id, time)     (id == 0 ? 0xFF : time)
+
+#define  wmi_halfwordid(id)            (id == 0 ? 0xFFFF : id)
+#define  wmi_halfwordid_s(id, time)    (id == 0 ? 0xFF00 : time)
+
+#define  wmi_wordid(id, time)          (id == 0 ? 0xFFFFFFFF : time)
 
 /* Last POST was booted last time */
 void post_last_code_s(void)
@@ -64,37 +69,40 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
         return EC_RES_INVALID_COMMAND;
     }
 
-    p->startType = (g_dfxValue.startType << 0x08) | 0xFF;       /* 1~2 byte */
+    p->startType = g_dfxValue.startType | 0xFF00;       /* 1~2 byte */
 
     /* postcode, New information comes before old information */
     for (i = 0; i < 2; i++) {
-        p->postCode[i].type = (g_dfxValue.forntType << 0x08) | 0xCC;       /* 3~12 byte */
+        p->postCode[i].type = g_dfxValue.forntType
+            | wmi_halfwordid_s(g_dfxValue.lastcode[i], 0xCC00);       /* 3~12 byte */
         /* fornt post code */
-        p->postCode[i].code0 = wmi_postid(g_dfxValue.lastcode[i]);
+        p->postCode[i].code0 = wmi_byteid(g_dfxValue.lastcode[i]);
         /* last post code */
-        p->postCode[i].code1= wmi_postid(g_dfxValue.forntcode[i]);
+        p->postCode[i].code1= wmi_byteid(g_dfxValue.forntcode[i]);
         /* post code timestamp */
-        p->postCode[i].time = 
-            wmi_ptimeid(g_dfxValue.lastcode[i], g_dfxValue.timestamp[i]);
+        p->postCode[i].time = g_dfxValue.timestamp[i];
     }
 
     /* shoutdownCase, New information comes before old information */
     for (i = 0; i < 4; i++) {
-        p->shutdownCause[i].type = (g_dfxValue.shutdownType << 0x08) | 0xCC;    /* 23~31 byte */
-        p->shutdownCause[i].value = wmi_scauseid(*(smptr + i));
+        p->shutdownCause[i].type = g_dfxValue.shutdownType 
+            | wmi_halfwordid_s(*(smptr + i), 0xCC00);    /* 23~31 byte */
+        p->shutdownCause[i].value = wmi_halfwordid(*(smptr + i));
         p->shutdownCause[i].reserve = 0xFF;
-        p->shutdownCause[i].time = wmi_stimesid(*(smptr + i),*(smptr + i + 1));
+        p->shutdownCause[i].time = wmi_wordid(*(smptr + i),*(smptr + i + 1));
     }
 
     /* wakeupCause, New information comes before old information */
     for (i = 0; i < 4; i++) {
-        p->wakeupCause[i].type = (g_dfxValue.wakeupType << 0x08) | 0xCC;       /* 59~67  byte */
-        p->wakeupCause[i].value = wmi_wcauseid(*(wmptr + i));
+        p->wakeupCause[i].type = g_dfxValue.wakeupType 
+            | wmi_halfwordid_s(*(wmptr + i), 0xCC00);       /* 59~67  byte */
+        p->wakeupCause[i].value = wmi_byteid(*(wmptr + i * 2));
         p->wakeupCause[i].reserve = 0xFFFF;
-        p->wakeupCause[i].time = wmi_wtimesid(*(wmptr + i),*(wmptr + i + 1));
+        p->wakeupCause[i].time = wmi_wordid(*(wmptr + i * 2),*(wmptr + i * 2 + 1));
     }
 
     args->response_size = sizeof(*p);
+    CPRINTS("%s -> %s(), response_size=[%d]", __FILE__, __func__, args->response_size);
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_GET_DFX_LOG,
@@ -114,18 +122,19 @@ WMI_get_case_log(struct host_cmd_handler_args *args)
     }
 
     /* shutdownCause */
-    p->shutdownCause.type = (g_dfxValue.shutdownType << 0x08) | 0xCC;       /* 50~58 byte */
-    p->shutdownCause.value = wmi_scauseid(*(smptr + 6));
+    p->shutdownCause.type = wmi_byteid_s(*smptr, 0xCC);       /* 1~8 byte */
+    p->shutdownCause.value = wmi_halfwordid(*smptr);
     p->shutdownCause.reserve = 0xFF;
-    p->shutdownCause.time = wmi_stimesid(*(smptr + 6),*(smptr + 7));
+    p->shutdownCause.time = wmi_wordid(*smptr,*(smptr + 1));
 
     /* wakeupCase */
-    p->wakeupCause.type = (g_dfxValue.wakeupType << 0x08) | 0xCC;       /* 86~94 byte */
-    p->wakeupCause.value = wmi_wcauseid(*(wmptr + 6));
+    p->wakeupCause.type = wmi_byteid_s(*wmptr, 0xCC);       /* 9~16 byte */
+    p->wakeupCause.value = wmi_byteid(*wmptr);
     p->wakeupCause.reserve = 0xFFFF;
-    p->wakeupCause.time = wmi_wtimesid(*(wmptr + 6),*(wmptr + 7));
-
+    p->wakeupCause.time = wmi_wordid(*wmptr,*(wmptr + 1));
     args->response_size = sizeof(*p);
+
+    CPRINTS("%s -> %s(), response_size=[%d]", __FILE__, __func__, args->response_size);
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_GET_CASE_LOG,
