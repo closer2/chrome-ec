@@ -2048,8 +2048,6 @@ static void mfg_data_init(void)
     *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_DATA_OFFSET];
     set_chassisIntrusion_data(*mfgMode);
 
-    *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_MODE_OFFSET];
-    set_chassisIntrusion_mode(*mfgMode);
 }
 DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
 

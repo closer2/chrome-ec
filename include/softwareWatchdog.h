@@ -30,15 +30,12 @@ typedef struct EC_SHUTDOAN_WDT {
 #define  POWERON_WDT_TIMEOUT_NUM     0x02 /* */
 #define  POWERON_WDT_TIMEOUT_NUM2    0x05 /* */
 
-#define  CHASSIS_INTRUSION_MODE_FLAG    0x55 /* host to ec flag */
 
 extern ec_wakeup_WDT g_wakeupWDT;
 extern ec_shutdown_WDT g_shutdownWDT;
 
 extern uint8_t get_chassisIntrusion_data(void);
 extern void set_chassisIntrusion_data(uint8_t data);
-extern void set_chassisIntrusion_mode(uint8_t data);
-extern void set_chassisIntrusion_mode_flag(uint8_t data);
 
 #endif  /* __CROS_EC_SOFTWARE_WATCHDOG_H */
 

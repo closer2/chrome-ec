@@ -30,14 +30,12 @@ static uint8_t wdt_wakeup_delay=0;
 
 struct chassis_Intrusion {
     uint8_t   chassisIntrusionData;
-    uint8_t   chassisIntrusionMode;
-    uint8_t   chassisIntrusionModeFlag;
     uint8_t   chassisWriteFlashData;
 };
 
 struct chassis_Intrusion  pdata = {
-    .chassisIntrusionData = 0, .chassisIntrusionMode = 0,
-    .chassisIntrusionModeFlag = 0, .chassisWriteFlashData = 0};
+    .chassisIntrusionData = 0, .chassisWriteFlashData = 0
+};
 
 static enum ec_status
 host_command_WDT(struct host_cmd_handler_args *args)
@@ -162,22 +160,12 @@ void set_chassisIntrusion_data(uint8_t data)
     pdata.chassisIntrusionData = data;
 }
 
-void set_chassisIntrusion_mode(uint8_t data)
-{
-    pdata.chassisIntrusionMode = data;
-}
-
-void set_chassisIntrusion_mode_flag(uint8_t data)
-{
-    pdata.chassisIntrusionModeFlag = data;
-}
-
-/* set clear crisis circuit host to ec*/
+/* set clear crisis Intrusion host to ec*/
 void clear_chassisIntrusion(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
 
-    /* clear crisis recovery data */
+    /* clear crisis Intrusion data */
     if (!(*mptr & EC_MEMMAP_CRISIS_CLEAR)) {
         return;
     }
@@ -196,44 +184,15 @@ void clear_chassisIntrusion(void)
     }
 }
 
-/* set crisis mode  host to ec*/
-void set_chassisIntrusion_mode_s(void)
-{
-    uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
-
-    if (pdata.chassisIntrusionModeFlag != CHASSIS_INTRUSION_MODE_FLAG) {
-        return;
-    }
-
-    pdata.chassisIntrusionModeFlag = 0x00;
-
-    if (*mptr & EC_MEMMAP_CRISIS_RECOVERY) {
-        pdata.chassisIntrusionMode = 0x01;
-    } else {
-        pdata.chassisIntrusionMode = 0x00;
-    }
-    mfg_data_write(MFG_CHASSIS_INTRUSION_MODE_OFFSET,
-        pdata.chassisIntrusionMode);
-}
-
 /*
  * The Fash value of the first boot read is 0xff.
- * For the first time boot pdata->chassisIntrusionMode = 0xff.
  * For the first time boot pdata->chassisIntrusiondata = 0xff.
  * For the first time boot chassisIntrusionMode is open.
  * For the first time boot BIOS notify ec to clear chassis intrusion.
  */
 static void Chassis_Intrusion_service(void)
 {
-    /* set Chassis Intrusion mode */
-    set_chassisIntrusion_mode_s();
-
-    /* exit crisis recovery mode */
-    if (!pdata.chassisIntrusionMode) {
-        return;
-    }
-
-    /* enter crisis recovery mode */
+    /* enter crisis Intrusion mode */
     if (pdata.chassisIntrusionData != 0x01) {
         if (gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
             /* get crisis recovery data */
