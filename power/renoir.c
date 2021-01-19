@@ -302,6 +302,9 @@ enum power_state power_handle_state(enum power_state state)
             /* Required rail went away */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
+
+            /* Enable PSON#, low active */
+            gpio_set_level(GPIO_EC_PSON_L, 0);
             
             if(power_wait_voltage()) {
                 CPRINTS("power wait 12V timeout\n");
@@ -399,6 +402,9 @@ enum power_state power_handle_state(enum power_state state)
         /* EC pass through SLP_S3*/
         gpio_set_level(GPIO_EC_SLP_S3_L, 0);
 
+        /* withdraw PSON#, low active */
+        gpio_set_level(GPIO_EC_PSON_L, 1);
+
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
         
@@ -420,9 +426,6 @@ enum power_state power_handle_state(enum power_state state)
 
         /* Disable wireless, whether need? */
         //wireless_set_state(WIRELESS_OFF);
-
-        /* withdraw PSON#, low active */
-        gpio_set_level(GPIO_EC_PSON_L, 1);
 
         /* withdraw USB_PWR_EN_L */
         gpio_set_level(GPIO_USB_PWR_EN_L, 1);

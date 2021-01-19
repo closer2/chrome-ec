@@ -248,11 +248,11 @@ int power_wait_voltage()
         if(ret>1900)
         {
             CPRINTS("power voltage 12V wait pass Voltage=%d, count=%d", ret,count);
-            task_wait_event(100*MSEC);
+            msleep(50);
             return EC_SUCCESS;
         }
         
-        task_wait_event(50*MSEC);
+        msleep(50);
     }
 
     CPRINTS("power voltage 12V wait fail Voltage=%d", ret);
