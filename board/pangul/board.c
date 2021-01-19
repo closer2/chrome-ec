@@ -453,8 +453,17 @@ DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, power_button_record, HOOK_PRIO_DEFAULT);
  * Board chipset suspend/resume/shutdown/startup
  *
  */
+
+static void pd_reset_deferred(void)
+{
+    pd_soft_reset();
+}
+DECLARE_DEFERRED(pd_reset_deferred);
+
 static void board_chipset_resume(void)
 {
+    hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
+    
     wakeup_cause_record(LOG_ID_WAKEUP_0x04);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -463,6 +472,8 @@ DECLARE_HOOK(HOOK_CHIPSET_RESUME, board_chipset_resume, HOOK_PRIO_DEFAULT);
  
 static void board_chipset_suspend(void)
 {
+    hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
+    
     shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -481,6 +492,8 @@ static void board_chipset_shutdown(void)
         system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
     }
 
+    pd_comm_enable(0, 0);
+    
     shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -499,7 +512,9 @@ static void board_chipset_startup(void)
             reboot_ap_at_g3_delay = 0;
         }
     }
-    
+
+    pd_comm_enable(0, 1);
+
     wakeup_cause_record(LOG_ID_WAKEUP_0x06);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -652,6 +667,13 @@ void board_reset_pd_mcu(void)
 
 void board_set_usb_output_voltage(int mv)
 {
+    if((POWER_S5==power_get_state()) ||
+        (POWER_G3==power_get_state())) {
+        gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);
+		gpio_set_level(GPIO_EC_PORT0_PD0, 0);
+        return;
+    }
+    
 	if(mv < 0) {
 		/* Turn off output voltage, default LDO to 5V */
 		gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);
