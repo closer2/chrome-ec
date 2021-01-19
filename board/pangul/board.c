@@ -492,7 +492,9 @@ static void board_chipset_shutdown(void)
         system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
     }
 
-    pd_comm_enable(0, 0);
+    pd_comm_enable(0, 0);   /* disable USB-C port 0*/
+
+    mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0x55);  /* Record last power state */
     
     shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
     ccprints("%s -> %s", __FILE__, __func__);
@@ -513,7 +515,9 @@ static void board_chipset_startup(void)
         }
     }
 
-    pd_comm_enable(0, 1);
+    pd_comm_enable(0, 1);   /* enable USB-C port 0*/
+
+    mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0xAA);  /* Record last power state */
 
     wakeup_cause_record(LOG_ID_WAKEUP_0x06);
     ccprints("%s -> %s", __FILE__, __func__);

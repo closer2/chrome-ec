@@ -20,6 +20,7 @@
 #include "task.h"
 #include "timer.h"
 #include "util.h"
+#include "flash.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_SWITCH, outstr)
@@ -233,7 +234,10 @@ static void power_button_released(uint64_t tnow)
 static void set_initial_pwrbtn_state(void)
 {
 	uint32_t reset_flags = system_get_reset_flags();
-
+    uint8_t ac_recovery_state;
+    uint8_t power_last_state;
+    uint8_t mfg_mode;
+    
 	if (system_jumped_to_this_image() &&
 	    chipset_in_state(CHIPSET_STATE_ON)) {
 		/*
@@ -277,13 +281,30 @@ static void set_initial_pwrbtn_state(void)
 		return;
 	}
 
-#ifdef CONFIG_BRINGUP
-	pwrbtn_state = PWRBTN_STATE_IDLE;
-#else
-	pwrbtn_state = PWRBTN_STATE_INIT_ON;
-#endif
-	CPRINTS("PB %s",
-		pwrbtn_state == PWRBTN_STATE_INIT_ON ? "init-on" : "idle");
+    mfg_mode = mfg_data_read(MFG_MODE_OFFSET);
+    ac_recovery_state = mfg_data_read(MFG_AC_RECOVERY_OFFSET);
+    power_last_state = mfg_data_read(MFG_POWER_LAST_STATE_OFFSET);
+
+    CPRINTS("MFG Mode=%X, AC Recovery state=%X, Last state=%X",
+            mfg_mode, ac_recovery_state, power_last_state);
+
+    if (0xFF == mfg_mode) { /* 0xFF:MFG mode, 0xBE:Release Mode*/
+        pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+    } else if (0x01 == ac_recovery_state) {
+        pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+    } else if (0x02 == ac_recovery_state) {
+        pwrbtn_state = PWRBTN_STATE_IDLE;       /* power off */
+    } else if (0x03 == ac_recovery_state) {
+        if(0x55 == power_last_state) {          /* previous state is power off */
+            pwrbtn_state = PWRBTN_STATE_IDLE;
+        } else {                                /* previous state is power on */
+            pwrbtn_state = PWRBTN_STATE_INIT_ON;
+        }
+    } else {
+        pwrbtn_state = PWRBTN_STATE_INIT_ON;
+    }
+
+    CPRINTS("PB %s", pwrbtn_state == PWRBTN_STATE_INIT_ON ? "init-on" : "idle");
 }
 
 /**
@@ -476,7 +497,7 @@ static void powerbtn_x86_init(void)
 {
 	set_initial_pwrbtn_state();
 }
-DECLARE_HOOK(HOOK_INIT, powerbtn_x86_init, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_INIT, powerbtn_x86_init, HOOK_PRIO_DEFAULT+1);
 
 #ifdef CONFIG_LID_SWITCH
 /**

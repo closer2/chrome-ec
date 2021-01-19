@@ -608,8 +608,8 @@ DECLARE_CONSOLE_COMMAND(bios_cmd, console_command_to_ec,
         "[crisis_ctrl <en/dis>]\n"
         "[inbreak_ctrl <get/cls>]\n"
         "[recovry_ctrl <on/off/pre>]\n"
-        "[wdt_count <get/cls>]"
-        "[mfg_mode <en/dis/get>]",
+        "[wdt_count <get/cls>]\n"
+        "[mfg_mode <en/dis/get>]\n",
         "Simulate a bios command");
 #endif
 

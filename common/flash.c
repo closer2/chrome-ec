@@ -1996,6 +1996,7 @@ void mfg_data_write(uint8_t index, uint8_t data)
         *mfgMode = data;    /* sync to EC RAM*/
     } else if(MFG_CHASSIS_INTRUSION_DATA_OFFSET == index) {
     } else if(MFG_CHASSIS_INTRUSION_MODE_OFFSET == index) {
+    } else if(MFG_POWER_LAST_STATE_OFFSET == index) {
     } else {
         return;
     }
