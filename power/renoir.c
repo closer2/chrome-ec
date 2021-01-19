@@ -11,6 +11,7 @@
 #include "ec_commands.h"
 #include "gpio.h"
 #include "hooks.h"
+#include "host_command.h"
 #include "lid_switch.h"
 #include "power.h"
 #include "power/renoir.h"
@@ -462,9 +463,9 @@ switch_fingerprint_usb_connection(struct host_cmd_handler_args *args)
 	const struct ec_params_fingerprint *p = args->params;
 
 	if(0 == p->role) {
-		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
+		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);	/* set 0 switch to MCU */
 	}else if (1 == p->role){
-		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);
+		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);	/* set 1 switch to CPU */
 	}else {
 		return EC_RES_INVALID_PARAM;
 	}
