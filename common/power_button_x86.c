@@ -363,6 +363,7 @@ static void state_machine(uint64_t tnow)
 			CPRINTS("PB chipset already off");
 		else
 			set_pwrbtn_to_pch(0, 0);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x06);
 		pwrbtn_state = PWRBTN_STATE_HELD;
 		break;
 	case PWRBTN_STATE_RELEASED:

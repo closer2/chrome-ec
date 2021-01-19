@@ -278,6 +278,10 @@
 #define LOG_ID_SHUTDOWN_0x42    0x42    /* EC reset after BIOS tool update EC */
 #define LOG_ID_SHUTDOWN_0x43    0x43    /* Console command apshutdown */
 #define LOG_ID_SHUTDOWN_0x44    0x44    /* shutdown wdt timeout */
+#define LOG_ID_SHUTDOWN_0x45    0x45    /* SYSTEM_ALW_PG fail */
+#define LOG_ID_SHUTDOWN_0x46    0x46    /* PSON# 12V fail */
+#define LOG_ID_SHUTDOWN_0x47    0x47    /* all core fail */
+
 
 /* 50--CF reserve */
 
