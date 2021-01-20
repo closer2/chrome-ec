@@ -129,6 +129,8 @@ static void system_sw_wdt_service(void)
                 #else
                 /* trigger BSOD when development*/
                 gpio_set_level(GPIO_PCH_SMI_L, 0);
+                msleep(300);
+                gpio_set_level(GPIO_PCH_SMI_L, 1);
                 #endif
             }
         }
@@ -146,8 +148,6 @@ static void system_sw_wdt_service(void)
             g_shutdownWDT.countTime = 0;
             g_shutdownWDT.time = 0;
         }
-    } else {
-        gpio_set_level(GPIO_PCH_SMI_L, 1);
     }
 }
 DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);

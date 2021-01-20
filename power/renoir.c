@@ -79,13 +79,17 @@ static void chipset_force_g3(void)
     /* trun off S5 power */
     gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0);
-    gpio_set_level(GPIO_KBRST_L, 0);
-    gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
-    gpio_set_level(GPIO_PCH_SMI_L, 0);
-    gpio_set_level(GPIO_PROCHOT_ODL, 0);
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
     gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
+
+    /* pull down EC gpio, To prevent leakage*/
+    gpio_set_level(GPIO_PROCHOT_ODL, 0);
+    gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
+    gpio_set_level(GPIO_PCH_SMI_L, 0);
+    gpio_set_level(GPIO_APU_NMI_L, 0);
+    gpio_set_level(GPIO_EC_ALERT_L, 0);
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
+    gpio_set_level(GPIO_KBRST_L, 0);
     
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
@@ -241,6 +245,8 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
         gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
         gpio_set_level(GPIO_PCH_SMI_L, 1);
+        gpio_set_level(GPIO_APU_NMI_L, 1);
+        gpio_set_level(GPIO_EC_ALERT_L, 1);
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
         gpio_set_level(GPIO_KBRST_L, 1);
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);

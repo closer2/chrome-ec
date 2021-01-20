@@ -54,9 +54,9 @@ GPIO(DGPU_PROCHOT_L,        PIN(9, 3), GPIO_OUT_LOW)        /* DGPU_PROCHOT_L */
 GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */
 GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
 GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
-GPIO(EC_ALERT_L,            PIN(B, 7), GPIO_OUT_HIGH)       /* TODO: confirm its function, EC_ALERT# */
+GPIO(EC_ALERT_L,            PIN(B, 7), GPIO_OUT_LOW)        /* TODO: confirm its function, EC_ALERT# */
 GPIO(EC_LOM_PWR_EN,         PIN(0, 5), GPIO_OUT_LOW)        /* EC_LOM_PWR_EN */
-GPIO(APU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
+GPIO(APU_NMI_L,             PIN(9, 2), GPIO_OUT_LOW)        /* APU_NMI# */
 GPIO(EC_ALW_EN,             PIN(D, 0), GPIO_OUT_LOW)        /* EC_ALW_EN */
 GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
