@@ -7428,6 +7428,18 @@ struct ec_wmi_get_cause_log {
     struct wmi_wakeup_cause_ags wakeupCause;
 }__ec_align4;
 
+/* get ec log */
+#define EC_CMD_GET_EC_LOG     0x0613
+/**
+ * struct ec_params_flash_read - Parameters for the flash read command.
+ * @log type: Byte offset to read.
+ * @size: Size to read in bytes, max size 256 bytes.
+ */
+struct ec_wmi_get_ec_log {
+    uint8_t logType;
+    uint32_t size;
+} __ec_align4;
+
 /*****************************************************************************/
 /*
  * Reserve a range of host commands for board-specific, experimental, or

@@ -8,6 +8,8 @@
 #include "ec_commands.h"
 #include "host_command.h"
 #include "util.h"
+#include "uart.h"
+
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -111,7 +113,7 @@ DECLARE_HOST_COMMAND(EC_CMD_GET_DFX_LOG,
 
 /* WMI get dfx log */
 static enum ec_status
-WMI_get_case_log(struct host_cmd_handler_args *args)
+WMI_get_cause_log(struct host_cmd_handler_args *args)
 {
     struct ec_wmi_get_cause_log *p = args->response;
     uint32_t *smptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
@@ -138,5 +140,42 @@ WMI_get_case_log(struct host_cmd_handler_args *args)
     return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_GET_CASE_LOG,
-            WMI_get_case_log,
+            WMI_get_cause_log,
+            EC_VER_MASK(0));
+
+#define LOG_TYPE_DEFAULT_LOG     0
+#define LOG_TYPE_ERROE_LOG       1
+/* WMI get ec log */
+static enum ec_status
+WMI_get_ec_log(struct host_cmd_handler_args *args)
+{
+    /* const struct ec_wmi_get_ec_log *p = args->params; */
+    const struct ec_wmi_get_ec_log *p = args->params;
+    uint8_t output[256];
+    uint16_t write_count = 0;
+    uint8_t status = EC_RES_SUCCESS;
+
+    if (p->logType > 1) {
+        status = EC_RES_INVALID_PARAM;
+        return status;
+    }
+
+    if (uart_console_read_buffer_init() != EC_RES_SUCCESS) {
+        return EC_RES_OVERFLOW;
+    }
+
+    status = uart_console_read_buffer(
+                    CONSOLE_READ_NEXT,
+                    (char *)output,
+                    MIN(sizeof(output), p->size),
+                    &write_count);
+    if (status != EC_RES_SUCCESS || write_count == 0) {
+        return status;
+    }
+
+    memcpy((char *)args->response, (char *)output, MIN(sizeof(output), p->size));
+    return status;
+}
+DECLARE_HOST_COMMAND(EC_CMD_GET_EC_LOG,
+            WMI_get_ec_log,
             EC_VER_MASK(0));
