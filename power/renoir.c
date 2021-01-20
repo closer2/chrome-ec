@@ -477,15 +477,21 @@ static enum ec_status
 switch_fingerprint_usb_connection(struct host_cmd_handler_args *args)
 {
 	const struct ec_params_fingerprint *p = args->params;
+	struct ec_response_fingerprint *r = args->response;
 
+	/* No need to obtain information, set r->role = 0xff */
+	r->role = 0xff;
 	if(0 == p->role) {
 		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);	/* set 0 switch to MCU */
 	}else if (1 == p->role){
 		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);	/* set 1 switch to CPU */
+	}else if (0xaa == p->role){						/* 0xaa to get fingerprint info */
+		r->role = gpio_get_level(GPIO_EC_TO_USB_SWITCH);
 	}else {
 		return EC_RES_INVALID_PARAM;
 	}
-
+	
+	args->response_size = sizeof(*r);
 	return EC_RES_SUCCESS;
 }
 DECLARE_HOST_COMMAND(EC_CMD_SWITCH_FINGERPRINT,
