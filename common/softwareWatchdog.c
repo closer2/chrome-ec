@@ -123,11 +123,13 @@ static void system_sw_wdt_service(void)
             if(POWER_S0 == power_get_state()) {
                 CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
                             g_shutdownWDT.time);
+                #ifdef  CONFIG_FINAL_RELEASE
                 /* force shutdwon when release*/
                 chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
-
+                #else
                 /* trigger BSOD when development*/
                 gpio_set_level(GPIO_PCH_SMI_L, 0);
+                #endif
             }
         }
 

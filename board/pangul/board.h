@@ -110,7 +110,8 @@
 #define CONFIG_UART_HOST                    /* Turn on serial port */
 #define CONFIG_WMI_PORT                     /* os to ec wmi port */
 #define CONFIG_MFG_MODE_FORBID_WRITE        /* MFG mode default mode, when it's no mode, forbid write mode */
-#undef CONFIG_MFG_FACTORY_MODE             /* MFG mode Factory Special Version */
+#undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
+#undef CONFIG_FINAL_RELEASE                 /* define it when final release */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
