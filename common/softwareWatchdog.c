@@ -123,11 +123,11 @@ static void system_sw_wdt_service(void)
             if(POWER_S0 == power_get_state()) {
                 CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
                             g_shutdownWDT.time);
-                /* force shutdwon when beta*/
+                /* force shutdwon when release*/
                 chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
 
-                /* notify BIOS NMI when development*/
-                /* gpio_set_level(GPIO_APU_NMI_L, 0); */
+                /* trigger BSOD when development*/
+                gpio_set_level(GPIO_PCH_SMI_L, 0);
             }
         }
 
@@ -145,7 +145,7 @@ static void system_sw_wdt_service(void)
             g_shutdownWDT.time = 0;
         }
     } else {
-        /* gpio_set_level(GPIO_APU_NMI_L, 1); */
+        gpio_set_level(GPIO_PCH_SMI_L, 1);
     }
 }
 DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);
