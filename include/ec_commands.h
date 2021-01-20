@@ -6909,9 +6909,12 @@ enum pchg_state {
 #define EC_CMD_SWITCH_FINGERPRINT 0x0200
 
 struct ec_params_fingerprint {
-	uint8_t role;	/* set 0 to MCU, set 1 to CPU */ 
+	uint8_t role;	/* set 0 switch to MCU, set 1 switch to CPU */ 
 } __ec_align4;
 
+struct ec_response_fingerprint {
+	uint8_t role;	/* 0 switched to MCU, 1 switched to CPU, 0xff no response*/
+} __ec_align4;
 
 /*****************************************************************************/
 /* The command range 0x200-0x2FF is reserved for Rotor. */
