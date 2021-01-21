@@ -86,8 +86,8 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
     gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
     gpio_set_level(GPIO_PCH_SMI_L, 0);
-    gpio_set_level(GPIO_APU_NMI_L, 0);
-    gpio_set_level(GPIO_EC_ALERT_L, 0);
+    /*gpio_set_level(GPIO_APU_NMI_L, 0);
+    gpio_set_level(GPIO_EC_ALERT_L, 0);*/
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
     gpio_set_level(GPIO_KBRST_L, 0);
     
@@ -245,8 +245,8 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
         gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
         gpio_set_level(GPIO_PCH_SMI_L, 1);
-        gpio_set_level(GPIO_APU_NMI_L, 1);
-        gpio_set_level(GPIO_EC_ALERT_L, 1);
+        /*gpio_set_level(GPIO_APU_NMI_L, 1);
+        gpio_set_level(GPIO_EC_ALERT_L, 1);*/
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
         gpio_set_level(GPIO_KBRST_L, 1);
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
