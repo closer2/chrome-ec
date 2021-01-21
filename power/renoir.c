@@ -222,10 +222,18 @@ static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
 #endif
 static void s5_to_s0_deferred(void)
 {
-    gpio_set_level(GPIO_HC32F460_PB1_SLP3, 1);
-    gpio_set_level(GPIO_HC32F460_PB0_SLP5, 1);
+    /* switch FingerPrint USB connection to FCH */
+    gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);
 }
 DECLARE_DEFERRED(s5_to_s0_deferred);
+
+static void s0_to_s5_deferred(void)
+{
+    /* turn on fingerprint USB port power */
+    gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+}
+DECLARE_DEFERRED(s0_to_s5_deferred);
+
 
 enum power_state power_handle_state(enum power_state state)
 {
@@ -300,6 +308,10 @@ enum power_state power_handle_state(enum power_state state)
 
         /* turn on USB-A port power, this signal is low active*/
         gpio_set_level(GPIO_USB_PWR_EN_L, 0);
+
+        /* notify HC32F460 power state S0 */
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 1);
+        gpio_set_level(GPIO_HC32F460_PB0_SLP5, 1);
         
         /* Call hooks now that rails are up */
         hook_notify(HOOK_CHIPSET_STARTUP);
@@ -367,9 +379,6 @@ enum power_state power_handle_state(enum power_state state)
         msleep(140);
         gpio_set_level(GPIO_PWRGD_140MS, 1);
 
-        /* switch FingerPrint USB connection to FCH */
-        gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);
-
         /* Enable wireless, whether need? */
         //wireless_set_state(WIRELESS_ON);
 
@@ -384,7 +393,7 @@ enum power_state power_handle_state(enum power_state state)
 
         CPRINTS("%s -> %s, Power state S3->S0", __FILE__, __func__);
 
-        hook_call_deferred(&s5_to_s0_deferred_data, (500 * MSEC));
+        hook_call_deferred(&s5_to_s0_deferred_data, (600 * MSEC));
         return POWER_S0;
 
     case POWER_S0:
@@ -410,9 +419,6 @@ enum power_state power_handle_state(enum power_state state)
 
         /* withdraw EC_FCH_PWRGD */
         gpio_set_level(GPIO_EC_FCH_PWRGD, 0);
-
-        /* notify HC32F460 power state */
-        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
 
         /* EC pass through SLP_S3*/
         gpio_set_level(GPIO_EC_SLP_S3_L, 0);
@@ -445,8 +451,13 @@ enum power_state power_handle_state(enum power_state state)
         /* withdraw USB_PWR_EN_L */
         gpio_set_level(GPIO_USB_PWR_EN_L, 1);
 
-        /* notify HC32F460 power state */
+        /* withdraw fingerprint USB port power,turn on after 200m*/
+        gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 0);
+        hook_call_deferred(&s0_to_s5_deferred_data, (200 * MSEC));
+        
+        /* notify HC32F460 power state S5 */
         gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
     
         /* switch FingerPrint USB connection to MCU */
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
