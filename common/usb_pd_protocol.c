@@ -1623,6 +1623,7 @@ static void handle_data_request(int port, uint32_t head,
 				/* bist data object mode is 2 */
 				pd_transmit(port, TCPC_TX_BIST_MODE_2, 0,
 					    NULL, AMS_RESPONSE);
+                msleep(80); /* Delay at least enough to finish sending BIST */
 				/* Set to appropriate port disconnected state */
 				set_state(port, DUAL_ROLE_IF_ELSE(port,
 						PD_STATE_SNK_DISCONNECTED,
@@ -1738,7 +1739,11 @@ static void handle_ctrl_request(int port, uint32_t head,
 #ifdef CONFIG_USB_PD_DUAL_ROLE
 		send_sink_cap(port);
 #else
-		send_control(port, NOT_SUPPORTED(pd[port].rev));
+        /* For CTS TD.PD.SRC.E14.  Atomic Message Sequencess */
+        if(pd[port].task_state == PD_STATE_SRC_NEGOCIATE)
+            set_state(port,PD_STATE_SOFT_RESET);
+        else
+            send_control(port, NOT_SUPPORTED(pd[port].rev));
 #endif
 		break;
 #ifdef CONFIG_USB_PD_DUAL_ROLE
@@ -3537,8 +3542,11 @@ void pd_task(void *u)
 						PD_FLAGS_PREVIOUS_PD_CONN;
 				} else { /* failed, retry later */
 					timeout = PD_T_SEND_SOURCE_CAP;
+
+                    /* For CTS the fifth Source Capabilities message must be 
+				       received within 100.9--201.1ms */
 					next_src_cap = now.val +
-							PD_T_SEND_SOURCE_CAP;
+							PD_T_SEND_SOURCE_CAP+(50*MSEC);
 					caps_count++;
 				}
 			} else if (caps_count < PD_CAPS_COUNT) {
@@ -3550,7 +3558,10 @@ void pd_task(void *u)
 			if (pd[port].last_state != pd[port].task_state)
 				set_state_timeout(port,
 						  get_time().val +
-						  PD_T_SENDER_RESPONSE,
+						  /* For CTS the fifth Source Capabilities message must be 
+				             received within 24--30ms, The measured is 43 ms.
+				             reduce 14ms*/
+						  PD_T_SENDER_RESPONSE-(14*MSEC),
 						  PD_STATE_HARD_RESET_SEND);
 			break;
 		case PD_STATE_SRC_ACCEPTED:
