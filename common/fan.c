@@ -216,7 +216,7 @@ static int is_powered(int fan)
 static int cc_faninfo(int argc, char **argv)
 {
 	static const char * const human_status[] = {
-		"not spinning", "changing", "locked", "frustrated"
+		"not spinning", "changing", "locked", "fault", "frustrated"
 	};
 	int tmp, is_pgood;
 	int fan;
@@ -232,7 +232,11 @@ static int cc_faninfo(int argc, char **argv)
 			 fan_get_rpm_target(FAN_CH(fan)));
 		ccprintf("%sDuty:   %d%%\n", leader,
 			 fan_get_duty(FAN_CH(fan)));
-		tmp = fan_get_status(FAN_CH(fan));
+        if (g_fan_parameter.fan_fault[fan] == FAN_STATUS_FAULT) {
+            tmp = g_fan_parameter.fan_fault[fan];
+        } else {
+            tmp = fan_get_status(FAN_CH(fan));
+        }
 		ccprintf("%sStatus: %d (%s)\n", leader,
 			 tmp, human_status[tmp]);
 		ccprintf("%sMode:   %s\n", leader,
