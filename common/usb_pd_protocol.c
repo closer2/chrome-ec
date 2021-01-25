@@ -1620,14 +1620,16 @@ static void handle_data_request(int port, uint32_t head,
 				pd[port].task_state == PD_STATE_SRC_READY)) {
 			/* currently only support sending bist carrier mode 2 */
 			if ((payload[0] >> 28) == 5) {
-				/* bist data object mode is 2 */
-				pd_transmit(port, TCPC_TX_BIST_MODE_2, 0,
-					    NULL, AMS_RESPONSE);
-                msleep(80); /* Delay at least enough to finish sending BIST */
-				/* Set to appropriate port disconnected state */
-				set_state(port, DUAL_ROLE_IF_ELSE(port,
-						PD_STATE_SNK_DISCONNECTED,
-						PD_STATE_SRC_DISCONNECTED));
+                if(0 == pd[port].requested_idx) { /* BIST message only valid at 5V*/
+    				/* bist data object mode is 2 */
+    				pd_transmit(port, TCPC_TX_BIST_MODE_2, 0,
+    					    NULL, AMS_RESPONSE);
+                    msleep(80); /* Delay at least enough to finish sending BIST */
+    				/* Set to appropriate port disconnected state */
+    				set_state(port, DUAL_ROLE_IF_ELSE(port,
+    						PD_STATE_SNK_DISCONNECTED,
+    						PD_STATE_SRC_DISCONNECTED));
+                }
 			}
 		}
 		break;
