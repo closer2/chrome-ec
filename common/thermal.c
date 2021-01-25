@@ -269,15 +269,15 @@ static uint8_t get_fan_level(uint16_t temp, uint8_t fan_level, const struct ther
 
 }
 
-static uint16_t get_fan_RPM(uint8_t fan_level, const struct thermal_level_s *fantable)
+static int get_fan_RPM(uint8_t fan_level, const struct thermal_level_s *fantable)
 {
     const struct thermal_level_ags *data = fantable->data;
     return data[fan_level].RPM;
 }
 
-static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
+static int cpu_fan_start_temp(uint8_t thermalMode)
 {
-    uint8_t temp = 0x0;
+    int temp = 0x0;
 
     switch(thermalMode) {
         case THERMAL_UMA:
@@ -298,11 +298,11 @@ static uint8_t cpu_fan_start_temp(uint8_t thermalMode)
     return temp;
 }
 
-static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
+static int cpu_fan_check_RPM(uint8_t thermalMode)
 {
     uint8_t fan = PWM_CH_CPU_FAN;
     int rpm_target = 0x0;
-    uint8_t temp = 0x0;
+    int temp = 0x0;
 
     /* sensor model form the configuration table board.c */
     switch(thermalMode) { 
@@ -358,9 +358,9 @@ static uint16_t cpu_fan_check_RPM(uint8_t thermalMode)
 }
 
 /* ambience NTC */
-static uint8_t sys_fan_start_temp(uint8_t thermalMode)
+static int sys_fan_start_temp(uint8_t thermalMode)
 {
-    uint8_t temp = 0x0;
+    int temp = 0x0;
 
     switch(thermalMode) { 
         case THERMAL_UMA:
@@ -381,11 +381,11 @@ static uint8_t sys_fan_start_temp(uint8_t thermalMode)
     return temp;
 }
 
-static uint16_t sys_fan_check_RPM(uint8_t thermalMode)
+static int sys_fan_check_RPM(uint8_t thermalMode)
 {
     uint8_t fan = PWM_CH_SYS_FAN;
     int rpm_target = 0x0;
-    uint8_t temp = 0x0;
+    int temp = 0x0;
 
     /* sensor model form the configuration table board.c */
     switch(thermalMode) {
@@ -592,8 +592,8 @@ static int cc_Sensorinfo(int argc, char **argv)
     ccprintf("%sCPU DTS: %4d C\n", leader, g_tempSensors[0]);
     ccprintf("%sAmbiencer NTC: %4d C\n", leader, g_tempSensors[1]);
     ccprintf("%sSSD1 NTC: %4d C\n", leader, g_tempSensors[2]);
-    ccprintf("%sPCIE16 NTC: %4d C\n", leader, g_tempSensors[4]);
-	ccprintf("%sCPU NTC: %4d C\n", leader, g_tempSensors[3]);
+    ccprintf("%sPCIE16 NTC: %4d C\n", leader, g_tempSensors[3]);
+	ccprintf("%sCPU NTC: %4d C\n", leader, g_tempSensors[4]);
     ccprintf("%sMemory NTC: %4d C\n", leader, g_tempSensors[5]);
 
 	return EC_SUCCESS;
@@ -604,18 +604,34 @@ DECLARE_CONSOLE_COMMAND(Sensorinfo, cc_Sensorinfo,
 
 static int cc_sensorauto(int argc, char **argv)
 {
-    if (!argc) {
+    char *e;
+    int input = 0;
+
+    if (sensor_count == 0) {
+        ccprintf("sensor count is zero\n");
+        return EC_ERROR_INVAL;
+    }
+
+    if (argc < 2) {
+        ccprintf("fan number is required as the first arg\n");
+        return EC_ERROR_PARAM_COUNT;
+    }
+    input = strtoi(argv[1], &e, 0);
+    if (*e || input > 0x01)
+        return EC_ERROR_PARAM1;
+    argc--;
+    argv++;
+
+    if (!input) {
         Sensorauto = 0x00;
     } else {
-	    Sensorauto = 0x55;
+        Sensorauto = 0x55;
     }
-    
-	return EC_SUCCESS;
+    return EC_SUCCESS;
 }
 DECLARE_CONSOLE_COMMAND(sensorauto, cc_sensorauto,
-			"{sensor}",
-			"Enable thermal sensor control");
-
+            "{0:auto enable 1:auto disable}",
+            "Enable thermal sensor control");
 
 static int cc_sensorset(int argc, char **argv)
 {

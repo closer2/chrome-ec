@@ -168,6 +168,7 @@ static void clear_fan_fault(uint8_t fan)
 {
     g_fan_parameter.count[fan] = 0;
     g_fan_parameter.countFlag[fan] = 0;
+    g_fan_parameter.fan_fault[fan] = 0;
     g_fan_parameter.fanFaultCheckStart = 0;
 }
 
