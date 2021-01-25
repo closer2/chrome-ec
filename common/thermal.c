@@ -32,11 +32,6 @@
 #define CPU_DTS_PROCHOT_TEMP   98
 #define TEMP_MULTIPLE  100 /* TEMP_AMBIENCE_NTC */
 
-enum thermal_mode {
-    THERMAL_UMA = 0,
-    THERMAL_WITH_GFX,
-};
-
 enum thermal_mode g_thermalMode;
 
 enum thermal_fan_mode {
@@ -244,6 +239,15 @@ int thermal_fan_percent(int low, int high, int cur)
  * This is just a validity check to be sure we catch any changes in thermal.h
  */
 BUILD_ASSERT(EC_TEMP_THRESH_COUNT == 3);
+
+void thermal_type(enum thermal_mode type)
+{
+    if (type > THERMAL_WITH_GFX) {
+        return;
+    }
+
+    g_thermalMode = type;
+}
 
 static uint8_t get_fan_level(uint16_t temp, uint8_t fan_level, const struct thermal_level_s *fantable)
 {
@@ -555,7 +559,6 @@ static void thermal_control(void)
         temperature_protection_mechanism();
     }
 
-    g_thermalMode = THERMAL_UMA;
     /* cpu thermal control */
     fan = PWM_CH_CPU_FAN;
     if (is_thermal_control_enabled(fan)) {   

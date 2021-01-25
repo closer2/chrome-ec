@@ -23,6 +23,7 @@
 #include "power_led.h"
 #include "flash.h"
 #include "fan.h"
+#include "thermal.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_LPC, outstr)
@@ -303,9 +304,9 @@ static void oem_bios_to_ec_command(void)
         
     case 0x0A : /* Notify EC GraphicCard */
         if (0x01 == *(bios_cmd+2)) {        /* exist */
-            /* TODO */
+           thermal_type(THERMAL_WITH_GFX);
         } else if(0x02 == *(bios_cmd+2)) {  /* inexistence */
-            /* TODO */
+            thermal_type(THERMAL_UMA);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

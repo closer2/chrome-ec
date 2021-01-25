@@ -11,6 +11,11 @@
 /* The thermal configuration for a single temp sensor is defined here. */
 #include "ec_commands.h"
 
+enum thermal_mode {
+    THERMAL_UMA = 0,
+    THERMAL_WITH_GFX,
+};
+
 /* We need to to hold a config for each board's sensors. Not const, so we can
  * tweak it at run-time if we have to.
  */
@@ -26,5 +31,6 @@ int thermal_fan_percent(int low, int high, int cur);
  *            TEMP_SENSOR_COUNT)
  */
 void board_override_fan_control(int fan, int *tmp);
+void thermal_type(enum thermal_mode type);
 
 #endif  /* __CROS_EC_THERMAL_H */
