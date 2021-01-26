@@ -149,32 +149,21 @@ DECLARE_HOST_COMMAND(EC_CMD_GET_CASE_LOG,
 static enum ec_status
 WMI_get_ec_log(struct host_cmd_handler_args *args)
 {
-    /* const struct ec_wmi_get_ec_log *p = args->params; */
     const struct ec_wmi_get_ec_log *p = args->params;
-    uint8_t output[256];
-    uint16_t write_count = 0;
-    uint8_t status = EC_RES_SUCCESS;
 
     if (p->logType > 1) {
-        status = EC_RES_INVALID_PARAM;
-        return status;
+        return EC_RES_INVALID_PARAM;
     }
 
-    if (uart_console_read_buffer_init() != EC_RES_SUCCESS) {
+   if (uart_console_read_buffer_init() != EC_RES_SUCCESS) {
         return EC_RES_OVERFLOW;
     }
 
-    status = uart_console_read_buffer(
-                    CONSOLE_READ_NEXT,
-                    (char *)output,
-                    MIN(sizeof(output), p->size),
-                    &write_count);
-    if (status != EC_RES_SUCCESS || write_count == 0) {
-        return status;
-    }
-
-    memcpy((char *)args->response, (char *)output, MIN(sizeof(output), p->size));
-    return status;
+    return uart_console_read_buffer(
+            CONSOLE_READ_NEXT,
+            (char *)args->response,
+            args->response_max,
+            &args->response_size);
 }
 DECLARE_HOST_COMMAND(EC_CMD_GET_EC_LOG,
             WMI_get_ec_log,
