@@ -9,6 +9,22 @@
 #define __CROS_EC_BOARD_H
 
 /*------------------------------------------------------------------------------
+ * platform config.
+ * choose one platform {PLATFORM_CONFIGURATION_DT01, PLATFORM_CONFIGURATION_DT02}
+ * ----------------------------------------------------------------------------*/
+#define PLATFORM_CONFIGURATION_DT01
+/* #define PLATFORM_CONFIGURATION_DT02 */
+
+/* Features depend on chip family */
+#if defined(PLATFORM_CONFIGURATION_DT01)
+#define NPCX_FAMILY_DT01
+#elif defined(PLATFORM_CONFIGURATION_DT02)
+#define NPCX_FAMILY_DT02
+#else
+#error "Unsupported platform family"
+#endif
+
+/*------------------------------------------------------------------------------
 *   ODM EC version define
 *   BLD_EC_VERSION_X :
 *               0:non-shipping version
@@ -21,6 +37,7 @@
 *   BLD_EC_VERSION_TEST :
 *            EC test version for ODM debug
 ------------------------------------------------------------------------------*/
+#if defined(NPCX_FAMILY_DT01)
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "03"
 #define BLD_EC_VERSION_TEST     "01"
@@ -29,6 +46,16 @@
 #define BLD_EC_VERSION_YZ_HEX   0x03
 #define BLD_EC_VERSION_TEST_HEX 0x01
 
+#elif defined(NPCX_FAMILY_DT02)
+#define BLD_EC_VERSION_X        "0"
+#define BLD_EC_VERSION_YZ       "00"
+#define BLD_EC_VERSION_TEST     "00"
+
+#define BLD_EC_VERSION_X_HEX    0x00
+#define BLD_EC_VERSION_YZ_HEX   0x00
+#define BLD_EC_VERSION_TEST_HEX 0x00
+
+#endif
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
