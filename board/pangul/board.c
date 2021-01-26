@@ -213,37 +213,37 @@ BUILD_ASSERT(ARRAY_SIZE(adc_channels) == ADC_CH_COUNT);
 
 const struct temp_sensor_t temp_sensors[] = {
 	[TEMP_SENSOR_CPU_DTS] = {
-		.name = "CPU DTS",
+		.name = "CPU_DTS",
 		.type = TEMP_SENSOR_TYPE_CPU,
 		.read = sb_tsi_get_val,
 		.idx = TEMP_SENSOR_CPU_DTS,
 	},	
 	[TEMP_SENSOR_AMBIENCE_NTC] = {
-		.name = "Ambience NTC",
+		.name = "Ambience_NTC",
 		.type = TEMP_SENSOR_TYPE_BOARD,
 		.read = board_get_temp,
 		.idx = TEMP_SENSOR_AMBIENCE_NTC,
 	},
     [TEMP_SENSOR_SSD1_NTC] = {
-        .name = "SSD1 NTC",
+        .name = "SSD1_NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_SSD1_NTC,
     },
     [TEMP_SENSOR_PCIEX16_NTC] = {
-        .name = "PCIEX16 NTC",
+        .name = "PCIEX16_NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_PCIEX16_NTC,
     },
     [TEMP_SENSOR_CPU_NTC] = {
-        .name = "CPU NTC ",
+        .name = "CPU_NTC ",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_CPU_NTC,
     },
     [TEMP_SENSOR_MEMORY_NTC] = {
-        .name = "Memory NTC",
+        .name = "Memory_NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_MEMORY_NTC,
