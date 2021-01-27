@@ -637,9 +637,10 @@ static void pwm_fan_start(void)
 
     /* power on check fan fault */
     for (fan = 0; fan < fan_count; fan++) {
-        set_thermal_control_enabled(fan, 0);
-        set_enabled(fan, 1);
-        fan_set_duty(fan, CONFIG_FAN_FAULT_CHECK_SPEED);
+        /* set_thermal_control_enabled(fan, 0); */
+        /* set_enabled(fan, 1); */
+        /* fan_set_duty(fan, CONFIG_FAN_FAULT_CHECK_SPEED); */
+        set_duty_cycle(fan, CONFIG_FAN_FAULT_CHECK_SPEED);
     }
     g_fan_parameter.fanFaultCheckStart = 0x01;
 }
@@ -674,7 +675,7 @@ static void fan_fault_check(void)
         }
     }
 }
-DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_INIT_PWM + 10);
 
 /* s0-s5 and System reboot will clear fan falut flag */
 void thermal_control_start(void)

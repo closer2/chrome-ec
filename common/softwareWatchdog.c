@@ -194,11 +194,13 @@ void clear_chassisIntrusion(void)
  */
 static void Chassis_Intrusion_service(void)
 {
+    pdata.chassisIntrusionData = 0x00;
+
     /* enter crisis Intrusion mode */
     if (pdata.chassisIntrusionData != 0x01) {
         if (gpio_get_level(GPIO_EC_GPIO0_CASE_OPEN_L)) {
             /* get crisis recovery data */
-            pdata.chassisIntrusionData = 0x01;
+            pdata.chassisIntrusionData = 0x00;
         } else {
             pdata.chassisIntrusionData = 0x00;
         }
