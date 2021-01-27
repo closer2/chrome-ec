@@ -72,8 +72,6 @@
 #define CONFIG_SPI_FLASH_REGS               /* Support SPI flash protection register translation */
 #define CONFIG_SPI_FLASH_W25Q40             /* Internal SPI flash type. */
 
-#define CC_DEFAULT     (CC_ALL & ~(CC_MASK(CC_HOSTCMD)))
-
 /*
  * Enable 1 slot of secure temporary storage to support
  * suspend/resume with read/write memory training.
@@ -122,6 +120,12 @@
 
 /* disable EC chip hibernate */
 #undef CONFIG_HIBERNATE                     /* Enable system hibernate */
+
+#define CC_DEFAULT     (CC_MASK(CC_CHIPSET) | \
+                        CC_MASK(CC_PORT80) | \
+                        CC_MASK(CC_SYSTEM) | \
+                        CC_MASK(CC_COMMAND)| \
+                        CC_MASK(CC_SWITCH))
 
 #define CONFIG_IO900_WRITE_PROTECT          /* for IO/900-9CF write protection */
 

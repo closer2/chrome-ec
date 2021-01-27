@@ -330,7 +330,7 @@ enum power_state power_handle_state(enum power_state state)
             gpio_set_level(GPIO_EC_PSON_L, 0);
             
             if(power_wait_voltage()) {
-                CPRINTS("power wait 12V timeout\n");
+                CPRINTS("power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
                 return POWER_S5G3;
             }
@@ -353,7 +353,7 @@ enum power_state power_handle_state(enum power_state state)
 
         /* chiset_task pause for wait signal */
         if (power_wait_signals(IN_PGOOD_ALL_CORE)) {
-            CPRINTS("power wait ALL_CORE timeout, atx=%d, vcore_en=%d, vrmpwrgd=%d\n",
+            CPRINTS("power wait ALL_CORE timeout, atx=%d, vcore_en=%d, vrmpwrgd=%d",
                 gpio_get_level(GPIO_ATX_PG),
                 gpio_get_level(GPIO_VCORE_EN),
                 gpio_get_level(GPIO_VRMPWRGD));
@@ -361,7 +361,7 @@ enum power_state power_handle_state(enum power_state state)
             return POWER_S5G3;
         }
         
-        CPRINTS("power wait ALL_CORE done, atx=%d, vcore_en=%d, vrmpwrgd=%d\n",
+        CPRINTS("power wait ALL_CORE done, atx=%d, vcore_en=%d, vrmpwrgd=%d",
                 gpio_get_level(GPIO_ATX_PG),
                 gpio_get_level(GPIO_VCORE_EN),
                 gpio_get_level(GPIO_VRMPWRGD));
