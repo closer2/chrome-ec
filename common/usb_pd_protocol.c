@@ -3214,6 +3214,10 @@ void pd_task(void *u)
 
 			tcpm_get_cc(port, &cc1, &cc2);
 
+            /* clear pd flag when disconnect */
+            pd[port].flags &= ~PD_FLAGS_RESET_ON_DISCONNECT_MASK;
+            reset_pd_cable(port);
+
 #ifdef CONFIG_USB_PD_DUAL_ROLE_AUTO_TOGGLE
 			/*
 			 * Attempt TCPC auto DRP toggle if it is
