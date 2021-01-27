@@ -408,8 +408,8 @@ enum power_state power_handle_state(enum power_state state)
     break;
 
     case POWER_S0S3:
-        /* Power-on Led blink*/
-        powerled_set_state(POWERLED_STATE_BLINK);
+        /* Power-on Led suspend*/
+        powerled_set_state(POWERLED_STATE_SUSPEND);
 
         /* Suspend wireless, whether need?*/
         //wireless_set_state(WIRELESS_SUSPEND);
