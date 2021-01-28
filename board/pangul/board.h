@@ -12,8 +12,8 @@
  * platform config.
  * choose one platform {PLATFORM_CONFIGURATION_DT01, PLATFORM_CONFIGURATION_DT02}
  * ----------------------------------------------------------------------------*/
-/* #define PLATFORM_CONFIGURATION_DT01 */
-#define PLATFORM_CONFIGURATION_DT02
+#define PLATFORM_CONFIGURATION_DT01
+/* #define PLATFORM_CONFIGURATION_DT02 */
 
 /* Features depend on chip family */
 #if defined(PLATFORM_CONFIGURATION_DT01)

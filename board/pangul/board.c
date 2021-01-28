@@ -363,7 +363,11 @@ const struct pwm_t pwm_channels[] = {
     },
 
    [PWM_CH_POWER_LED] = {
+#if defined(NPCX_FAMILY_DT01)
         .channel = 4,
+#elif defined(NPCX_FAMILY_DT02)
+        .channel = 3,
+#endif
         .flags = PWM_CONFIG_DSLEEP,
         .freq = 100,
    },

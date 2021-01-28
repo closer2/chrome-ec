@@ -94,7 +94,6 @@ GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detect
 /* CLKRUN# as input with pull up */
 UNUSED(PIN(0, 6))								/* EC_3VSBSW */
 UNUSED(PIN(0, 1))								/* EC_JIG_PWR_EN_N */
-UNUSED(PIN(8, 0))								/* HW_G_Det */
 UNUSED(PIN(8, 5))								/* EC_LPS_EN_N */
 UNUSED(PIN(E, 0))								/* FPS_IRQ */
 UNUSED(PIN(0, 3))								/* FPS_ID */
@@ -109,8 +108,6 @@ UNUSED(PIN(5, 0))
 UNUSED(PIN(3, 1))
 UNUSED(PIN(B, 4))
 UNUSED(PIN(B, 5))
-
-/*GPIO(PWM6_LED,			    PIN(B, 6), GPIO_OUT_LOW)*/			/* TODO: When power-on, should have a hook to light his LED */
 
 /* The following signal not implmented by PanGuL board, need confirm We Do Not Them!!! */
 UNIMPLEMENTED(AC_PRESENT)
@@ -153,7 +150,14 @@ ALTERNATE(PIN_MASK(E, BIT(1)), 0, MODULE_ADC, 0)                        /* ADC7:
 ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)               /* ADC8: MEM_THERMAL, ADC9:EC_VIN33 */
 
 ALTERNATE(PIN_MASK(C, BIT(2) | BIT(3)), 1, MODULE_PWM, 0)       /* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM */
-ALTERNATE(PIN_MASK(B, BIT(6)), 1, MODULE_PWM, 0)                /* power-on led*/
+
+#if defined(NPCX_FAMILY_DT01)
+    ALTERNATE(PIN_MASK(B, BIT(6)), 1, MODULE_PWM, 0)                /* PWM4: power-on led */
+    UNUSED(PIN(8, 0))
+#elif defined(NPCX_FAMILY_DT02)
+    UNUSED(PIN(B, 6))
+    ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)                /* PWM3: power-on led */
+#endif
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */
