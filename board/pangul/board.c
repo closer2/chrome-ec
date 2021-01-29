@@ -237,7 +237,7 @@ const struct temp_sensor_t temp_sensors[] = {
         .idx = TEMP_SENSOR_PCIEX16_NTC,
     },
     [TEMP_SENSOR_CPU_NTC] = {
-        .name = "CPU_NTC ",
+        .name = "CPU_NTC",
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_CPU_NTC,
