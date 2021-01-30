@@ -654,6 +654,23 @@ int tcpci_tcpm_set_vconn(int port, int enable)
 	return tcpc_write(port, TCPC_REG_POWER_CTRL, reg);
 }
 
+int tcpci_tcpm_set_bist_test_mode(int port, int enable)
+{
+    int reg, rv;
+    rv = tcpc_read(port, TCPC_REG_TCPC_CTRL, &reg);
+    if (rv)
+        return rv;
+
+    CPRINTS("ZXQPD -> enable=%d, reg[0]=%X", enable, reg);
+    if (enable)
+        reg |= TCPC_REG_TCPC_CTRL_BIST_TEST_MODE;
+    else
+        reg &= ~TCPC_REG_TCPC_CTRL_BIST_TEST_MODE;
+
+    CPRINTS("ZXQPD -> enable=%d, reg[0]=%X", enable, reg);
+    return tcpc_write(port, TCPC_REG_TCPC_CTRL, reg);
+}
+
 int tcpci_tcpm_set_msg_header(int port, int power_role, int data_role)
 {
 	return tcpc_write(port, TCPC_REG_MSG_HDR_INFO,
@@ -846,7 +863,7 @@ int tcpci_tcpm_get_message_raw(int port, uint32_t *payload, int *head)
 
 /* Cache depth needs to be power of 2 */
 /* TODO: Keep track of the high water mark */
-#define CACHE_DEPTH BIT(3)
+#define CACHE_DEPTH BIT(5)
 #define CACHE_DEPTH_MASK (CACHE_DEPTH - 1)
 
 struct queue {
@@ -887,8 +904,14 @@ int tcpm_enqueue_message(const int port)
 		return rv;
 	}
 
-	/* Increment atomically to ensure get_message_raw happens-before */
-	atomic_add(&q->head, 1);
+    /* CTS Tester sending BIST test data is too fast */
+    if (tcpm_has_pending_message(port) &&
+        (PD_DATA_BIST==PD_HEADER_TYPE(head->header)) &&
+        ((head->payload[0] >> 28) == 8)) {
+        CPRINTS("C%d: Discard unwanted BIST test data", port);
+    } else { /* Increment atomically to ensure get_message_raw happens-before */
+        atomic_add(&q->head, 1);
+    }
 
 	/* Wake PD task up so it can process incoming RX messages */
 	task_set_event(PD_PORT_TO_TASK_ID(port), TASK_EVENT_WAKE);

@@ -207,6 +207,11 @@ static inline int tcpm_set_vconn(int port, int enable)
 	return tcpc_config[port].drv->set_vconn(port, enable);
 }
 
+static inline int tcpm_set_bist_test_mode(int port, int enable)
+{
+    return tcpc_config[port].drv->set_bist_test_mode(port, enable);
+}
+
 static inline int tcpm_set_msg_header(int port, int power_role, int data_role)
 {
 	return tcpc_config[port].drv->set_msg_header(port, power_role,

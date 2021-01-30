@@ -24,7 +24,7 @@
 #define CPRINTF(format, args...) cprintf(CC_USBPD, format, ## args)
 #define CPRINTS(format, args...) cprints(CC_USBPD, format, ## args)
 
-#define PDO_FIXED_FLAGS (PDO_FIXED_COMM_CAP)
+#define PDO_FIXED_FLAGS (PDO_FIXED_COMM_CAP | PDO_FIXED_USB_SUSPEND)
 
 
 /* Voltage indexes for the PDOs */

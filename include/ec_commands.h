@@ -6763,6 +6763,7 @@ enum tcpc_cc_polarity {
  * <9:0>   : Maximum Current in 10mA units
  */
 #define PDO_FIXED_DUAL_ROLE	BIT(29)
+#define PDO_FIXED_USB_SUSPEND	BIT(28)
 #define PDO_FIXED_UNCONSTRAINED	BIT(27)
 #define PDO_FIXED_COMM_CAP	BIT(26)
 #define PDO_FIXED_DATA_SWAP	BIT(25)

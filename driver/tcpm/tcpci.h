@@ -60,6 +60,8 @@
 #define TCPC_REG_TCPC_CTRL         0x19
 #define TCPC_REG_TCPC_CTRL_SET(polarity) (polarity)
 #define TCPC_REG_TCPC_CTRL_POLARITY(reg) ((reg) & 0x1)
+#define TCPC_REG_TCPC_CTRL_BIST_TEST_MODE 0x02
+
 /*
  * In TCPCI Rev 2.0, this bit must be set this to generate CC status alerts when
  * a connection is found.
@@ -226,6 +228,7 @@ int tcpci_tcpm_set_cc(int port, int pull);
 int tcpci_tcpm_set_polarity(int port, enum tcpc_cc_polarity polarity);
 int tcpci_tcpm_sop_prime_enable(int port, bool enable);
 int tcpci_tcpm_set_vconn(int port, int enable);
+int tcpci_tcpm_set_bist_test_mode(int port, int enable);
 int tcpci_tcpm_set_msg_header(int port, int power_role, int data_role);
 int tcpci_tcpm_set_rx_enable(int port, int enable);
 int tcpci_tcpm_get_message_raw(int port, uint32_t *payload, int *head);

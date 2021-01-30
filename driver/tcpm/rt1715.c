@@ -59,6 +59,7 @@ const struct tcpm_drv rt1715_tcpm_drv = {
 	.sop_prime_enable	= &tcpci_tcpm_sop_prime_enable,
 #endif
 	.set_vconn = &tcpci_tcpm_set_vconn,
+	.set_bist_test_mode = &tcpci_tcpm_set_bist_test_mode,
 	.set_msg_header = &tcpci_tcpm_set_msg_header,
 	.set_rx_enable = &tcpci_tcpm_set_rx_enable,
 	.get_message_raw = &tcpci_tcpm_get_message_raw,

@@ -1417,7 +1417,9 @@ void pd_execute_hard_reset(int port)
 
 	/* We are a source, cut power */
 	pd_power_supply_reset(port);
-	pd[port].src_recover = get_time().val + PD_T_SRC_RECOVER;
+    /* For CTS TD SPT.3 Hard Reset Test,
+       vSafe-0V must maintain 0.66--1s, The measured is 600 ms */
+    pd[port].src_recover = get_time().val + PD_T_SRC_RECOVER + (200*MSEC);
 #ifdef CONFIG_USBC_VCONN
 	set_vconn(port, 0);
 #endif
@@ -1620,17 +1622,21 @@ static void handle_data_request(int port, uint32_t head,
 				pd[port].task_state == PD_STATE_SRC_READY)) {
 			/* currently only support sending bist carrier mode 2 */
 			if ((payload[0] >> 28) == 5) {
-                if(0 == pd[port].requested_idx) { /* BIST message only valid at 5V*/
+                if(1 == pd[port].requested_idx) { /* First PDO is 5V3A, BIST message only valid at 5V*/
     				/* bist data object mode is 2 */
+                    CPRINTS("ZXQPD -> BIST Tx start");
     				pd_transmit(port, TCPC_TX_BIST_MODE_2, 0,
     					    NULL, AMS_RESPONSE);
                     msleep(80); /* Delay at least enough to finish sending BIST */
-    				/* Set to appropriate port disconnected state */
+    				/* Set to appropriate port disconnected state
     				set_state(port, DUAL_ROLE_IF_ELSE(port,
     						PD_STATE_SNK_DISCONNECTED,
-    						PD_STATE_SRC_DISCONNECTED));
+    						PD_STATE_SRC_DISCONNECTED));*/
                 }
-			}
+			} else if ((payload[0] >> 28) == 8) { /* Go to BIST Test Data mode */
+			    CPRINTS("ZXQPD -> BIST Rx start");
+                tcpm_set_bist_test_mode(port, 1);
+            }
 		}
 		break;
 	case PD_DATA_SINK_CAP:
@@ -1744,8 +1750,12 @@ static void handle_ctrl_request(int port, uint32_t head,
         /* For CTS TD.PD.SRC.E14.  Atomic Message Sequencess */
         if(pd[port].task_state == PD_STATE_SRC_NEGOCIATE)
             set_state(port,PD_STATE_SOFT_RESET);
-        else
-            send_control(port, NOT_SUPPORTED(pd[port].rev));
+        else {  /* For CTS TD.PD.LL.E3 Soft Reset Usage, Tester send Get_Sink_Cap,
+                   UUT response with Reject, But no GoodCRC from Tester.
+                   UUT must send Soft_Reset. */
+            if (send_control(port, NOT_SUPPORTED(pd[port].rev)) < 0)
+                set_state(port,PD_STATE_SOFT_RESET);
+        }
 #endif
 		break;
 #ifdef CONFIG_USB_PD_DUAL_ROLE
@@ -3549,8 +3559,9 @@ void pd_task(void *u)
 				} else { /* failed, retry later */
 					timeout = PD_T_SEND_SOURCE_CAP;
 
-                    /* For CTS the fifth Source Capabilities message must be 
-				       received within 100.9--201.1ms */
+                    /* For CTS TD.PD.SRC.E3 SourceCapabilityTimer Timeout
+                       the fifth Source Capabilities message must be
+                       received within 100.9--201.1ms */
 					next_src_cap = now.val +
 							PD_T_SEND_SOURCE_CAP+(50*MSEC);
 					caps_count++;
@@ -3564,10 +3575,11 @@ void pd_task(void *u)
 			if (pd[port].last_state != pd[port].task_state)
 				set_state_timeout(port,
 						  get_time().val +
-						  /* For CTS the fifth Source Capabilities message must be 
-				             received within 24--30ms, The measured is 43 ms.
-				             reduce 14ms*/
-						  PD_T_SENDER_RESPONSE-(14*MSEC),
+                          /* For CTS TD.PD.SRC.E5 SenderResponseTimer Timeout Request,
+                             the fifth Source Capabilities message must be
+                             received within 24--30ms, The measured is 43 ms.
+                             reduce 17ms*/
+						  PD_T_SENDER_RESPONSE-(17*MSEC),
 						  PD_STATE_HARD_RESET_SEND);
 			break;
 		case PD_STATE_SRC_ACCEPTED:

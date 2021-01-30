@@ -256,6 +256,13 @@ struct tcpm_drv {
 	 */
 	int (*set_vconn)(int port, int enable);
 
+    /**
+     * Set bist test mode.
+     * @param port Type-C port number
+     * @return EC_SUCCESS or error
+     */
+     int (*set_bist_test_mode)(int port, int enable);
+
 	/**
 	 * Set PD message header to use for goodCRC
 	 *
