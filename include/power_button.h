@@ -10,6 +10,36 @@
 
 #include "common.h"
 
+enum power_button_state {
+	/* Button up; state machine idle */
+	PWRBTN_STATE_IDLE = 0,
+	/* Button pressed; debouncing done */
+	PWRBTN_STATE_PRESSED,
+	/* Button down, chipset on; sending initial short pulse */
+	PWRBTN_STATE_T0,
+	/* Button down, chipset on; delaying until we should reassert signal */
+	PWRBTN_STATE_T1,
+	/* Button down, signal asserted to chipset */
+	PWRBTN_STATE_HELD,
+	/* Force pulse due to lid-open event */
+	PWRBTN_STATE_LID_OPEN,
+    /* Force pulse due to lan wake event */
+    PWRBTN_STATE_LAN_WAKE,
+	/* Button released; debouncing done */
+	PWRBTN_STATE_RELEASED,
+	/* Ignore next button release */
+	PWRBTN_STATE_EAT_RELEASE,
+	/*
+	 * Need to power on system after init, but waiting to find out if
+	 * sufficient battery power.
+	 */
+	PWRBTN_STATE_INIT_ON,
+	/* Forced pulse at EC boot due to keyboard controlled reset */
+	PWRBTN_STATE_BOOT_KB_RESET,
+	/* Power button pressed when chipset was off; stretching pulse */
+	PWRBTN_STATE_WAS_OFF,
+};
+
 /**
  * Return non-zero if power button is pressed.
  *
@@ -52,7 +82,7 @@ void power_button_pch_release(void);
 /**
  * For x86 systems, force a pulse of the power button signal to the PCH.
  */
-void power_button_pch_pulse(void);
+void power_button_pch_pulse(enum power_button_state state);
 
 /**
  * Returns the time when DSW_PWROK was asserted. It should be customized
@@ -74,6 +104,15 @@ void board_pwrbtn_to_pch(int level);
  * Lock power button form host.
  */
 uint8_t get_power_button_lock_flag(void);
+#endif
+
+#ifdef CONFIG_LAN_WAKE_SWITCH
+uint8_t lan_is_wake(void);
+void power_lan_wake_interrupt(enum gpio_signal signal);
+void power_wlan_wake_interrupt(enum gpio_signal signal);
+uint8_t get_lan_wake_enable(void);
+#else
+uint8_t get_lan_wake_enable(void);
 #endif
 
 #endif  /* __CROS_EC_POWER_BUTTON_H */

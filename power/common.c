@@ -24,6 +24,7 @@
 #include "task.h"
 #include "timer.h"
 #include "util.h"
+#include "power_button.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -520,8 +521,8 @@ static enum power_state power_common_state(enum power_state state)
             if (((*mptr) & EC_MEMMAP_DISABLE_G3) || (want_reboot_ap_at_g3)) {
                 task_wait_event(-1); /* chipset task pause for wait wakeup */
             } else {
-            	if (task_wait_event(S5_INACTIVITY_TIMEOUT) ==
-            	    TASK_EVENT_TIMER) {
+                if (task_wait_event(S5_INACTIVITY_TIMEOUT) == TASK_EVENT_TIMER
+                && !get_lan_wake_enable()) {
             		/* Prepare to drop to G3; wake not requested yet */
             		return POWER_S5G3;
             	}

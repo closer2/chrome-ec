@@ -176,7 +176,9 @@ extern "C" {
 #define EC_MEMMAP_ACPI_MODE         BIT(6) /* ACPI MODE */
 
 #define EC_MEMMAP_SYS_MISC2                 0x1B /* SYS_MISC2 */
-#define EC_MEMMAP_AC_ADAPTER_FLAG   BIT(0) /* AC adapter Status (0:Off-line;1:On-line) */ 
+#define EC_MEMMAP_AC_ADAPTER_FLAG   BIT(0) /* AC adapter Status (0:Off-line;1:On-line) */
+#define EC_MEMMAP_POWER_LAN_WAKE    BIT(1) /* Power lan wake (0:Off-line;1:On-line) */
+#define EC_MEMMAP_POWER_WLAN_WAKE   BIT(2) /* Power wlan wake  (0:Off-line;1:On-line) */
 
 #define EC_MEMMAP_SYS_MISC3                 0x1C /* status/flag. */ 
 #define EC_MEMMAP_SHOP_MODE         BIT(1) /* Shop mode of thermal table */

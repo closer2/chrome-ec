@@ -103,7 +103,7 @@ static void system_sw_wdt_service(void)
                 wdt_wakeup_delay++;
                 if(wdt_wakeup_delay>3) {
                     CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
-                    power_button_pch_pulse();
+                    power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
                     wdt_wakeup_delay = 0;
                     mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
                 }

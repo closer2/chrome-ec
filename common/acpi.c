@@ -269,10 +269,11 @@ static void oem_bios_to_ec_command(void)
         break;
 
     case 0x07 : /* LAN wake control */
+        mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
         if (0x01 == *(bios_cmd+2)) {        /* enable */
-            gpio_set_level(GPIO_EC_LAN_WAKE_L, 0);
+            (*mptr) |= EC_MEMMAP_POWER_LAN_WAKE;
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
-            gpio_set_level(GPIO_EC_LAN_WAKE_L, 1);
+            (*mptr) &= (~EC_MEMMAP_POWER_LAN_WAKE);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -280,16 +281,17 @@ static void oem_bios_to_ec_command(void)
         break;
 
     case 0x08 : /* WLAN wake control */
+        mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
         if (0x01 == *(bios_cmd+2)) {        /* enable */
-            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 0);
+            (*mptr) |= EC_MEMMAP_POWER_WLAN_WAKE;
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
-            gpio_set_level(GPIO_EC_WLAN_WAKE_L, 1);
+            (*mptr) &= (~EC_MEMMAP_POWER_WLAN_WAKE);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
         }
         break;
-        
+
     case 0x09 : /* crisis recovery mode control */
         mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
         if (0x01 == *(bios_cmd+2)) {        /* enter CRISIS mode */

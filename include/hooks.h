@@ -181,6 +181,14 @@ enum hook_type {
 	 */
 	HOOK_LID_CHANGE,
 
+    /*
+     * LAN/WLAN wake. Based on debounced lan/wlan wake pin state
+     * GPIO input.
+     *
+     * Hook routines are called from the TICK task.
+     */
+    HOOK_LAN_WAKE,
+
 	/*
 	 * Device in tablet mode (base behind lid).
 	 *

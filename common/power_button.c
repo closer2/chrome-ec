@@ -232,3 +232,125 @@ DECLARE_CONSOLE_COMMAND(powerbtn, command_powerbtn,
 			"[msec]",
 			"Simulate power button press");
 
+#ifdef CONFIG_LAN_WAKE_SWITCH
+
+#define POWER_LAN_DEBOUNCE_US    (5 * MSEC)
+#define POWER_WLAN_DEBOUNCE_US   (5 * MSEC)
+static uint8_t debounced_lan_wake[2];
+
+/*
+ * Handle lan/wlan is wake enable.
+ */
+uint8_t get_lan_wake_enable(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
+
+    if (*mptr & (EC_MEMMAP_POWER_LAN_WAKE | EC_MEMMAP_POWER_WLAN_WAKE)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/*
+ * Handle lan/wlan is wake.
+ */
+uint8_t lan_is_wake(void)
+{
+
+    if (!get_lan_wake_enable()) {
+        return 0;
+    }
+
+    if (debounced_lan_wake[0] || debounced_lan_wake[1]) {
+        debounced_lan_wake[0] = 0x00;
+        debounced_lan_wake[1] = 0x00;
+        CPRINTS("lan/wlan wake up");
+        return 1;
+    }
+
+    CPRINTS("error: lan/wlan wake up!");
+    return 0;
+}
+
+/*
+ * Handle debounced lan wake pulse.
+ */
+static void power_lan_wake_change_deferred(void)
+{
+    if (!gpio_get_level(GPIO_EC_LAN_WAKE_L)) {
+        CPRINTS("power lan is wake");
+        debounced_lan_wake[0] = 0x01;
+        hook_notify(HOOK_LAN_WAKE);
+    }
+}
+DECLARE_DEFERRED(power_lan_wake_change_deferred);
+
+/*
+ * Handle debounced wlan wake pulse.
+ */
+static void power_wlan_wake_change_deferred(void)
+{
+    if (!gpio_get_level(GPIO_EC_WLAN_WAKE_L)) {
+        CPRINTS("power wlan is wake");
+        debounced_lan_wake[1] = 0x01;
+        hook_notify(HOOK_LAN_WAKE);
+    }
+}
+DECLARE_DEFERRED(power_wlan_wake_change_deferred);
+
+
+/*
+ * lan/wlan switch initialization code
+ */
+static void power_lan_wake_init(void)
+{
+    debounced_lan_wake[0] = 0x00;
+    debounced_lan_wake[1] = 0x00;
+
+    /* Enable interrupts, now that we've initialized */
+    if (gpio_get_level(GPIO_EC_LAN_WAKE_L)) {
+        gpio_enable_interrupt(GPIO_EC_LAN_WAKE_L);
+    } else {
+        CPRINTS("error: power lan wake init!");
+    }
+
+    if (gpio_get_level(GPIO_EC_WLAN_WAKE_L)) {
+        gpio_enable_interrupt(GPIO_EC_WLAN_WAKE_L);
+    } else {
+        CPRINTS("error: power wlan wake init!");
+    }
+}
+DECLARE_HOOK(HOOK_INIT, power_lan_wake_init, HOOK_PRIO_INIT_LID);
+
+void power_lan_wake_interrupt(enum gpio_signal signal)
+{
+    /* lan_wake pulse debounce time */
+    hook_call_deferred(&power_lan_wake_change_deferred_data, POWER_LAN_DEBOUNCE_US);
+}
+
+void power_wlan_wake_interrupt(enum gpio_signal signal)
+{
+    /* wlan_wake pulse debounce time */
+    hook_call_deferred(&power_wlan_wake_change_deferred_data, POWER_WLAN_DEBOUNCE_US);
+}
+
+/*****************************************************************************/
+/* Console commands */
+static int command_powerbtn_lan(int argc, char **argv)
+{
+    debounced_lan_wake[0] = 0x01;
+    hook_notify(HOOK_LAN_WAKE);
+    ccprintf("Console command, lan/wlan wake up form s3/s4/s5 state.");
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(powerbtnlan, command_powerbtn_lan,
+            NULL,
+            "Simulate lan wake pch powerbtn");
+#else
+uint8_t get_lan_wake_enable(void)
+{
+    return 0;
+}
+#endif
+

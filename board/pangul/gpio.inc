@@ -25,10 +25,12 @@ GPIO_INT(SLP_S5_L,		    PIN(B, 1), GPIO_INT_BOTH,			power_signal_interrupt)
 GPIO_INT(ATX_PG,		    PIN(D, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* PSON# 12V power good */
 GPIO_INT(VCORE_EN,		    PIN(6, 3), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power, enable by EC_SLP_S3 */
 GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* VRMPWRGD->CPU_VR_PG */
-
+#ifdef CONFIG_LAN_WAKE_SWITCH
+GPIO_INT(EC_LAN_WAKE_L,		PIN(2, 2), GPIO_INT_BOTH,			power_lan_wake_interrupt)	    /* LAN Waked up */
+GPIO_INT(EC_WLAN_WAKE_L,    PIN(1, 1), GPIO_INT_BOTH,			power_wlan_wake_interrupt)	    /* WLAN Waked up */
+#endif
 GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)
 GPIO_INT(APU_PCIE_RST_L,	PIN(2, 1), GPIO_INT_BOTH,			apu_pcie_reset_interrupt)	/* Pass through to other xxx_RST_L (PCIEX1/PCIEX16/M2_2280_SSD1) */
-
 
 /* Replace of the above for PanGuL board */
 GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_FCH_PWRGD */
@@ -61,8 +63,6 @@ GPIO(EC_ALW_EN,             PIN(D, 0), GPIO_OUT_LOW)        /* EC_ALW_EN */
 GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
-GPIO(EC_LAN_WAKE_L,         PIN(2, 2), GPIO_OUT_LOW)        /* Waked up LAN */
-GPIO(EC_WLAN_WAKE_L,        PIN(1, 1), GPIO_OUT_LOW)        /* Waked up WLAN */
 GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
 GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
 GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */

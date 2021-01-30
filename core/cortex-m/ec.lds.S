@@ -280,7 +280,11 @@ SECTIONS
 		__hooks_lid_change = .;
 		KEEP(*(.rodata.HOOK_LID_CHANGE))
 		__hooks_lid_change_end = .;
-
+		
+		__hooks_lan_wake = .;
+		KEEP(*(.rodata.HOOK_LAN_WAKE))
+		__hooks_lan_wake_end = .;
+		
 		__hooks_tablet_mode_change = .;
 		KEEP(*(.rodata.HOOK_TABLET_MODE_CHANGE))
 		__hooks_tablet_mode_change_end = .;

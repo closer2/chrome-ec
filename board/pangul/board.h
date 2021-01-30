@@ -40,11 +40,11 @@
 #if defined(NPCX_FAMILY_DT01)
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "03"
-#define BLD_EC_VERSION_TEST     "01"
+#define BLD_EC_VERSION_TEST     "02"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x03
-#define BLD_EC_VERSION_TEST_HEX 0x01
+#define BLD_EC_VERSION_TEST_HEX 0x02
 
 #elif defined(NPCX_FAMILY_DT02)
 #define BLD_EC_VERSION_X        "0"
@@ -143,6 +143,7 @@
 #define CONFIG_MFG_MODE_FORBID_WRITE        /* MFG mode default mode, when it's no mode, forbid write mode */
 #undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
 #undef CONFIG_FINAL_RELEASE                 /* define it when final release */
+#define CONFIG_LAN_WAKE_SWITCH              /* support lan/wlan wake */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2

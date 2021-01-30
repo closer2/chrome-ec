@@ -68,47 +68,23 @@
  */
 #define PWRBTN_INITIAL_US  (200 * MSEC)
 
-enum power_button_state {
-	/* Button up; state machine idle */
-	PWRBTN_STATE_IDLE = 0,
-	/* Button pressed; debouncing done */
-	PWRBTN_STATE_PRESSED,
-	/* Button down, chipset on; sending initial short pulse */
-	PWRBTN_STATE_T0,
-	/* Button down, chipset on; delaying until we should reassert signal */
-	PWRBTN_STATE_T1,
-	/* Button down, signal asserted to chipset */
-	PWRBTN_STATE_HELD,
-	/* Force pulse due to lid-open event */
-	PWRBTN_STATE_LID_OPEN,
-	/* Button released; debouncing done */
-	PWRBTN_STATE_RELEASED,
-	/* Ignore next button release */
-	PWRBTN_STATE_EAT_RELEASE,
-	/*
-	 * Need to power on system after init, but waiting to find out if
-	 * sufficient battery power.
-	 */
-	PWRBTN_STATE_INIT_ON,
-	/* Forced pulse at EC boot due to keyboard controlled reset */
-	PWRBTN_STATE_BOOT_KB_RESET,
-	/* Power button pressed when chipset was off; stretching pulse */
-	PWRBTN_STATE_WAS_OFF,
-};
+
 static enum power_button_state pwrbtn_state = PWRBTN_STATE_IDLE;
 
 static const char * const state_names[] = {
-	"idle",
-	"pressed",
-	"t0",
-	"t1",
-	"held",
-	"lid-open",
-	"released",
-	"eat-release",
-	"init-on",
-	"recovery",
-	"was-off",
+    "idle",
+    "pressed",
+    "t0",
+    "t1",
+    "held",
+    "lid-open",
+    "lan-wake",
+    "wlan-wake",
+    "released",
+    "eat-release",
+    "init-on",
+    "recovery",
+    "was-off",
 };
 
 /*
@@ -182,13 +158,13 @@ void power_button_pch_release(void)
 		pwrbtn_state = PWRBTN_STATE_IDLE;
 }
 
-void power_button_pch_pulse(void)
+void power_button_pch_pulse(enum power_button_state state)
 {
 	CPRINTS("PB PCH pulse");
 
 	chipset_exit_hard_off();
 	set_pwrbtn_to_pch(0, 0);
-	pwrbtn_state = PWRBTN_STATE_LID_OPEN;
+	pwrbtn_state = state;
 	tnext_state = get_time().val + PWRBTN_INITIAL_US;
 	task_wake(TASK_ID_POWERBTN);
 }
@@ -371,6 +347,10 @@ static void state_machine(uint64_t tnow)
 		set_pwrbtn_to_pch(1, 0);
 		pwrbtn_state = PWRBTN_STATE_IDLE;
 		break;
+    case PWRBTN_STATE_LAN_WAKE:
+        set_pwrbtn_to_pch(1, 0);
+        pwrbtn_state = PWRBTN_STATE_IDLE;
+        break;
 	case PWRBTN_STATE_INIT_ON:
 
 		/*
@@ -509,9 +489,26 @@ static void powerbtn_x86_lid_change(void)
 	/* If chipset is off, pulse the power button on lid open to wake it. */
 	if (lid_is_open() && chipset_in_state(CHIPSET_STATE_ANY_OFF)
 	    && pwrbtn_state != PWRBTN_STATE_INIT_ON)
-		power_button_pch_pulse();
+		power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
 }
 DECLARE_HOOK(HOOK_LID_CHANGE, powerbtn_x86_lid_change, HOOK_PRIO_DEFAULT);
+#endif
+
+#ifdef CONFIG_LAN_WAKE_SWITCH
+/*
+ * Handle switch changes based on lan/wlan wake event.
+ */
+static void powerbtn_x86_lan_wake(void)
+{
+    /* If chipset is Suspend (S3), pulse the power button on lan/wlan to wake it. */
+    if (lan_is_wake() && pwrbtn_state != PWRBTN_STATE_INIT_ON
+        && (chipset_in_state(CHIPSET_STATE_SUSPEND) 
+        || chipset_in_state(CHIPSET_STATE_SOFT_OFF))) {
+        power_button_pch_pulse(PWRBTN_STATE_LAN_WAKE);
+        CPRINTS("powerbtn x86 lan/wlan wake up, when system is s0 state.");
+    }
+}
+DECLARE_HOOK(HOOK_LAN_WAKE, powerbtn_x86_lan_wake, HOOK_PRIO_DEFAULT);
 #endif
 
 /**
@@ -519,10 +516,11 @@ DECLARE_HOOK(HOOK_LID_CHANGE, powerbtn_x86_lid_change, HOOK_PRIO_DEFAULT);
  */
 static void powerbtn_x86_changed(void)
 {
-	if (pwrbtn_state == PWRBTN_STATE_BOOT_KB_RESET ||
-	    pwrbtn_state == PWRBTN_STATE_INIT_ON ||
-	    pwrbtn_state == PWRBTN_STATE_LID_OPEN ||
-	    pwrbtn_state == PWRBTN_STATE_WAS_OFF) {
+    if (pwrbtn_state == PWRBTN_STATE_BOOT_KB_RESET ||
+        pwrbtn_state == PWRBTN_STATE_INIT_ON ||
+        pwrbtn_state == PWRBTN_STATE_LID_OPEN ||
+        pwrbtn_state == PWRBTN_STATE_LAN_WAKE ||
+        pwrbtn_state == PWRBTN_STATE_WAS_OFF) {
 		/* Ignore all power button changes during an initial pulse */
 		CPRINTS("PB ignoring change");
 		return;

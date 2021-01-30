@@ -582,7 +582,7 @@ static void system_cold_boot(void)
             ccprints("S5 cold boot count down time=%dsec", reboot_ap_at_g3_delay);
             
             if(!reboot_ap_at_g3_delay) {
-                power_button_pch_pulse();
+                power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
             }
         }
     }
