@@ -19,7 +19,9 @@ struct wmi_dfx_ags {
     uint8_t startType;
     uint8_t forntType;
     uint8_t shutdownType;
+    uint8_t sAbnormalcode;
     uint8_t wakeupType;
+    uint8_t wAbnormalcode;
 
     uint16_t forntcode[2];
     uint16_t lastcode[2];
@@ -41,6 +43,9 @@ struct wmi_dfx_ags g_dfxValue = {
 #define  wmi_halfwordid_s(id, time)    (id == 0 ? 0xFF00 : time)
 
 #define  wmi_wordid(id, time)          (id == 0 ? 0xFFFFFFFF : time)
+
+#define sAbnormalcode(code)   (code ? 0xEE : 0xCC)
+#define wAbnormalcode(code)   (code ? 0xEE : 0xCC)
 
 /* Last POST was booted last time */
 void post_last_code_s(void)
@@ -87,17 +92,19 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
 
     /* shoutdownCase, New information comes before old information */
     for (i = 0; i < 4; i++) {
+        g_dfxValue.sAbnormalcode = sAbnormalcode(*(smptr + i * 2) >> 16);
         p->shutdownCause[i].type = g_dfxValue.shutdownType 
-            | wmi_halfwordid_s(*(smptr + i), 0xCC00);    /* 23~31 byte */
-        p->shutdownCause[i].value = wmi_halfwordid(*(smptr + i));
+            | wmi_halfwordid_s(*(smptr + i * 2), g_dfxValue.sAbnormalcode << 8);    /* 23~31 byte */
+        p->shutdownCause[i].value = wmi_halfwordid(*(smptr + i * 2));
         p->shutdownCause[i].reserve = 0xFF;
-        p->shutdownCause[i].time = wmi_wordid(*(smptr + i),*(smptr + i + 1));
+        p->shutdownCause[i].time = wmi_wordid(*(smptr + i * 2),*(smptr + i * 2 + 1));
     }
 
     /* wakeupCause, New information comes before old information */
     for (i = 0; i < 4; i++) {
+        g_dfxValue.wAbnormalcode = wAbnormalcode(*(wmptr + i * 2) >> 16);
         p->wakeupCause[i].type = g_dfxValue.wakeupType 
-            | wmi_halfwordid_s(*(wmptr + i), 0xCC00);       /* 59~67  byte */
+            | wmi_halfwordid_s(*(wmptr + i * 2), g_dfxValue.wAbnormalcode << 8);       /* 59~67  byte */
         p->wakeupCause[i].value = wmi_byteid(*(wmptr + i * 2));
         p->wakeupCause[i].reserve = 0xFFFF;
         p->wakeupCause[i].time = wmi_wordid(*(wmptr + i * 2),*(wmptr + i * 2 + 1));
@@ -124,13 +131,15 @@ WMI_get_cause_log(struct host_cmd_handler_args *args)
     }
 
     /* shutdownCause */
-    p->shutdownCause.type = wmi_byteid_s(*smptr, 0xCC);       /* 1~8 byte */
+    g_dfxValue.sAbnormalcode = sAbnormalcode(*(smptr) >> 16);
+    p->shutdownCause.type = wmi_byteid_s(*smptr, g_dfxValue.sAbnormalcode);       /* 1~8 byte */
     p->shutdownCause.value = wmi_halfwordid(*smptr);
     p->shutdownCause.reserve = 0xFF;
     p->shutdownCause.time = wmi_wordid(*smptr,*(smptr + 1));
 
     /* wakeupCase */
-    p->wakeupCause.type = wmi_byteid_s(*wmptr, 0xCC);       /* 9~16 byte */
+    g_dfxValue.wAbnormalcode = wAbnormalcode(*(wmptr) >> 16);
+    p->wakeupCause.type = wmi_byteid_s(*wmptr, g_dfxValue.wAbnormalcode);       /* 9~16 byte */
     p->wakeupCause.value = wmi_byteid(*wmptr);
     p->wakeupCause.reserve = 0xFFFF;
     p->wakeupCause.time = wmi_wordid(*wmptr,*(wmptr + 1));

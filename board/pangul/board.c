@@ -439,7 +439,7 @@ void board_pwrbtn_to_pch(int level)
     
     gpio_set_level(GPIO_PCH_PWRBTN_L, level);
 }
-
+#ifdef RECORD_POWER_BUTTON_SHUTDOWN
 static void power_button_record(void)
 {
     if(power_button_is_pressed())
@@ -452,7 +452,7 @@ static void power_button_record(void)
     }
 }
 DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, power_button_record, HOOK_PRIO_DEFAULT);
-
+#endif
 /*******************************************************************************
  * Board chipset suspend/resume/shutdown/startup
  *
@@ -499,8 +499,7 @@ static void board_chipset_shutdown(void)
     pd_comm_enable(0, 0);   /* disable USB-C port 0*/
 
     mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0x55);  /* Record last power state */
-    
-    shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
+
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }

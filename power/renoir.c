@@ -291,7 +291,6 @@ enum power_state power_handle_state(enum power_state state)
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 1) {
             /* PCH SLP_S5 turn on, Power up to next state */
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x0D);
             return POWER_S5S3;
         }
         break;

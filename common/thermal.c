@@ -25,7 +25,7 @@
 #define CPRINTS(format, args...) cprints(CC_THERMAL, format, ## args)
 
 #define UMA_SYS_FAN_START_TEMP  36
-#define UMA_CPU_FAN_START_TEMP  36
+#define UMA_CPU_FAN_START_TEMP  39
 #define GFX_SYS_FAN_START_TEMP  39
 #define GFX_CPU_FAN_START_TEMP  40
 
@@ -89,7 +89,7 @@ const struct thermal_level_ags uma_thermal_sys_fan_ssd1_ntc[] = {
     {1,     800,      54,   51},  
     {2,     1000,     55,   52},  
     {3,     1300,     58,   53},
-    {4,     1600,     62,   56},  
+    {4,     1700,     62,   56},  
     {5,     2800,     62,   60} 
 };
 const struct thermal_level_s t_uma_thermal_sys_fan_ssd1_ntc = {
@@ -105,7 +105,7 @@ const struct thermal_level_ags uma_thermal_sys_fan_memory_ntc[] = {
     {1,     800,      60,   63},  
     {2,     1000,     65,   58},  
     {3,     1300,     69,   63},
-    {4,     1600,     72,   67},  
+    {4,     1700,     72,   67},  
     {5,     2800,     72,   70}
 };
 const struct thermal_level_s t_uma_thermal_sys_fan_memory_ntc = {
@@ -121,7 +121,7 @@ const struct thermal_level_ags  uma_thermal_cpu_fan_cpu_dts[] = {
     {1,     900,      70,   57},  
     {2,     1100,     78,   67},  
     {3,     1300,     89,   75},
-    {4,     1600,     96,   87},  
+    {4,     1700,     96,   85},  
     {5,     2800,     96,   95}
 };
 const struct thermal_level_s t_uma_thermal_cpu_fan_cpu_dts = {
@@ -137,7 +137,7 @@ const struct thermal_level_ags uma_thermal_cpu_fan_cpu_ntc[] = {
     {1,     900,      68,   57},  
     {2,     1100,     75,   65},  
     {3,     1300,     82,   72},
-    {4,     1600,     88,   79},  
+    {4,     1700,     88,   79},  
     {5,     2800,     88,   86}             
 }; 
 const struct thermal_level_s t_uma_thermal_cpu_fan_cpu_ntc = {

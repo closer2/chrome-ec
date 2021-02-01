@@ -40,11 +40,11 @@
 #if defined(NPCX_FAMILY_DT01)
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "03"
-#define BLD_EC_VERSION_TEST     "02"
+#define BLD_EC_VERSION_TEST     "03"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x03
-#define BLD_EC_VERSION_TEST_HEX 0x02
+#define BLD_EC_VERSION_TEST_HEX 0x03
 
 #elif defined(NPCX_FAMILY_DT02)
 #define BLD_EC_VERSION_X        "0"
@@ -270,73 +270,77 @@
 #define GPIO_PROJECT_VERSION3           GPIO_EC_PROJECT_ID2
 
 /*------------------------------------------------------------------------------
-* shutdown log ID define
-------------------------------------------------------------------------------*/
-#define LOG_ID_SHUTDOWN_0x01    0x01    /* S0, SLP_S4/S5 pull down */
-#define LOG_ID_SHUTDOWN_0x02    0x02    /* S3, SLP_S4/S5 pull down */
-#define LOG_ID_SHUTDOWN_0x03    0x03    /* S0, SLP_S3 pull down */
-#define LOG_ID_SHUTDOWN_0x04    0x04    /* S0, SLP_S4 pull down */
+ * shutdown log ID define.
+ * uint32_t shutdown_id.
+ * High 16bit-Exception code-[1-abnormal code, 0-normal code],
+ * Low 16bit-shutdown ID.
+ *------------------------------------------------------------------------------*/
+#define union32bit(x, y) ((x << 16) | y)  /* x:Exception code，y:shutdown ID */
+#define LOG_ID_SHUTDOWN_0x01    0x01    /* normal:S0, SLP_S4/S5 pull down */
+#define LOG_ID_SHUTDOWN_0x02    0x02    /* normal:S3, SLP_S4/S5 pull down */
+#define LOG_ID_SHUTDOWN_0x03    0x03    /* normal:S0, SLP_S3 pull down */
+#define LOG_ID_SHUTDOWN_0x04    0x04    /* normal:S0, SLP_S4 pull down */
 #define LOG_ID_SHUTDOWN_0x05    0x05
-#define LOG_ID_SHUTDOWN_0x06    0x06    /* Power button 4s timeout */
-#define LOG_ID_SHUTDOWN_0x07    0x07    /* Power button 10s timeout */
-#define LOG_ID_SHUTDOWN_0x08    0x08    /* S0, HWPG pull down */
-#define LOG_ID_SHUTDOWN_0x09    0x09    /* wakeup WDT timeout */
-#define LOG_ID_SHUTDOWN_0x0A    0x0A    /* Sx to S0, HWPG timeout WDT */
-#define LOG_ID_SHUTDOWN_0x0B    0x0B    /* Sx to S0, SUSB timeout WDT */
-#define LOG_ID_SHUTDOWN_0x0C    0x0C    /* Sx to S0, SUSC timeout WDT */
-#define LOG_ID_SHUTDOWN_0x0D    0x0D    /* Sx to S0, SLP_S5 timeout WDT */
+#define LOG_ID_SHUTDOWN_0x06    union32bit(1, 0x06)    /* abnormal:Power button 4s timeout */
+#define LOG_ID_SHUTDOWN_0x07    union32bit(1, 0x07)    /* abnormal:Power button 10s timeout */
+#define LOG_ID_SHUTDOWN_0x08    union32bit(1, 0x08)    /* abnormal:S0, HWPG pull down */
+#define LOG_ID_SHUTDOWN_0x09    union32bit(1, 0x09)    /* abnormal:wakeup WDT timeout */
+#define LOG_ID_SHUTDOWN_0x0A    union32bit(1, 0x0A)    /* abnormal:Sx to S0, HWPG timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0B    union32bit(1, 0x0B)    /* abnormal:Sx to S0, SUSB timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0C    union32bit(1, 0x0C)    /* abnormal:Sx to S0, SUSC timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0D    union32bit(1, 0x0D)    /* abnormal:Sx to S0, SLP_S5 timeout WDT */
 #define LOG_ID_SHUTDOWN_0x0E    0x0E
-#define LOG_ID_SHUTDOWN_0x0F    0x0F    /* Sx to S0, RSMRST timeout WDT */
-#define LOG_ID_SHUTDOWN_0x10    0x10    /* Sx to S0, PLTRST timeout WDT */
+#define LOG_ID_SHUTDOWN_0x0F    union32bit(1, 0x0F)    /* abnormal:Sx to S0, RSMRST timeo1ut WDT */
+#define LOG_ID_SHUTDOWN_0x10    union32bit(1, 0x10)    /* abnormal:Sx to S0, PLTRST timeout WDT */
 /* 11--1F reserve */
 
-#define LOG_ID_SHUTDOWN_0x20    0x20    /* PMIC reset by voltage regulator fault */
-#define LOG_ID_SHUTDOWN_0x21    0x21    /* PMIC reset by power button counter */
-#define LOG_ID_SHUTDOWN_0x2E    0x2E    /* Caterr#  low trig Shutdown */
+#define LOG_ID_SHUTDOWN_0x20    union32bit(1, 0x20)    /* abnormal:PMIC reset by voltage regulator fault */
+#define LOG_ID_SHUTDOWN_0x21    union32bit(1, 0x21)    /* abnormal:PMIC reset by power button counter */
+#define LOG_ID_SHUTDOWN_0x2E    union32bit(1, 0x2E)    /* abnormal:Caterr#  low trig Shutdown */
 
-#define LOG_ID_SHUTDOWN_0x30    0x30    /* CPU too hot(internal PECI) */
-#define LOG_ID_SHUTDOWN_0x31    0x31    /* CPU too hot(external NTC) */
-#define LOG_ID_SHUTDOWN_0x32    0x32    /* VGA too hot */
-#define LOG_ID_SHUTDOWN_0x33    0x33    /* SYS too hot(thermal sensor) */
-#define LOG_ID_SHUTDOWN_0x34    0x34    /* PCH too hot(thermal sensor) */
-#define LOG_ID_SHUTDOWN_0x35    0x35    /* DDR too hot(thermal sensor) */
-#define LOG_ID_SHUTDOWN_0x36    0x36    /* DCJ too hot */
-#define LOG_ID_SHUTDOWN_0x37    0x37    /* Ambient too hot */
-#define LOG_ID_SHUTDOWN_0x38    0x38    /* SSD too hot */
-#define LOG_ID_SHUTDOWN_0x39    0x39    /* battery too hot */
-#define LOG_ID_SHUTDOWN_0x3A    0x3A    /* charger IC too hot */
+#define LOG_ID_SHUTDOWN_0x30    union32bit(1, 0x30)    /* abnormal:CPU too hot(internal PECI) */
+#define LOG_ID_SHUTDOWN_0x31    union32bit(1, 0x31)    /* abnormal:CPU too hot(external NTC) */
+#define LOG_ID_SHUTDOWN_0x32    union32bit(1, 0x32)    /* abnormal:VGA too hot */
+#define LOG_ID_SHUTDOWN_0x33    union32bit(1, 0x33)    /* abnormal:SYS too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x34    union32bit(1, 0x34)    /* abnormal:PCH too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x35    union32bit(1, 0x35)    /* abnormal:DDR too hot(thermal sensor) */
+#define LOG_ID_SHUTDOWN_0x36    union32bit(1, 0x36)    /* abnormal:DCJ too hot */
+#define LOG_ID_SHUTDOWN_0x37    union32bit(1, 0x37)    /* abnormal:Ambient too hot */
+#define LOG_ID_SHUTDOWN_0x38    union32bit(1, 0x38)    /* abnormal:SSD too hot */
+#define LOG_ID_SHUTDOWN_0x39    union32bit(1, 0x39)    /* abnormal:battery too hot */
+#define LOG_ID_SHUTDOWN_0x3A    union32bit(1, 0x3A)    /* abnormal:charger IC too hot */
 /* 3B--3F reserve */
 
 /* 40--4F for ODM */
-#define LOG_ID_SHUTDOWN_0x40    0x40    /* Power button pressed */
-#define LOG_ID_SHUTDOWN_0x41    0x41    /* Power button released */
-#define LOG_ID_SHUTDOWN_0x42    0x42    /* EC reset after BIOS tool update EC */
+#define LOG_ID_SHUTDOWN_0x40    0x40    /* normal:Power button pressed */
+#define LOG_ID_SHUTDOWN_0x41    0x41    /* normal:Power button released */
+#define LOG_ID_SHUTDOWN_0x42    0x42    /* abnormal:EC reset after BIOS tool update EC */
 #define LOG_ID_SHUTDOWN_0x43    0x43    /* Console command apshutdown */
-#define LOG_ID_SHUTDOWN_0x44    0x44    /* shutdown wdt timeout */
-#define LOG_ID_SHUTDOWN_0x45    0x45    /* SYSTEM_ALW_PG fail */
-#define LOG_ID_SHUTDOWN_0x46    0x46    /* PSON# 12V fail */
-#define LOG_ID_SHUTDOWN_0x47    0x47    /* all core fail */
+#define LOG_ID_SHUTDOWN_0x44    union32bit(1, 0x44)    /* abnormal:shutdown wdt timeout */
+#define LOG_ID_SHUTDOWN_0x45    union32bit(1, 0x45)    /* abnormal:SYSTEM_ALW_PG fail */
+#define LOG_ID_SHUTDOWN_0x46    union32bit(1, 0x46)    /* abnormal:PSON# 12V fail */
+#define LOG_ID_SHUTDOWN_0x47    union32bit(1, 0x47)    /* abnormal:all core fail */
 
 
 /* 50--CF reserve */
 
-#define LOG_ID_SHUTDOWN_0xD0    0xD0    /* BIOS/OS WDT time out trigger BSOD */
-#define LOG_ID_SHUTDOWN_0xD1    0xD1    /* BIOS bootlock fail */
-#define LOG_ID_SHUTDOWN_0xD2    0xD2    /* BIOS memory init fail */
-#define LOG_ID_SHUTDOWN_0xD3    0xD3    /* BIOS main block fail */
-#define LOG_ID_SHUTDOWN_0xD4    0xD4    /* BIOS crisis fail */
+#define LOG_ID_SHUTDOWN_0xD0    union32bit(1, 0xD0)    /* abnormal:BIOS/OS WDT time out trigger BSOD */
+#define LOG_ID_SHUTDOWN_0xD1    union32bit(1, 0xD1)    /* abnormal:BIOS bootlock fail */
+#define LOG_ID_SHUTDOWN_0xD2    union32bit(1, 0xD2)    /* abnormal:BIOS memory init fail */
+#define LOG_ID_SHUTDOWN_0xD3    union32bit(1, 0xD3)    /* abnormal:BIOS main block fail */
+#define LOG_ID_SHUTDOWN_0xD4    union32bit(1, 0xD4)    /* abnormal:BIOS crisis fail */
 #define LOG_ID_SHUTDOWN_0xD5    0xD5
 #define LOG_ID_SHUTDOWN_0xD6    0xD6
-#define LOG_ID_SHUTDOWN_0xD7    0xD7    /* flash BIOS start */
-#define LOG_ID_SHUTDOWN_0xD8    0xD8    /* flash BIOS end */
+#define LOG_ID_SHUTDOWN_0xD7    0xD7    /* normal:flash BIOS start */
+#define LOG_ID_SHUTDOWN_0xD8    0xD8    /* normal:flash BIOS end */
 /* D9--DF reserve */
 
 /* E0--EA reserve */
-#define LOG_ID_SHUTDOWN_0xEB    0xEB    /* EC RAM init fail */
-#define LOG_ID_SHUTDOWN_0xEC    0xEC    /* EC code reset */
-#define LOG_ID_SHUTDOWN_0xFC    0xFC    /* EC VSTBY or WRST reset */
-#define LOG_ID_SHUTDOWN_0xFD    0xFD    /* EC external WDT reset power off */
-#define LOG_ID_SHUTDOWN_0xFE    0xFE    /* EC internal WDT reset power off */
+#define LOG_ID_SHUTDOWN_0xEB    union32bit(1, 0xEB)    /* abnormal:EC RAM init fail */
+#define LOG_ID_SHUTDOWN_0xEC    union32bit(1, 0xEC)    /* abnormal:EC code reset */
+#define LOG_ID_SHUTDOWN_0xFC    union32bit(1, 0xFC)    /* abnormal:EC VSTBY or WRST reset */
+#define LOG_ID_SHUTDOWN_0xFD    union32bit(1, 0xFD)    /* abnormal:EC external WDT reset power off */
+#define LOG_ID_SHUTDOWN_0xFE    union32bit(1, 0xFE)    /* abnormal:EC internal WDT reset power off */
 
 /*------------------------------------------------------------------------------
 * wakeup log ID define
