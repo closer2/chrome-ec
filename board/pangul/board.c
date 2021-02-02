@@ -500,6 +500,11 @@ static void board_chipset_shutdown(void)
 
     mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0x55);  /* Record last power state */
 
+    /* S3 to S4/S5 fail off */
+    if (chipset_in_state(CHIPSET_STATE_SUSPEND)) {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
+    }
+
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
