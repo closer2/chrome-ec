@@ -126,13 +126,13 @@ GPIO(SMBCLK_AUX,            PIN(9, 0), GPIO_INPUT)                      /* EC_I2
 GPIO(SMBDATA_AUX,           PIN(8, 7), GPIO_INPUT)                      /* EC_I2C1_SDA0 */
 GPIO(EC_PD_I2C1_SCL,        PIN(F, 3), GPIO_INPUT)                      /* EC_I2C4_SCL1 */
 GPIO(EC_PD_I2C1_SDA,        PIN(F, 2), GPIO_INPUT)                      /* EC_I2C4_SDA1 */
-GPIO(FCH_SIC,               PIN(F, 5), GPIO_INPUT)                      /* EC_I2C5_SCL1 */
-GPIO(FCH_SID,               PIN(F, 4), GPIO_INPUT)                      /* EC_I2C5_SDA1 */
+GPIO(FCH_SIC,               PIN(F, 5), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SCL1 */
+GPIO(FCH_SID,               PIN(F, 4), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SDA1 */
 
 ALTERNATE(PIN_MASK(9, BIT(0)), 0, MODULE_I2C, 0)                        /* I2C1_SCL0 */
 ALTERNATE(PIN_MASK(8, BIT(7)), 0, MODULE_I2C, 0)                        /* I2C1_SDA0 */
 ALTERNATE(PIN_MASK(F, BIT(2) | BIT(3)), 0, MODULE_I2C, 0)               /* I2C4_SDA1 I2C4_SCL1 */
-ALTERNATE(PIN_MASK(F, BIT(4) | BIT(5)), 0, MODULE_I2C, 0)               /* I2C5_SDA1 I2C5_SCL1 */
+ALTERNATE(PIN_MASK(F, BIT(4) | BIT(5)), 0, MODULE_I2C, GPIO_SEL_1P8V)   /* I2C5_SDA1 I2C5_SCL1 */
 
 ALTERNATE(PIN_MASK(6, BIT(4) | BIT(5)), 0, MODULE_UART, 0)  /* Cr50 requires no pullups. */
 
