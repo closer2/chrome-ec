@@ -1736,7 +1736,7 @@ void shutdown_cause_record(uint32_t data)
         shutdown_write_index += write_index;
     }
 
-    ccprintf("====== shutdown log [%02x] -> [%x]\n", data, shutdown_write_index);
+    ccprintf("====== shutdown log [%02x] -> [%x]\n", (uint16_t)data, shutdown_write_index);
 
     // add timestamp
     log_Data.log_timestamp = NPCX_TTC;
@@ -1837,7 +1837,7 @@ void wakeup_cause_record(uint32_t data)
         wakeup_write_index += write_index;
     }
 
-    ccprintf("====== wakeup log [%02x] -> [%x]\n", data, wakeup_write_index);
+    ccprintf("====== wakeup log [%02x] -> [%x]\n", (uint16_t)data, wakeup_write_index);
 
     // add timestamp
     log_Data.log_timestamp = NPCX_TTC;

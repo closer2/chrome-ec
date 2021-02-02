@@ -41,7 +41,7 @@ GPIO(PCH_SMI_L,             PIN(C, 6), GPIO_OUT_LOW)        /* SMI to SOC, EC_SM
 GPIO(EC_WP_ROM,             PIN(A, 3), GPIO_OUT_LOW)        /* TODO: confirm its function, 1130_EC_WP_ROM */
 GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, output, passthrough SLP_S5_L */
 GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
-GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_OUT_LOW)        /* PROCHOT# */
+GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_ODR_LOW)        /* PROCHOT# */
 GPIO(PWRGD_140MS,           PIN(B, 0), GPIO_OUT_LOW)        /* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
 GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power */
 GPIO(USB_PWR_EN_L,          PIN(E, 4), GPIO_OUT_HIGH)       /* USB_PWR_EN# */
