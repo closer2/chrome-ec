@@ -61,6 +61,9 @@
 /* modify 8sec force shutdown to 4sec*/
 #define PWRBTN_DELAY_T1    (64 * MSEC - PWRBTN_DELAY_T0)
 
+#define PWRBTN_DELAY_T2    (3700*MSEC)
+#define PWRBTN_DELAY_T3    (6300*MSEC)
+
 /*
  * Length of time to stretch initial power button press to give chipset a
  * chance to wake up (~100ms) and react to the press (~16ms).  Also used as
@@ -76,10 +79,10 @@ static const char * const state_names[] = {
     "pressed",
     "t0",
     "t1",
-    "held",
+    "held_4s",
+    "held_10s",
     "lid-open",
     "lan-wake",
-    "wlan-wake",
     "released",
     "eat-release",
     "init-on",
@@ -316,7 +319,7 @@ static void state_machine(uint64_t tnow)
 			if (power_button_pulse_enabled) {
 				/* Chipset is on, so send the chipset a pulse */
 				tnext_state = tnow + PWRBTN_DELAY_T0;
-				pwrbtn_state = PWRBTN_STATE_T0;
+				pwrbtn_state = PWRBTN_STATE_T1;
 				set_pwrbtn_to_pch(0, 0);
 			} else {
 				tnext_state = tnow + PWRBTN_DELAY_T1;
@@ -339,7 +342,8 @@ static void state_machine(uint64_t tnow)
 			CPRINTS("PB chipset already off");
 		else
 			set_pwrbtn_to_pch(0, 0);
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x06);
+
+        tnext_state = tnow + PWRBTN_DELAY_T2;
 		pwrbtn_state = PWRBTN_STATE_HELD;
 		break;
 	case PWRBTN_STATE_RELEASED:
@@ -423,6 +427,18 @@ static void state_machine(uint64_t tnow)
 		break;
 	case PWRBTN_STATE_IDLE:
 	case PWRBTN_STATE_HELD:
+        if (tnow>tnext_state) {
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x06);
+            tnext_state = tnow + PWRBTN_DELAY_T3;
+		    pwrbtn_state = PWRBTN_STATE_HELD_1;
+        }
+        break;
+    case PWRBTN_STATE_HELD_1:
+        if (tnow>tnext_state) {
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x07);
+            CPRINTS("PSW 10s EC reboot......");
+            system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
+        }
 	case PWRBTN_STATE_EAT_RELEASE:
 		/* Do nothing */
 		break;

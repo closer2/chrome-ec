@@ -21,6 +21,7 @@ enum power_button_state {
 	PWRBTN_STATE_T1,
 	/* Button down, signal asserted to chipset */
 	PWRBTN_STATE_HELD,
+	PWRBTN_STATE_HELD_1,
 	/* Force pulse due to lid-open event */
 	PWRBTN_STATE_LID_OPEN,
     /* Force pulse due to lan wake event */

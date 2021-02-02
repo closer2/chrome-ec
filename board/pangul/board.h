@@ -276,7 +276,7 @@
  * High 16bit-Exception code-[1-abnormal code, 0-normal code],
  * Low 16bit-shutdown ID.
  *------------------------------------------------------------------------------*/
-#define union32bit(x, y) ((x << 16) | y)  /* x:Exception code，y:shutdown ID */
+#define union32bit(x, y) ((x << 16) | y)  /* x:Exception code   y:shutdown ID */
 #define LOG_ID_SHUTDOWN_0x01    0x01    /* normal:S0, SLP_S4/S5 pull down */
 #define LOG_ID_SHUTDOWN_0x02    union32bit(1, 0x02)    /* abnormal:S3, SLP_S4/S5 pull down */
 #define LOG_ID_SHUTDOWN_0x03    0x03    /* normal:S0, SLP_S3 pull down */
