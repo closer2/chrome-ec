@@ -246,7 +246,7 @@ int power_wait_voltage()
     for(count=0; count<40; count++)
     {
         ret = adc_read_channel(ADC_12V);
-        if(ret>1900)
+        if(ret>1800)
         {
             CPRINTS("power voltage 12V wait pass Voltage=%d, count=%d", ret,count);
             msleep(50);
