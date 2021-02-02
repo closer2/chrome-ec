@@ -44,7 +44,7 @@
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x03
-#define BLD_EC_VERSION_TEST_HEX 0x03
+#define BLD_EC_VERSION_TEST_HEX 0x04
 
 #elif defined(NPCX_FAMILY_DT02)
 #define BLD_EC_VERSION_X        "0"
@@ -207,6 +207,7 @@
 #define CONFIG_USB_PD_TCPM_RT1715
 /*#define CONFIG_USB_PD_REV30*/         /* more than zinger */
 /*#define CONFIG_USBC_VCONN*/               /* more than zinger */
+#undef  CONFIG_USB_PRL_SM
 
 #define CONFIG_NUM_FIXED_BATTERIES  0           /* Used duing VIF generation*/
 #define CONFIG_USB_PD_MODEL_PART_NUMBER "DT01"  /* Used duing VIF generation*/
