@@ -277,7 +277,7 @@
  *------------------------------------------------------------------------------*/
 #define union32bit(x, y) ((x << 16) | y)  /* x:Exception code，y:shutdown ID */
 #define LOG_ID_SHUTDOWN_0x01    0x01    /* normal:S0, SLP_S4/S5 pull down */
-#define LOG_ID_SHUTDOWN_0x02    0x02    /* normal:S3, SLP_S4/S5 pull down */
+#define LOG_ID_SHUTDOWN_0x02    union32bit(1, 0x02)    /* abnormal:S3, SLP_S4/S5 pull down */
 #define LOG_ID_SHUTDOWN_0x03    0x03    /* normal:S0, SLP_S3 pull down */
 #define LOG_ID_SHUTDOWN_0x04    0x04    /* normal:S0, SLP_S4 pull down */
 #define LOG_ID_SHUTDOWN_0x05    0x05
@@ -320,6 +320,7 @@
 #define LOG_ID_SHUTDOWN_0x45    union32bit(1, 0x45)    /* abnormal:SYSTEM_ALW_PG fail */
 #define LOG_ID_SHUTDOWN_0x46    union32bit(1, 0x46)    /* abnormal:PSON# 12V fail */
 #define LOG_ID_SHUTDOWN_0x47    union32bit(1, 0x47)    /* abnormal:all core fail */
+#define LOG_ID_SHUTDOWN_0x48    union32bit(1, 0x48)    /* abnormal:shutdown WDT triggers SMI blue screen */
 
 
 /* 50--CF reserve */

@@ -131,6 +131,7 @@ static void system_sw_wdt_service(void)
                 gpio_set_level(GPIO_PCH_SMI_L, 0);
                 msleep(300);
                 gpio_set_level(GPIO_PCH_SMI_L, 1);
+                shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);
                 #endif
             }
         }
