@@ -108,7 +108,7 @@ UNUSED(PIN(5, 0))
 UNUSED(PIN(3, 1))
 UNUSED(PIN(B, 4))
 UNUSED(PIN(B, 5))
-UNUSED(PIN(8, 0))
+UNUSED(PIN(B, 6))
 
 /* The following signal not implmented by PanGuL board, need confirm We Do Not Them!!! */
 UNIMPLEMENTED(AC_PRESENT)
@@ -152,7 +152,7 @@ ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)               /* ADC8:
 
 ALTERNATE(PIN_MASK(C, BIT(2) | BIT(3)), 1, MODULE_PWM, 0)       /* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM */
 
-ALTERNATE(PIN_MASK(B, BIT(6)), 1, MODULE_PWM, 0)                /* PWM4: power-on led */
+ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)                /* PWM3: power-on led */
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */

@@ -12,11 +12,11 @@
  * platform config.
  * choose one platform {PLATFORM_CONFIGURATION_DT01, PLATFORM_CONFIGURATION_DT02}
  * ----------------------------------------------------------------------------*/
-#define PLATFORM_CONFIGURATION_DT01
+#define PLATFORM_CONFIGURATION_DT02
 
 /* Features depend on chip family */
-#if defined(PLATFORM_CONFIGURATION_DT01)
-#define NPCX_FAMILY_DT01
+#if defined(PLATFORM_CONFIGURATION_DT02)
+#define NPCX_FAMILY_DT02
 #else
 #error "Unsupported platform family"
 #endif
@@ -35,12 +35,12 @@
 *            EC test version for ODM debug
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
-#define BLD_EC_VERSION_YZ       "03"
-#define BLD_EC_VERSION_TEST     "04"
+#define BLD_EC_VERSION_YZ       "02"
+#define BLD_EC_VERSION_TEST     "00"
 
 #define BLD_EC_VERSION_X_HEX    0x00
-#define BLD_EC_VERSION_YZ_HEX   0x03
-#define BLD_EC_VERSION_TEST_HEX 0x04
+#define BLD_EC_VERSION_YZ_HEX   0x02
+#define BLD_EC_VERSION_TEST_HEX 0x00
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
