@@ -321,8 +321,15 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
 };
 BUILD_ASSERT(ARRAY_SIZE(thermal_params) == TEMP_SENSOR_COUNT);
 
-/* TODO: check with real hardware, this is error */
+/* I2C port config */
 const struct i2c_port_t i2c_ports[] = {
+    {
+        .name = "hc32F460",
+        .port = I2C_PORT_HC32F460,
+        .kbps = 400,
+        .scl = GPIO_F460_PA2_CLK,
+        .sda = GPIO_F460_PA3_DAT,
+    },
 	{
 		.name = "smb-ext",
 		.port = I2C_PORT_SMB_AUX,

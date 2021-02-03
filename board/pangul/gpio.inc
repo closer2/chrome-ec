@@ -106,8 +106,6 @@ UNUSED(PIN(2, 6))
 UNUSED(PIN(2, 7))
 UNUSED(PIN(5, 0))
 UNUSED(PIN(3, 1))
-UNUSED(PIN(B, 4))
-UNUSED(PIN(B, 5))
 UNUSED(PIN(8, 0))
 
 /* The following signal not implmented by PanGuL board, need confirm We Do Not Them!!! */
@@ -123,6 +121,8 @@ UNIMPLEMENTED(PACKET_MODE_EN)
  */
 
 /* I2C pins - these will be reconfigured for alternate function below */
+GPIO(F460_PA2_CLK,          PIN(B, 5), GPIO_INPUT)                      /* EC_I2C0_SCL0 */
+GPIO(F460_PA3_DAT,          PIN(B, 4), GPIO_INPUT)                      /* EC_I2C0_SDA0 */
 GPIO(SMBCLK_AUX,            PIN(9, 0), GPIO_INPUT)                      /* EC_I2C1_SCL0 */
 GPIO(SMBDATA_AUX,           PIN(8, 7), GPIO_INPUT)                      /* EC_I2C1_SDA0 */
 GPIO(EC_PD_I2C1_SCL,        PIN(F, 3), GPIO_INPUT)                      /* EC_I2C4_SCL1 */
@@ -130,6 +130,7 @@ GPIO(EC_PD_I2C1_SDA,        PIN(F, 2), GPIO_INPUT)                      /* EC_I2
 GPIO(FCH_SIC,               PIN(F, 5), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SCL1 */
 GPIO(FCH_SID,               PIN(F, 4), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SDA1 */
 
+ALTERNATE(PIN_MASK(B, BIT(4) | BIT(5)), 0, MODULE_I2C, 0)               /* I2C0_SDA0 I2C0_SCL0 */
 ALTERNATE(PIN_MASK(9, BIT(0)), 0, MODULE_I2C, 0)                        /* I2C1_SCL0 */
 ALTERNATE(PIN_MASK(8, BIT(7)), 0, MODULE_I2C, 0)                        /* I2C1_SDA0 */
 ALTERNATE(PIN_MASK(F, BIT(2) | BIT(3)), 0, MODULE_I2C, 0)               /* I2C4_SDA1 I2C4_SCL1 */
