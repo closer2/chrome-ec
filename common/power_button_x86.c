@@ -182,7 +182,7 @@ uint8_t get_power_button_lock_flag(void)
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
 
     memValue = *mptr;
-    CPRINTS("Get power button lock flag:%d\n", memValue);
+    CPRINTS("power button is %s", memValue ? "lock" : "not lock");
     return memValue;
 }
 #endif

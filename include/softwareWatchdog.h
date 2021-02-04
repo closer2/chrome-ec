@@ -21,18 +21,18 @@ typedef struct EC_SHUTDOAN_WDT {
       uint8_t wdtEn;
       uint16_t time;
       uint16_t countTime;
-      uint8_t timeoutNum;
   }ec_shutdown_WDT;
 
 #define  SW_WDT_DISENABLE       0x00
 #define  SW_WDT_ENABLE          0x01
 
-#define  POWERON_WDT_TIMEOUT_NUM     0x02 /* */
-#define  POWERON_WDT_TIMEOUT_NUM2    0x05 /* */
-
+#define  POWERON_WDT_TIMEOUT_NUM    0x05 /* */
 
 extern ec_wakeup_WDT g_wakeupWDT;
 extern ec_shutdown_WDT g_shutdownWDT;
+
+extern void clearShutdownWDtdata(void);
+extern void clearWakeupWDtdata(void);
 
 extern uint8_t get_chassisIntrusion_data(void);
 extern void set_chassisIntrusion_data(uint8_t data);

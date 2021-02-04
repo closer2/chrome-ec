@@ -219,19 +219,8 @@ static void oem_bios_to_ec_command(void)
             g_wakeupWDT.countTime = 0;
             g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
             CPRINTS("wakeup WDT Enable time=[%d]", g_wakeupWDT.time);
-            
-            /* diable shutdown wdt*/
-            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
-            g_shutdownWDT.timeoutNum = 0;
-            g_shutdownWDT.countTime = 0;
-            g_shutdownWDT.time = 0;
-            CPRINTS("shutdown WDT disable");
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
-            g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
-            g_wakeupWDT.timeoutNum = 0;
-            g_wakeupWDT.countTime = 0;
-            g_wakeupWDT.time = 0;
-            CPRINTS("wakeup WDT disable");
+            clearWakeupWDtdata();
             mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
@@ -244,13 +233,9 @@ static void oem_bios_to_ec_command(void)
             g_shutdownWDT.time = *(bios_cmd+3) | (*(bios_cmd+4))<<8;   /* time */
             g_shutdownWDT.countTime = 0;
             g_shutdownWDT.wdtEn = SW_WDT_ENABLE;
-            CPRINTS("shutdown WDT Enable time=[%d]", g_shutdownWDT.time);
+            CPRINTS("shutdown WDT Enable time=%d", g_shutdownWDT.time);
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
-            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
-            g_shutdownWDT.timeoutNum = 0;
-            g_shutdownWDT.countTime = 0;
-            g_shutdownWDT.time = 0;
-            CPRINTS("shutdown WDT disable");
+            clearShutdownWDtdata();
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

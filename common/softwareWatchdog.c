@@ -26,8 +26,6 @@
 ec_wakeup_WDT g_wakeupWDT = {0};
 ec_shutdown_WDT g_shutdownWDT = {0};
 
-static uint8_t wdt_wakeup_delay=0;
-
 struct chassis_Intrusion {
     uint8_t   chassisIntrusionData;
     uint8_t   chassisWriteFlashData;
@@ -74,81 +72,95 @@ DECLARE_HOST_COMMAND(EC_CMD_EXTERNAL_WDT,
         host_command_WDT,
         EC_VER_MASK(0)); 
 
+/* Enter system, it need to clear WDt data zero */
+void clearWakeupWDtdata(void)
+{
+    g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+    g_wakeupWDT.timeoutNum = 0;
+    g_wakeupWDT.countTime = 0;
+    g_wakeupWDT.time = 0;
+    CPRINTS("Wakeup WDT disable, it need to clear WDt data zero");
+}
+
+/* Wake Up WDT Service time base:1S */
+void WakeUpWDtService(void)
+{
+    g_wakeupWDT.countTime++;
+    if (g_wakeupWDT.countTime >= g_wakeupWDT.time) {
+        g_wakeupWDT.countTime = 0;
+        g_wakeupWDT.timeoutNum ++;
+
+        /* TODO: force shutdown and then power on */
+        if(chipset_in_state(CHIPSET_STATE_ON)) {
+            CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
+            chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
+        }
+    }
+
+    if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM) {
+        g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        g_wakeupWDT.countTime = 0;
+    }
+
+    if(chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
+        CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
+        power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
+        mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
+    }
+}
+
+/* shutdown WDT disable, it need to clear WDt data zero
+ * BIOS notify ec to disable shutdown WDT, when BIOS is post start.
+ * ec nead to disable shutdown WDT, when system is s3,s4 and s5 state.
+ */
+void clearShutdownWDtdata(void)
+{
+    g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+    g_shutdownWDT.countTime = 0;
+    g_shutdownWDT.time = 0;
+    CPRINTS("Shutdown WDT disable, it need to clear WDt data zero");
+}
+
+/* shutdown WDT Service time base:1S */
+void ShutdownWDtService(void)
+{
+    g_shutdownWDT.countTime++;
+
+    if (chipset_in_state(CHIPSET_STATE_SUSPEND)
+        || chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
+        clearShutdownWDtdata();
+    }
+
+    if (g_shutdownWDT.countTime >= g_shutdownWDT.time) {
+        g_shutdownWDT.countTime = 0x00;
+        /* TODO: trigger NMI or force shutdown */
+        if(chipset_in_state(CHIPSET_STATE_ON) ) {
+            CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
+                        g_shutdownWDT.time);
+    #ifdef  CONFIG_FINAL_RELEASE
+            /* force shutdwon when release*/
+            chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
+    #else
+            /* trigger BSOD when development*/
+            gpio_set_level(GPIO_PCH_SMI_L, 0);
+            msleep(300);
+            gpio_set_level(GPIO_PCH_SMI_L, 1);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);
+    #endif
+        }
+    }
+}
 
 static void system_sw_wdt_service(void)
 {
-    /* Poweron software WDT */
+    /* wakeup software WDT */
     if (g_wakeupWDT.wdtEn == SW_WDT_ENABLE) {
-        g_wakeupWDT.countTime++;
-        if (g_wakeupWDT.countTime > g_wakeupWDT.time) {
-            g_wakeupWDT.countTime = 0;
-            g_wakeupWDT.timeoutNum ++;
-
-            //TODO: force shutdown and then power on
-            if(POWER_S0 == power_get_state()) {
-                CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
-                chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
-                wdt_wakeup_delay = 0x01;
-            }  
-        }
-
-        if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM2)
-        {
-            g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
-            g_wakeupWDT.countTime = 0;
-        }
-
-        if((POWER_S5 == power_get_state()) || (POWER_G3 == power_get_state())) {
-            if(wdt_wakeup_delay>0) {
-                wdt_wakeup_delay++;
-                if(wdt_wakeup_delay>3) {
-                    CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
-                    power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
-                    wdt_wakeup_delay = 0;
-                    mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
-                }
-            }
-        }
+        WakeUpWDtService();
     }
 
     /* shutdown software WDT */
     if (g_shutdownWDT.wdtEn == SW_WDT_ENABLE) {
-        g_shutdownWDT.countTime++;
-        
-        if (g_shutdownWDT.countTime > g_shutdownWDT.time) {
-            g_shutdownWDT.countTime = 0;
-            g_shutdownWDT.timeoutNum ++;
-
-            //TODO: force shutdown and then power on
-            if(POWER_S0 == power_get_state()) {
-                CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
-                            g_shutdownWDT.time);
-                #ifdef  CONFIG_FINAL_RELEASE
-                /* force shutdwon when release*/
-                chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
-                #else
-                /* trigger BSOD when development*/
-                gpio_set_level(GPIO_PCH_SMI_L, 0);
-                msleep(300);
-                gpio_set_level(GPIO_PCH_SMI_L, 1);
-                shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);
-                #endif
-            }
-        }
-
-        if (g_shutdownWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM)
-        {
-            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
-            g_shutdownWDT.countTime = 0;
-        }
-
-        if((POWER_S5==power_get_state()) ||
-           (POWER_S3==power_get_state())) {
-            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
-            g_shutdownWDT.timeoutNum = 0;
-            g_shutdownWDT.countTime = 0;
-            g_shutdownWDT.time = 0;
-        }
+        ShutdownWDtService();
     }
 }
 DECLARE_HOOK(HOOK_SECOND, system_sw_wdt_service, HOOK_PRIO_INIT_CHIPSET);
