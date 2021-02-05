@@ -17,6 +17,8 @@
 #error "Please upgrade your board configuration"
 #endif
 
+static int rt1715_polarity[CONFIG_USB_PD_PORT_MAX_COUNT];
+
 static int rt1715_enable_ext_messages(int port, int enable)
 {
 	return tcpc_update8(port, RT1715_REG_VENDOR_5,
@@ -42,19 +44,82 @@ static int rt1715_tcpci_tcpm_init(int port)
 
 	if (IS_ENABLED(CONFIG_USB_PD_REV30))
 		rt1715_enable_ext_messages(port, 1);
+    
 	return tcpci_tcpm_init(port);
 }
+
+/*
+ * Selects the CC PHY noise filter voltage level according to the current
+ * CC voltage level.
+ *
+ * @param cc_level The CC voltage level for the port's current role
+ * @return EC_SUCCESS if writes succeed; failure code otherwise
+ */
+static inline int rt1715_init_cc_params(int port, int cc_level)
+{
+	int rv, en, sel;
+
+	if (cc_level == TYPEC_CC_VOLT_RP_DEF) {
+		/* RXCC threshold : 0.55V */
+		en = RT1715_REG_BMCIO_RXDZEN_DISABLE;
+
+		sel = RT1715_REG_BMCIO_RXDZSEL_OCCTRL_600MA
+		  | RT1715_REG_BMCIO_RXDZSEL_SEL;
+	} else {
+		/* RD threshold : 0.35V & RP threshold : 0.75V */
+		en = RT1715_REG_BMCIO_RXDZEN_ENABLE;
+
+		sel = RT1715_REG_BMCIO_RXDZSEL_OCCTRL_600MA;
+	}
+
+	rv = tcpc_write(port, RT1715_REG_BMCIO_RXDZEN, en);
+	if (!rv)
+		rv = tcpc_write(port, RT1715_REG_BMCIO_RXDZSEL, sel);
+
+	return rv;
+}
+
+static int rt1715_get_cc(int port, enum tcpc_cc_voltage_status *cc1,
+	enum tcpc_cc_voltage_status *cc2)
+{
+	int rv;
+
+	rv = tcpci_tcpm_get_cc(port, cc1, cc2);
+	if (rv)
+		return rv;
+
+	return rt1715_init_cc_params(port, rt1715_polarity[port] ? *cc2 : *cc1);
+}
+
+static int rt1715_set_polarity(int port, enum tcpc_cc_polarity polarity)
+{
+	int rv;
+	enum tcpc_cc_voltage_status cc1, cc2;
+
+	rt1715_polarity[port] = polarity;
+
+	rv = tcpci_tcpm_get_cc(port, &cc1, &cc2);
+	if (rv)
+		return rv;
+
+	rv = rt1715_init_cc_params(port, polarity ? cc2 : cc1);
+	if (rv)
+		return rv;
+
+	return tcpci_tcpm_set_polarity(port, polarity);
+}
+
 
 const struct tcpm_drv rt1715_tcpm_drv = {
 	.init = &rt1715_tcpci_tcpm_init,
 	.release = &tcpci_tcpm_release,
-	.get_cc = &tcpci_tcpm_get_cc,
+	.get_cc = &rt1715_get_cc,
 #ifdef CONFIG_USB_PD_VBUS_DETECT_TCPC
 	.check_vbus_level = &tcpci_tcpm_check_vbus_level,
 #endif
 	.select_rp_value = &tcpci_tcpm_select_rp_value,
 	.set_cc = &tcpci_tcpm_set_cc,
-	.set_polarity = &tcpci_tcpm_set_polarity,
+	.set_polarity = &rt1715_set_polarity,
 #ifdef CONFIG_USB_PD_DECODE_SOP
 	.sop_prime_enable	= &tcpci_tcpm_sop_prime_enable,
 #endif
