@@ -200,24 +200,36 @@ extern "C" {
 /* Unused 0x1E -0x1F */
 
 /* Sensor temperature, offset 0x20--0x2F */
-#define EC_MEMMAP_TEMP_SENSOR_00            0x20 /* CPU DTS */
-#define EC_MEMMAP_TEMP_SENSOR_01            0x21 /* Ambience NTC */
-#define EC_MEMMAP_TEMP_SENSOR_02            0x22 /* SSD1 NTC */
-#define EC_MEMMAP_TEMP_SENSOR_03            0x23 /* PCIEX16 NTC */
-#define EC_MEMMAP_TEMP_SENSOR_04            0x24 /* CPU VRAM NTC */
-#define EC_MEMMAP_TEMP_SENSOR_05            0x25 /* Memory NTC */
-#define EC_MEMMAP_TEMP_SENSOR_06            0x26 /* Battery */
-#define EC_MEMMAP_TEMP_SENSOR_07            0x27 /* Charger */
-#define EC_MEMMAP_TEMP_SENSOR_08            0x28 /* Type-C port-0 */
-#define EC_MEMMAP_TEMP_SENSOR_09            0x29 /* Type-C port-1 */
-#define EC_MEMMAP_TEMP_SENSOR_0A            0x2A 
-#define EC_MEMMAP_TEMP_SENSOR_0B            0x2B
-#define EC_MEMMAP_TEMP_SENSOR_0C            0x2C
-#define EC_MEMMAP_TEMP_SENSOR_0D            0x2D
-#define EC_MEMMAP_TEMP_SENSOR_0E            0x2E
-#define EC_MEMMAP_TEMP_SENSOR_0F            0x2F
-#define EC_MEMMAP_TEMP_SENSOR               EC_MEMMAP_TEMP_SENSOR_00
-/* Unused 0x30 -0x52 */
+#define EC_MEMMAP_TEMP_SENSOR_00        0x20 /* CPU DTS */
+#define EC_MEMMAP_TEMP_SENSOR_01        0x21 /* Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_02        0x22 /* SSD1 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_03        0x23 /* PCIEX16 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_04        0x24 /* CPU VRAM NTC */
+#define EC_MEMMAP_TEMP_SENSOR_05        0x25 /* Memory NTC */
+#define EC_MEMMAP_TEMP_SENSOR_06        0x26 /* Battery */
+#define EC_MEMMAP_TEMP_SENSOR_07        0x27 /* Charger */
+#define EC_MEMMAP_TEMP_SENSOR_08        0x28 /* Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_09        0x29 /* Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0A        0x2A 
+#define EC_MEMMAP_TEMP_SENSOR_0B        0x2B
+#define EC_MEMMAP_TEMP_SENSOR_0C        0x2C
+#define EC_MEMMAP_TEMP_SENSOR           EC_MEMMAP_TEMP_SENSOR_00
+#define EC_MEMMAP_TEMP_SENSOR_00_AVG    0x2D /* average: CPU DTS */
+#define EC_MEMMAP_TEMP_SENSOR_01_AVG    0x2E /* average: Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_02_AVG    0x2F /* average: SSD1 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_03_AVG    0x30 /* average: PCIEX16 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_04_AVG    0x31 /* average: Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_05_AVG    0x32 /* average: Memory NTC */
+#define EC_MEMMAP_TEMP_SENSOR_06_AVG    0x33 /* average: Battery */
+#define EC_MEMMAP_TEMP_SENSOR_07_AVG    0x34 /* average: Charger */
+#define EC_MEMMAP_TEMP_SENSOR_08_AVG    0x35 /* average: Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_09_AVG    0x36 /* average: Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0A_AVG    0x37
+#define EC_MEMMAP_TEMP_SENSOR_0B_AVG    0x38
+#define EC_MEMMAP_TEMP_SENSOR_0C_AVG    0x39
+#define EC_MEMMAP_TEMP_SENSOR_AVG       EC_MEMMAP_TEMP_SENSOR_00_AVG
+
+/* Unused 0x3A -0x52 */
 #define EC_MEMMAP_CPU_FAN_STATUS            0x53 /* CPU fan_status */ 
 #define EC_MEMMAP_SYS_FAN_STATUS            0x54 /* SYS fan_status */ 
 /* Unused 0x55 */

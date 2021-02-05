@@ -472,7 +472,7 @@ static void temperature_protection_mechanism(void)
         gpio_set_level(GPIO_PROCHOT_ODL, 1); /* high Prochot disable */
     }
     /* CPU DTS */
-    if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > CPU_DTS_PROCHOT_TEMP) {
+    if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > TEMP_CPU_DTS_PROTECTION) {
         g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts++;
     } else {
         if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > 0) {
@@ -542,9 +542,10 @@ static void thermal_control(void)
     uint8_t fan, i;
     int tempSensors;
     int rpm_target[CONFIG_FANS] = {0x0};
-    uint8_t *mptr = (uint8_t *)host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
+    uint8_t *mptr = NULL;
 
     /* go through all the sensors */
+    mptr = (uint8_t *)host_get_memmap(EC_MEMMAP_TEMP_SENSOR_AVG);
     for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
         /* read one */
 
@@ -555,7 +556,8 @@ static void thermal_control(void)
     }
 
     /* Device high temperature protection mechanism */
-    if (power_get_state() == POWER_S0) {
+     mptr = (uint8_t *)host_get_memmap(EC_MEMMAP_SYS_MISC1);
+    if (*mptr & EC_MEMMAP_ACPI_MODE) {
         temperature_protection_mechanism();
     }
 

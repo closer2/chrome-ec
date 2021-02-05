@@ -103,7 +103,7 @@ void WakeUpWDtService(void)
     }
 
     if(chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
-        CPRINTS("Wakeup WDT timeout, power on times=%d", g_wakeupWDT.timeoutNum);
+        CPRINTS("Wakeup WDT timeout, power on timeoutNum=%d", g_wakeupWDT.timeoutNum);
         power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
         mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
     }

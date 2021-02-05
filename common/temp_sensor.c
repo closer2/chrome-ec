@@ -15,6 +15,13 @@
 #include "timer.h"
 #include "util.h"
 
+#define TEMP_SENSORS_AVERAGE_COUNT 10
+
+int temp_sensors_avg_s[TEMP_SENSOR_COUNT][TEMP_SENSORS_AVERAGE_COUNT] = {0};
+int temp_sensors_avg[TEMP_SENSOR_COUNT] = {0};
+
+uint8_t g_tempSensorCount = 0;
+
 int temp_sensor_read(enum temp_sensor_id id, int *temp_ptr)
 {
 	const struct temp_sensor_t *sensor;
@@ -28,28 +35,49 @@ int temp_sensor_read(enum temp_sensor_id id, int *temp_ptr)
 
 static void update_mapped_memory(void)
 {
-	int i, t;
-	uint8_t *mptr = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
+    int i, t;
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
 
-	for (i = 0; i < TEMP_SENSOR_COUNT; i++, mptr++) {
-		switch (temp_sensor_read(i, &t)) {
-		case EC_ERROR_NOT_POWERED:
-			*mptr = EC_TEMP_SENSOR_NOT_POWERED;
-			break;
-		case EC_ERROR_NOT_CALIBRATED:
-			*mptr = EC_TEMP_SENSOR_NOT_CALIBRATED;
-			break;
-		case EC_SUCCESS:
-			*mptr = K_TO_C(t);
-			break;
-		default:
-			*mptr = EC_TEMP_SENSOR_ERROR;
-		}
-	}
+    for (i = 0; i < TEMP_SENSOR_COUNT; i++, mptr++) {
+        switch (temp_sensor_read(i, &t)) {
+        case EC_ERROR_NOT_POWERED:
+            *mptr = EC_TEMP_SENSOR_NOT_POWERED;
+            break;
+        case EC_ERROR_NOT_CALIBRATED:
+            *mptr = EC_TEMP_SENSOR_NOT_CALIBRATED;
+            break;
+        case EC_SUCCESS:
+            *mptr = K_TO_C(t);
+            break;
+        default:
+            *mptr = EC_TEMP_SENSOR_ERROR;
+        }
+    }
 }
 
+static void temp_sensor_average(void)
+{
+    int i, j;
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
+    uint8_t *mptravg = host_get_memmap(EC_MEMMAP_TEMP_SENSOR_AVG);
+
+    update_mapped_memory();
+    for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
+        temp_sensors_avg[i] =  0;
+        temp_sensors_avg_s[i][g_tempSensorCount] = *(mptr + i);
+        for (j = 0; j < TEMP_SENSORS_AVERAGE_COUNT; j++) {
+            temp_sensors_avg[i] += temp_sensors_avg_s[i][j];
+        }
+        *(mptravg + i) = temp_sensors_avg[i] / TEMP_SENSORS_AVERAGE_COUNT;
+    }
+
+    g_tempSensorCount++;
+    if (g_tempSensorCount >= TEMP_SENSORS_AVERAGE_COUNT) {
+        g_tempSensorCount = 0;
+    }
+}
 /* Run after other TEMP tasks, so sensors will have updated first. */
-DECLARE_HOOK(HOOK_SECOND, update_mapped_memory, HOOK_PRIO_TEMP_SENSOR_DONE);
+DECLARE_HOOK(HOOK_SECOND, temp_sensor_average, HOOK_PRIO_TEMP_SENSOR_DONE);
 
 
 static void temp_sensor_init(void)
