@@ -30,8 +30,9 @@
 #include "ec_commands.h"
 #include "host_command.h"
 
-#define LED_STATE_TIMEOUT_MIN   (10 * MSEC)  /* Minimum of 15ms per step */
-#define LED_HOLD_TIME           (500 * MSEC) /* Hold for 330ms at min/max */
+#define LED_STATE_TIMEOUT_MIN   (10 * MSEC)   /* Minimum of 15ms per step */
+#define LED_ON_HOLD_TIME        (600 * MSEC)  /* Hold on for 500ms*/
+#define LED_OFF_HOLD_TIME       (2600 * MSEC) /* Hold off for 2600ms*/
 #define LED_STEP_PERCENT        2   /* Incremental value of each step */
 
 #define LED_BLINK_TIME          (200 * MSEC) /* hold for 200ms at on/off */
@@ -80,10 +81,10 @@ static int power_led_step(void)
 
     if (0 == power_led_percent) {
         dir = UP;
-        state_timeout = LED_HOLD_TIME;
+        state_timeout = LED_OFF_HOLD_TIME;
     } else if (100 == power_led_percent) {
         dir = DOWN;
-        state_timeout = LED_HOLD_TIME;
+        state_timeout = LED_ON_HOLD_TIME;
     } else {
         /*
         * Decreases timeout as duty cycle percentage approaches
