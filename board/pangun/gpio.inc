@@ -52,7 +52,6 @@ GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V
 GPIO(PROM19_EN,             PIN(D, 2), GPIO_OUT_LOW)        /* Refer to Power Sequence */
 GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_HIGH)       /* Finger KBD USB port power enable */
 GPIO(EC_SLP_S3_L,           PIN(D, 5), GPIO_OUT_LOW)        /* EC_SLP_S3#, output, passthrough SLP_S3_L */
-GPIO(DGPU_PROCHOT_L,        PIN(9, 3), GPIO_OUT_LOW)        /* DGPU_PROCHOT_L */
 GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */
 GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
 GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
@@ -66,6 +65,8 @@ GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pa
 GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
 GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
 GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */
+GPIO(EC_JD_OUT,             PIN(0, 1), GPIO_ODR_LOW)
+GPIO(EC_AUDIO_SWITCH,       PIN(5, 0), GPIO_OUT_LOW)
 
 /* KBRST# as gpio */
 GPIO(KBRST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* KBRST# */
@@ -90,13 +91,13 @@ GPIO(EC_DDR_VPP_EN,		    PIN(D, 3), GPIO_INPUT)				/* reserved(not used), EC ean
 GPIO(EC_WLAN_PWR_EN,		PIN(9, 5), GPIO_INPUT)				/* Not used, reserved for WLAN power en, EC_WLAN_PWR_EN */
 GPIO(APU_RST_L,			    PIN(E, 2), GPIO_INPUT)				/* reserved, not real usage */
 GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detection is inbreak? */
+GPIO(EC_FRONT_HP_JD,        PIN(9, 3), GPIO_INPUT)
+GPIO(EC_REAR_HP_JD,         PIN(0, 3), GPIO_INPUT)
 
 /* CLKRUN# as input with pull up */
 UNUSED(PIN(0, 6))								/* EC_3VSBSW */
-UNUSED(PIN(0, 1))								/* EC_JIG_PWR_EN_N */
 UNUSED(PIN(8, 5))								/* EC_LPS_EN_N */
 UNUSED(PIN(E, 0))								/* FPS_IRQ */
-UNUSED(PIN(0, 3))								/* FPS_ID */
 UNUSED(PIN(4, 3))
 UNUSED(PIN(5, 6))								/* CLKRUN# */
 UNUSED(PIN(1, 3))
@@ -104,7 +105,6 @@ UNUSED(PIN(1, 5))
 UNUSED(PIN(2, 5))
 UNUSED(PIN(2, 6))
 UNUSED(PIN(2, 7))
-UNUSED(PIN(5, 0))
 UNUSED(PIN(3, 1))
 UNUSED(PIN(B, 6))
 
