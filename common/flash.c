@@ -1710,7 +1710,6 @@ void shutdown_cause_record(uint32_t data)
     uint32_t end_address;
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
-    uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
 
     // check shutdown cause write index
     base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
@@ -1782,16 +1781,6 @@ void shutdown_cause_record(uint32_t data)
             shutdown_write_index = SHUTDOWN_DATA_OFFSET+(4*LOG_SIZE);
         }
     }
-
-    // copy new data to ec ram
-    *(mptr+7) = *(mptr+5);
-    *(mptr+6) = *(mptr+4);
-    *(mptr+5) = *(mptr+3);
-    *(mptr+4) = *(mptr+2);
-    *(mptr+3) = *(mptr+1);
-    *(mptr+2) = *(mptr+0);
-    *(mptr+1) = log_Data.log_timestamp;
-    *(mptr+0) = log_Data.log_id;
 }
 
 /**
@@ -1811,7 +1800,6 @@ void wakeup_cause_record(uint32_t data)
     uint32_t end_address;
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
-    uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_WAKEUP_CAUSE);
 
     // check wakeup cause write index
     base_address = (uint32_t)WAKEUP_DATA_OFFSET;
@@ -1883,17 +1871,129 @@ void wakeup_cause_record(uint32_t data)
             wakeup_write_index = WAKEUP_DATA_OFFSET+(4*LOG_SIZE);
         }
     }
-
-    // copy new data to ec ram
-    *(mptr+7) = *(mptr+5);
-    *(mptr+6) = *(mptr+4);
-    *(mptr+5) = *(mptr+3);
-    *(mptr+4) = *(mptr+2);
-    *(mptr+3) = *(mptr+1);
-    *(mptr+2) = *(mptr+0);
-    *(mptr+1) = log_Data.log_timestamp;
-    *(mptr+0) = log_Data.log_id;
 }
+
+/* Switch the latest ID before */
+static void update_cause_ram_ags(uint32_t *data, uint32_t size)
+{
+    uint8_t i, tmp = 0;
+    uint32_t eFlash_Data[8] = {0};
+
+    if (size > 0x08) {
+        return;
+    }
+
+    for (i = 0; i < size; ) {
+        if (*(data + i) > 0) {
+            tmp++;
+        }
+        i += 2;
+    }
+    for (i = 0; i < size; i++) {
+        eFlash_Data[i] = *(data + i);
+    }
+    if (tmp == size/2) {
+        *(data + 0) = eFlash_Data[6];
+        *(data + 1) = eFlash_Data[7];
+        *(data + 2) = eFlash_Data[4];
+        *(data + 3) = eFlash_Data[5];
+        *(data + 4) = eFlash_Data[2];
+        *(data + 5) = eFlash_Data[3];
+        *(data + 6) = eFlash_Data[0];
+        *(data + 7) = eFlash_Data[1];
+    } else if(tmp == size/2 - 1) {
+        *(data + 0) = eFlash_Data[4];
+        *(data + 1) = eFlash_Data[5];
+        *(data + 2) = eFlash_Data[2];
+        *(data + 3) = eFlash_Data[3];
+        *(data + 4) = eFlash_Data[0];
+        *(data + 5) = eFlash_Data[1];
+        *(data + 6) = 0;
+        *(data + 7) = 0;
+    } else if(tmp == size/2 - 2) {
+        *(data + 0) = eFlash_Data[2];
+        *(data + 1) = eFlash_Data[3];
+        *(data + 2) = eFlash_Data[0];
+        *(data + 3) = eFlash_Data[1];
+        *(data + 4) = 0;
+        *(data + 5) = 0;
+        *(data + 6) = 0;
+        *(data + 7) = 0;
+    } else if(tmp == size/2 -3) {
+        *(data + 0) = eFlash_Data[0];
+        *(data + 1) = eFlash_Data[1];
+        *(data + 2) = 0;
+        *(data + 3) = 0;
+        *(data + 4) = 0;
+        *(data + 5) = 0;
+        *(data + 6) = 0;
+        *(data + 7) = 0;
+    }
+}
+
+static void update_cause_ram(void)
+{
+    uint32_t eFlash_Data[8]={0};
+    uint32_t i;
+    int32_t tmp = 0;
+    uint32_t *mptr = NULL;
+    int status = EC_SUCCESS;
+
+    eflash_debug_init();
+    /* update shutdown cause to ram */
+    for (i = 0; i < LOG_SIZE; i++) {
+        eFlash_Data[i] = 0;
+    }
+    mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
+    if(shutdown_write_index > (SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
+        // read last 4
+        status = flash_read((shutdown_write_index-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+        if (status == EC_SUCCESS) {
+            for (i = 0; i < LOG_SIZE; i++) {
+                *(mptr+i) = eFlash_Data[i];
+            }
+        }
+    } else {
+        tmp = shutdown_write_index - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
+        if (tmp > 0) {
+            status = flash_read((SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
+            if (status == EC_SUCCESS) {
+                for (i = 0; i < tmp; i++) {
+                    *(mptr+i) = eFlash_Data[i];
+                }
+            }
+        }
+    }
+    update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
+
+    /* update wakeup cause to ram */
+    for (i = 0; i < LOG_SIZE; i++) {
+        eFlash_Data[i] = 0;
+    }
+    mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_WAKEUP_CAUSE);
+    if(wakeup_write_index > (WAKEUP_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
+        // read last 4
+        status = flash_read((wakeup_write_index-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+        if (status == EC_SUCCESS) {
+            for (i = 0; i < LOG_SIZE; i++) {
+                *(mptr+i) = eFlash_Data[i];
+            }
+        }
+    } else {
+        tmp = wakeup_write_index - WAKEUP_HEADER_OFFSET - DATA_PAGE_SIZE;
+        if (tmp > 0) {
+            status = flash_read((WAKEUP_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
+            if (status == EC_SUCCESS) {
+                for (i = 0; i < tmp; i++) {
+                    *(mptr+i) = eFlash_Data[i];
+                }
+            }
+        }
+    }
+    update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
+
+}
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, update_cause_ram, HOOK_PRIO_DEFAULT);
 
 static enum ec_status host_command_write_flash_log(struct host_cmd_handler_args *args)
 {
