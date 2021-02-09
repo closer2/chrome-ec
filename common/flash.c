@@ -1605,44 +1605,41 @@ uint32_t shutdown_write_index;
 uint32_t wakeup_write_index;
 
 /**
- * eFlash debug init
+ * shutdown cause eFlash debug init
  *
  * Read header data makes it easy to find the next write location.
  *
  */
-static void eflash_debug_init(void)
+static int shutdown_eflash_debug_init(void)
 {
     uint32_t data_index;
     uint32_t page_index;
     uint8_t eflash_data_header[256];
+    int status = EC_SUCCESS;
 
     //------------------------------------------------------------------
     // read shutdown data header, Look for pages that aren't full
-    if(flash_read(SHUTDOWN_HEADER_OFFSET,
-                        SHUTDOWN_HEADER_SIZE, eflash_data_header))
-    {
-        return;
+    status = flash_read(SHUTDOWN_HEADER_OFFSET,
+                        SHUTDOWN_HEADER_SIZE, eflash_data_header);
+    if(EC_ERROR(status)) {
+        return status;
     }
 
-    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++)
-    {
-        if(0xFF == eflash_data_header[page_index])
-        {
+    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++) {
+        if(0xFF == eflash_data_header[page_index]) {
             break;
         }
     }
 
     // Reads pages that are not full, Find the location that was not written
-    if(flash_read(SHUTDOWN_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
-                        DATA_PAGE_SIZE, eflash_data_header))
-    {
-        return;
+    status = flash_read(SHUTDOWN_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
+                        DATA_PAGE_SIZE, eflash_data_header);
+    if(EC_ERROR(status)) {
+        return status;
     }
 
-    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++)
-    {
-        if(0xFF == eflash_data_header[data_index])
-        {
+    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++) {
+        if(0xFF == eflash_data_header[data_index]) {
             shutdown_write_index = (uint32_t)(SHUTDOWN_HEADER_OFFSET +
                                    (page_index*DATA_PAGE_SIZE) +
                                    data_index);
@@ -1652,35 +1649,44 @@ static void eflash_debug_init(void)
             break;
         }
     }
+    return status;
+}
+
+/**
+ * wakeup cause eFlash debug init
+ *
+ * Read header data makes it easy to find the next write location.
+ *
+ */
+static int wakeup_eflash_debug_init(void)
+{
+    uint32_t data_index;
+    uint32_t page_index;
+    uint8_t eflash_data_header[256];
+    int status = EC_SUCCESS;
 
     //------------------------------------------------------------------
     // read wakeup data header, Look for pages that aren't full
-    if(flash_read(WAKEUP_HEADER_OFFSET,
-                        WAKEUP_HEADER_SIZE, eflash_data_header))
-    {
-        return;
+    status = flash_read(WAKEUP_HEADER_OFFSET, WAKEUP_HEADER_SIZE, eflash_data_header);
+    if(EC_ERROR(status)) {
+        return status;
     }
     
-    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++)
-    {
-        if(0xFF == eflash_data_header[page_index])
-        {
+    for(page_index=1; page_index<DATA_PAGE_NUM; page_index++) {
+        if(0xFF == eflash_data_header[page_index]) {
             break;
         }
     }
 
     // Reads pages that are not full, Find the location that was not written
-    if(flash_read(WAKEUP_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
-                        DATA_PAGE_SIZE, eflash_data_header))
-
-    {
-        return;
+    status = flash_read(WAKEUP_HEADER_OFFSET+(page_index*DATA_PAGE_SIZE),
+        DATA_PAGE_SIZE, eflash_data_header);
+    if(EC_ERROR(status)) {
+        return status;
     }
 
-    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++)
-    {
-        if(0xFF == eflash_data_header[data_index])
-        {
+    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++) {
+        if(0xFF == eflash_data_header[data_index]) {
             wakeup_write_index = (uint32_t)(WAKEUP_HEADER_OFFSET +
                                    (page_index*DATA_PAGE_SIZE) +
                                    data_index);
@@ -1689,9 +1695,28 @@ static void eflash_debug_init(void)
             break;
         }
     }
+    return status;
+}
+
+/**
+ * eFlash debug init
+ *
+ * Read header data makes it easy to find the next write location.
+ *
+ */
+static void eflash_debug_init(void)
+{
+    /* shutdown cause eFlash debug init */
+    if (EC_ERROR(shutdown_eflash_debug_init())) {
+        ccprintf("====== ERROR: shutdown cause eFlash debug init");
+    }
+
+    /* wakeup cause eFlash debug init */
+    if (EC_ERROR(wakeup_eflash_debug_init())) {
+        ccprintf("====== ERROR: wakeup cause eFlash debug init");
+    }
 }
 DECLARE_HOOK(HOOK_INIT, eflash_debug_init, HOOK_PRIO_DEFAULT);
-
 
 /**
  * shutdown cause record

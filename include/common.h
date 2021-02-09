@@ -224,6 +224,8 @@ extern uint32_t reboot_ap_at_g3_cyclecount;
 		return error; \
 } while (0)
 
+#define EC_ERROR(StatusCode)     ((int)StatusCode > 0)
+
 /* Include top-level configuration file */
 #include "config.h"
 
