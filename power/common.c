@@ -518,11 +518,11 @@ static enum power_state power_common_state(enum power_state state)
 
             /* Wait for inactivity timeout */
             power_wait_signals(0);
-            if (((*mptr) & EC_MEMMAP_DISABLE_G3) || (want_reboot_ap_at_g3)) {
+            if (((*mptr) & EC_MEMMAP_DISABLE_G3) || (want_reboot_ap_at_g3)
+                || get_lan_wake_enable()) {
                 task_wait_event(-1); /* chipset task pause for wait wakeup */
             } else {
-                if (task_wait_event(S5_INACTIVITY_TIMEOUT) == TASK_EVENT_TIMER
-                && !get_lan_wake_enable()) {
+                if (task_wait_event(S5_INACTIVITY_TIMEOUT) == TASK_EVENT_TIMER) {
             		/* Prepare to drop to G3; wake not requested yet */
             		return POWER_S5G3;
             	}

@@ -285,7 +285,7 @@ enum power_state power_handle_state(enum power_state state)
         return POWER_S5;
 
     case POWER_S5:
-        if (!power_has_signals(IN_PGOOD_S5) && !get_lan_wake_enable()) {
+        if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             return POWER_S5G3;
