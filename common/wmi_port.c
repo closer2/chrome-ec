@@ -44,8 +44,8 @@ struct wmi_dfx_ags g_dfxValue = {
 
 #define  wmi_wordid(id, time)          (id == 0 ? 0xFFFFFFFF : time)
 
-#define sAbnormalcode(code)   (code ? 0xEE : 0xCC)
-#define wAbnormalcode(code)   (code ? 0xEE : 0xCC)
+#define sAbnormalcode(id, code)   (id == 0 ? 0xFF : (code ? 0xEE : 0xCC))
+#define wAbnormalcode(id, code)   (id == 0 ? 0xFF : (code ? 0xEE : 0xCC))
 
 /* Last POST was booted last time */
 void post_last_code_s(void)
@@ -92,7 +92,7 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
 
     /* shoutdownCase, New information comes before old information */
     for (i = 0; i < 4; i++) {
-        g_dfxValue.sAbnormalcode = sAbnormalcode(*(smptr + i * 2) >> 16);
+        g_dfxValue.sAbnormalcode = sAbnormalcode((uint16_t)(*(smptr + i * 2)),*(smptr + i * 2) >> 16);
         p->shutdownCause[i].type = g_dfxValue.shutdownType 
             | wmi_halfwordid_s(*(smptr + i * 2), g_dfxValue.sAbnormalcode << 8);    /* 23~31 byte */
         p->shutdownCause[i].value = wmi_halfwordid(*(smptr + i * 2));
@@ -102,7 +102,7 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
 
     /* wakeupCause, New information comes before old information */
     for (i = 0; i < 4; i++) {
-        g_dfxValue.wAbnormalcode = wAbnormalcode(*(wmptr + i * 2) >> 16);
+        g_dfxValue.wAbnormalcode = wAbnormalcode((uint16_t)(*(wmptr + i * 2)), *(wmptr + i * 2) >> 16);
         p->wakeupCause[i].type = g_dfxValue.wakeupType 
             | wmi_halfwordid_s(*(wmptr + i * 2), g_dfxValue.wAbnormalcode << 8);       /* 59~67  byte */
         p->wakeupCause[i].value = wmi_byteid(*(wmptr + i * 2));
@@ -131,14 +131,14 @@ WMI_get_cause_log(struct host_cmd_handler_args *args)
     }
 
     /* shutdownCause */
-    g_dfxValue.sAbnormalcode = sAbnormalcode(*(smptr) >> 16);
+    g_dfxValue.sAbnormalcode = sAbnormalcode((uint32_t)(*(smptr)), *(smptr) >> 16);
     p->shutdownCause.type = wmi_byteid_s(*smptr, g_dfxValue.sAbnormalcode);       /* 1~8 byte */
     p->shutdownCause.value = wmi_halfwordid(*smptr);
     p->shutdownCause.reserve = 0xFF;
     p->shutdownCause.time = wmi_wordid(*smptr,*(smptr + 1));
 
     /* wakeupCase */
-    g_dfxValue.wAbnormalcode = wAbnormalcode(*(wmptr) >> 16);
+    g_dfxValue.wAbnormalcode = wAbnormalcode((uint32_t)(*(wmptr)), *(wmptr) >> 16);
     p->wakeupCause.type = wmi_byteid_s(*wmptr, g_dfxValue.wAbnormalcode);       /* 9~16 byte */
     p->wakeupCause.value = wmi_byteid(*wmptr);
     p->wakeupCause.reserve = 0xFFFF;
