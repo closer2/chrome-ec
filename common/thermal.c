@@ -60,6 +60,9 @@ struct thermal_params_s {
     int   pcie16Ntc;      /* name = "PCIE16 NTC" */
     int   cpuNtc;         /* name = "CPU NTC" */
     int   memoryNtc;      /* name = "Memory NTC" */
+#ifdef NPCX_FAMILY_DT02
+    int   ssd2Ntc;        /* name = "SSD2 NTC" */
+#endif
 };
 
 struct thermal_params_s g_fanLevel[CONFIG_FANS] = {0};
@@ -97,6 +100,24 @@ const struct thermal_level_s t_uma_thermal_sys_fan_ssd1_ntc = {
     .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_ssd1_ntc),
     .data = uma_thermal_sys_fan_ssd1_ntc,
 };
+
+#ifdef NPCX_FAMILY_DT02
+/* UMP sys fan sensor SSD2 NTC*/
+const struct thermal_level_ags uma_thermal_sys_fan_ssd2_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     600,      64,   UMA_SYS_FAN_START_TEMP}, 
+    {1,     800,      65,   62},  
+    {2,     1000,     66,   63},  
+    {3,     1300,     72,   64},
+    {4,     1700,     78,   69},  
+    {5,     2800,     78,   76} 
+};
+const struct thermal_level_s t_uma_thermal_sys_fan_ssd2_ntc = {
+    .name = "SSD2 NTC",
+    .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_ssd2_ntc),
+    .data = uma_thermal_sys_fan_ssd2_ntc,
+};
+#endif
 
 /* UMP sys fan sensor memory NTC*/
 const struct thermal_level_ags uma_thermal_sys_fan_memory_ntc[] = {
@@ -404,17 +425,34 @@ static int sys_fan_check_RPM(uint8_t thermalMode)
             g_fanRPM[fan].ssd1Ntc = get_fan_RPM(g_fanLevel[fan].ssd1Ntc, 
                 &t_uma_thermal_sys_fan_ssd1_ntc);
 
+        #ifdef NPCX_FAMILY_DT02
+            /* sys fan check SSD2 NTC */
+            g_fanLevel[fan].ssd2Ntc =
+                get_fan_level(g_tempSensors[TEMP_SENSOR_SSD2_NTC], 
+                g_fanLevel[fan].ssd2Ntc, &t_uma_thermal_sys_fan_ssd2_ntc);
+            g_fanRPM[fan].ssd2Ntc = get_fan_RPM(g_fanLevel[fan].ssd2Ntc, 
+                &t_uma_thermal_sys_fan_ssd2_ntc);
+
+            rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].ssd2Ntc)
+                            ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].ssd2Ntc;
+        #endif
+
             /* sys fan check Memory NTC */
             g_fanLevel[fan].memoryNtc =
                 get_fan_level(g_tempSensors[TEMP_SENSOR_MEMORY_NTC],
                     g_fanLevel[fan].memoryNtc, &t_uma_thermal_sys_fan_memory_ntc);
             g_fanRPM[fan].memoryNtc = get_fan_RPM(g_fanLevel[fan].memoryNtc
                 , &t_uma_thermal_sys_fan_memory_ntc);
-        
-           rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].memoryNtc)
+
+        #ifdef NPCX_FAMILY_DT02
+            rpm_target = (rpm_target > g_fanRPM[fan].memoryNtc)
+                            ?  rpm_target : g_fanRPM[fan].memoryNtc;
+        #else
+            rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].memoryNtc)
                             ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].memoryNtc;
-           rpm_target += temp;
-           break;
+        #endif
+            rpm_target += temp;
+            break;
 
         case THERMAL_WITH_GFX:
             /* sys fan start status ambience NTC */

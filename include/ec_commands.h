@@ -206,11 +206,11 @@ extern "C" {
 #define EC_MEMMAP_TEMP_SENSOR_03        0x23 /* PCIEX16 NTC */
 #define EC_MEMMAP_TEMP_SENSOR_04        0x24 /* CPU VRAM NTC */
 #define EC_MEMMAP_TEMP_SENSOR_05        0x25 /* Memory NTC */
-#define EC_MEMMAP_TEMP_SENSOR_06        0x26 /* Battery */
-#define EC_MEMMAP_TEMP_SENSOR_07        0x27 /* Charger */
-#define EC_MEMMAP_TEMP_SENSOR_08        0x28 /* Type-C port-0 */
-#define EC_MEMMAP_TEMP_SENSOR_09        0x29 /* Type-C port-1 */
-#define EC_MEMMAP_TEMP_SENSOR_0A        0x2A 
+#define EC_MEMMAP_TEMP_SENSOR_06        0x26 /* SSD2 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_07        0x27 /* Battery */
+#define EC_MEMMAP_TEMP_SENSOR_08        0x28 /* Charger */
+#define EC_MEMMAP_TEMP_SENSOR_09        0x29 /* Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_0A        0x2A /* Type-C port-1 */
 #define EC_MEMMAP_TEMP_SENSOR_0B        0x2B
 #define EC_MEMMAP_TEMP_SENSOR_0C        0x2C
 #define EC_MEMMAP_TEMP_SENSOR           EC_MEMMAP_TEMP_SENSOR_00
@@ -220,11 +220,11 @@ extern "C" {
 #define EC_MEMMAP_TEMP_SENSOR_03_AVG    0x30 /* average: PCIEX16 NTC */
 #define EC_MEMMAP_TEMP_SENSOR_04_AVG    0x31 /* average: Ambience NTC */
 #define EC_MEMMAP_TEMP_SENSOR_05_AVG    0x32 /* average: Memory NTC */
-#define EC_MEMMAP_TEMP_SENSOR_06_AVG    0x33 /* average: Battery */
-#define EC_MEMMAP_TEMP_SENSOR_07_AVG    0x34 /* average: Charger */
-#define EC_MEMMAP_TEMP_SENSOR_08_AVG    0x35 /* average: Type-C port-0 */
-#define EC_MEMMAP_TEMP_SENSOR_09_AVG    0x36 /* average: Type-C port-1 */
-#define EC_MEMMAP_TEMP_SENSOR_0A_AVG    0x37
+#define EC_MEMMAP_TEMP_SENSOR_06_AVG    0x33 /* average: SSD2 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_07_AVG    0x34 /* average: Battery */
+#define EC_MEMMAP_TEMP_SENSOR_08_AVG    0x35 /* average: Charger */
+#define EC_MEMMAP_TEMP_SENSOR_09_AVG    0x36 /* average: Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_0A_AVG    0x37 /* average: Type-C port-1 */
 #define EC_MEMMAP_TEMP_SENSOR_0B_AVG    0x38
 #define EC_MEMMAP_TEMP_SENSOR_0C_AVG    0x39
 #define EC_MEMMAP_TEMP_SENSOR_AVG       EC_MEMMAP_TEMP_SENSOR_00_AVG
