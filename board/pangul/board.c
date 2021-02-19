@@ -370,7 +370,7 @@ const struct pwm_t pwm_channels[] = {
     },
 
    [PWM_CH_POWER_LED] = {
-        .channel = 4,
+        .channel = 3,
         .flags = PWM_CONFIG_DSLEEP,
         .freq = 100,
    },
