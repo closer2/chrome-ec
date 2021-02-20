@@ -287,6 +287,8 @@ extern "C" {
 #define EC_MEMMAP_BIOS_CMD                  0xE0
 #define EC_MEMMAP_BIOS_CMD_STATUS           0xE1
 #define EC_MEMMAP_BIOS_DATA                 0xE2
+#define EC_MEMMAP_BIOS_CMD_VERIFY           0xEF
+
 
 #else
 #define EC_MEMMAP_TEMP_SENSOR      0x00 /* Temp sensors 0x00 - 0x0f */

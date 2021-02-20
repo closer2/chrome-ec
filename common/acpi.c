@@ -180,6 +180,16 @@ static void oem_bios_to_ec_command(void)
         return;
     }
 
+    if(0xFF != (*(bios_cmd+0xF) + *(bios_cmd)))
+    {
+        CPRINTS("Invalid BIOS command =[0x%02x]", *bios_cmd);
+        *(bios_cmd) = 0;
+        *(bios_cmd+0xF) = 0;
+        *(bios_cmd+1) = 0xFF; /* unknown command */
+        return;
+    }
+    *(bios_cmd+0xF) = 0;
+    
     *(bios_cmd+1) = 0x00;
     CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
     switch (*bios_cmd) {
