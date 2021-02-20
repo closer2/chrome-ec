@@ -1980,10 +1980,10 @@ static void update_cause_ram(void)
         }
     } else {
         tmp = shutdown_write_index - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
-        if (tmp > 0) {
+        if ((tmp > 0) && (tmp < (LOG_SIZE * 4 + 1))) {
             status = flash_read((SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
             if (status == EC_SUCCESS) {
-                for (i = 0; i < tmp; i++) {
+                for (i = 0; i < tmp / 4; i++) {
                     *(mptr+i) = eFlash_Data[i];
                 }
             }
@@ -2006,10 +2006,10 @@ static void update_cause_ram(void)
         }
     } else {
         tmp = wakeup_write_index - WAKEUP_HEADER_OFFSET - DATA_PAGE_SIZE;
-        if (tmp > 0) {
+        if ((tmp > 0) && (tmp < (LOG_SIZE * 4 + 1))) {
             status = flash_read((WAKEUP_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
             if (status == EC_SUCCESS) {
-                for (i = 0; i < tmp; i++) {
+                for (i = 0; i < tmp / 4; i++) {
                     *(mptr+i) = eFlash_Data[i];
                 }
             }
