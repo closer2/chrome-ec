@@ -224,14 +224,10 @@ static void oem_bios_to_ec_command(void)
         break;
 
     case 0x04 : /* wakeup wdt control */
-        if (0x01 == *(bios_cmd+2)) {        /* enable */
-            g_wakeupWDT.time = *(bios_cmd+3) | (*(bios_cmd+4))<<8;   /* time */
-            g_wakeupWDT.countTime = 0;
-            g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
-            CPRINTS("wakeup WDT Enable time=[%d]", g_wakeupWDT.time);
+        if (0x01 == *(bios_cmd+2)) {        /* enable set time */
+            setWakeupWDtdata(*(bios_cmd+3) | (*(bios_cmd+4)) << 8);
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
-            clearWakeupWDtdata();
-            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
+            ClearWakeupWdtdata();
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -340,7 +336,6 @@ static void oem_bios_to_ec_command(void)
             *(bios_cmd+3) = g_wakeupWDT.timeoutNum;
         } else if(0x02 == *(bios_cmd+2)) {  /* clear */
             g_wakeupWDT.timeoutNum = 0;
-            mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

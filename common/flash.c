@@ -2116,9 +2116,6 @@ void mfg_data_write(uint8_t index, uint8_t data)
     } else if(MFG_AC_RECOVERY_OFFSET == index) {
         mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
         *mfgMode = data;    /* sync to EC RAM*/
-    } else if(MFG_WDT_TIMEOUT_COUNT_OFFSET == index) {
-        mfgMode = host_get_memmap(EC_MEMMAP_WDT_TIMEOUT_COUNT);
-        *mfgMode = data;    /* sync to EC RAM*/
     } else if(MFG_CHASSIS_INTRUSION_DATA_OFFSET == index) {
     } else if(MFG_CHASSIS_INTRUSION_MODE_OFFSET == index) {
     } else if(MFG_POWER_LAST_STATE_OFFSET == index) {
@@ -2159,15 +2156,6 @@ static void mfg_data_init(void)
         *mfgMode = 0x01; /* default is AC recovery to power on */
     } else {
         *mfgMode = mfg_data_map[MFG_AC_RECOVERY_OFFSET];
-    }
-
-    /* initialize wakeup timeout count */
-    mfgMode = host_get_memmap(EC_MEMMAP_WDT_TIMEOUT_COUNT);
-    if (0xFF == mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]) {
-        mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, 0); /* set deflat data */
-        *mfgMode = 0;
-    } else {
-        *mfgMode = mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET];
     }
 
     /* initialize chassis Intrusion data */
@@ -2240,10 +2228,6 @@ static int console_command_mfg_data(int argc, char **argv)
             } else {
                 ccprintf("AC Recovery : unknown\n");
             }
-
-            /* wakeup WDT timeout count*/
-            ccprintf("wakeup WDT timeout count : %d\n",
-                        mfg_data_map[MFG_WDT_TIMEOUT_COUNT_OFFSET]);
         }
         else
         {

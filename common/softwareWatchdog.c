@@ -35,6 +35,8 @@ struct chassis_Intrusion  pdata = {
     .chassisIntrusionData = 0, .chassisWriteFlashData = 0
 };
 
+uint8_t g_WdtForceingShutdown = 0;
+
 static enum ec_status
 host_command_WDT(struct host_cmd_handler_args *args)
 {
@@ -48,19 +50,18 @@ host_command_WDT(struct host_cmd_handler_args *args)
     switch(g_wdtPackage->type) {
         case 1:
             if (g_wdtPackage->flag1 == 0x01) {
-                g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
+                setWakeupWDtdata(g_wdtPackage->time);
             } else if (g_wdtPackage->flag1 == 0x02) {
-                g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+                ClearWakeupWdtdata();
             }
-            g_wakeupWDT.time = g_wdtPackage->time;
             break;
         case 2:
             if (g_wdtPackage->flag1 == 0x01) {
                 g_shutdownWDT.wdtEn = SW_WDT_ENABLE;
+                g_shutdownWDT.time = g_wdtPackage->time;
             } else if (g_wdtPackage->flag1 == 0x02) {
-                g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
+                clearShutdownWDtdata();
             }
-            g_shutdownWDT.time = g_wdtPackage->time;
             break;
         default:
             break;        
@@ -72,40 +73,70 @@ DECLARE_HOST_COMMAND(EC_CMD_EXTERNAL_WDT,
         host_command_WDT,
         EC_VER_MASK(0)); 
 
-/* Enter system, it need to clear WDt data zero */
-void clearWakeupWDtdata(void)
+
+/* BIOS post start, it need to set WDT data */
+void ClearWakeupWdtdata(void)
 {
+    if (g_WdtForceingShutdown) {
+        return;
+    }
+
     g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
-    g_wakeupWDT.timeoutNum = 0;
-    g_wakeupWDT.countTime = 0;
     g_wakeupWDT.time = 0;
-    CPRINTS("Wakeup WDT disable, it need to clear WDt data zero");
+    g_wakeupWDT.timeoutNum = 0;
+    CPRINTS("========Wakeup WDT disable, it need to clear WDt data zero");
+}
+/* BIOS post start, it need to set WDT data Feed watchdog */
+void setWakeupWDtdata(uint16_t time)
+{
+    uint8_t minTime = 0x0F;
+
+    if (g_WdtForceingShutdown) {
+        return;
+    }
+
+    g_wakeupWDT.wdtEn = SW_WDT_ENABLE;
+    g_wakeupWDT.time = time;
+    if (g_wakeupWDT.time < minTime) {
+        g_wakeupWDT.time = minTime;
+    }
+    CPRINTS("========wakeup WDT Enable time=%d", g_wakeupWDT.time);
 }
 
 /* Wake Up WDT Service time base:1S */
 void WakeUpWDtService(void)
 {
-    g_wakeupWDT.countTime++;
-    if (g_wakeupWDT.countTime >= g_wakeupWDT.time) {
-        g_wakeupWDT.countTime = 0;
-        g_wakeupWDT.timeoutNum ++;
-
-        /* TODO: force shutdown and then power on */
-        if(chipset_in_state(CHIPSET_STATE_ON)) {
-            CPRINTS("Wakeup WDT timeout(%dsec), force shutdwon", g_wakeupWDT.time);
-            chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
-        }
-    }
-
-    if (g_wakeupWDT.timeoutNum > POWERON_WDT_TIMEOUT_NUM) {
-        g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
-        g_wakeupWDT.countTime = 0;
-    }
-
     if(chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
-        CPRINTS("Wakeup WDT timeout, power on timeoutNum=%d", g_wakeupWDT.timeoutNum);
+        g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+    }
+
+    if ((!g_wakeupWDT.time) &&  chipset_in_state(CHIPSET_STATE_ON)) {
+        /* TODO: force shutdown and then power on */
+        g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        g_wakeupWDT.timeoutNum ++;
+        g_WdtForceingShutdown = 1;
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x09);
+        CPRINTS("========Wakeup WDT: force Shutdown Num=%d", g_wakeupWDT.timeoutNum);
+    } else {
+        g_wakeupWDT.time--;
+    }
+
+    if (g_wakeupWDT.timeoutNum >= TIMEOUT_NUM1) {
+        g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        g_WdtForceingShutdown = 0;
+    }
+}
+
+static void WakeUpWdtPowerOn(void)
+{
+    if(chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
+        g_WdtForceingShutdown++; /* WDT delay power on */
+        if (g_WdtForceingShutdown < 0x03) {
+            return;
+        }
+        g_WdtForceingShutdown = 0;
         power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
-        mfg_data_write(MFG_WDT_TIMEOUT_COUNT_OFFSET, g_wakeupWDT.timeoutNum);
+        CPRINTS("========Wakeup WDT: power on Num=%d", g_wakeupWDT.timeoutNum);
     }
 }
 
@@ -155,7 +186,10 @@ static void system_sw_wdt_service(void)
 {
     /* wakeup software WDT */
     if (g_wakeupWDT.wdtEn == SW_WDT_ENABLE) {
-        WakeUpWDtService();
+       WakeUpWDtService();
+    }
+    if(g_WdtForceingShutdown) {
+        WakeUpWdtPowerOn();
     }
 
     /* shutdown software WDT */

@@ -26,13 +26,15 @@ typedef struct EC_SHUTDOAN_WDT {
 #define  SW_WDT_DISENABLE       0x00
 #define  SW_WDT_ENABLE          0x01
 
-#define  POWERON_WDT_TIMEOUT_NUM    0x05 /* */
+#define  TIMEOUT_NUM0    0x02 /* */
+#define  TIMEOUT_NUM1    0x05 /* */
 
 extern ec_wakeup_WDT g_wakeupWDT;
 extern ec_shutdown_WDT g_shutdownWDT;
 
 extern void clearShutdownWDtdata(void);
-extern void clearWakeupWDtdata(void);
+extern void ClearWakeupWdtdata(void);
+extern void setWakeupWDtdata(uint16_t time);
 
 extern uint8_t get_chassisIntrusion_data(void);
 extern void set_chassisIntrusion_data(uint8_t data);
