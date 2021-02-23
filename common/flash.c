@@ -1603,6 +1603,7 @@ DECLARE_HOST_COMMAND(EC_CMD_FLASH_SELECT,
 
 uint32_t shutdown_write_index;
 uint32_t wakeup_write_index;
+uint8_t g_abnormalPowerDownTimes;
 
 /**
  * shutdown cause eFlash debug init
@@ -1956,6 +1957,41 @@ static void update_cause_ram_ags(uint32_t *data, uint32_t size)
     }
 }
 
+static void abnormalPowerDownTimes(void)
+{
+    uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
+
+    if (*mptr & 0xFC) {
+        if (*(mptr + 2) & LOG_ID_SHUTDOWN_0x08) {
+            g_abnormalPowerDownTimes++;
+            mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
+        } else {
+            g_abnormalPowerDownTimes = 0;
+            mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
+        }
+    } else {
+        if (*mptr & LOG_ID_SHUTDOWN_0x08) {
+            g_abnormalPowerDownTimes++;
+            mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
+        } else {
+            g_abnormalPowerDownTimes = 0;
+            mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
+        }
+    }
+}
+
+uint8_t getAbnormalPowerDownTimes(void)
+{
+    ccprintf("get abnormal power down times: %d\n", g_abnormalPowerDownTimes);
+    return g_abnormalPowerDownTimes;
+}
+void clearAbnormalPowerDownTimes(void)
+{
+    g_abnormalPowerDownTimes = 0;
+    mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
+    ccprintf("clear abnormal power down times\n");
+}
+
 static void update_cause_ram(void)
 {
     uint32_t eFlash_Data[8]={0};
@@ -2017,6 +2053,7 @@ static void update_cause_ram(void)
     }
     update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
 
+    abnormalPowerDownTimes();
 }
 DECLARE_HOOK(HOOK_CHIPSET_RESUME, update_cause_ram, HOOK_PRIO_DEFAULT);
 
@@ -2116,6 +2153,7 @@ void mfg_data_write(uint8_t index, uint8_t data)
     } else if(MFG_AC_RECOVERY_OFFSET == index) {
         mfgMode = host_get_memmap(EC_MEMMAP_AC_RECOVERY);
         *mfgMode = data;    /* sync to EC RAM*/
+    } else if(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET == index) {
     } else if(MFG_CHASSIS_INTRUSION_DATA_OFFSET == index) {
     } else if(MFG_CHASSIS_INTRUSION_MODE_OFFSET == index) {
     } else if(MFG_POWER_LAST_STATE_OFFSET == index) {
@@ -2161,6 +2199,15 @@ static void mfg_data_init(void)
     /* initialize chassis Intrusion data */
     *mfgMode = mfg_data_map[MFG_CHASSIS_INTRUSION_DATA_OFFSET];
     set_chassisIntrusion_data(*mfgMode);
+
+    /* initialize abnormal power on shutdown ID data */
+    *mfgMode = mfg_data_map[MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET];
+    if (0xFF == *mfgMode) {
+        mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, 0x00); /* set default data */
+        g_abnormalPowerDownTimes = 0;
+    } else {
+        g_abnormalPowerDownTimes = *mfgMode;
+    }
 
     /* Check MFG MODE when it isn't MFG MODE, force enable MFG MODE */
 #ifdef CONFIG_MFG_FACTORY_MODE

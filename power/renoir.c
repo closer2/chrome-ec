@@ -397,7 +397,8 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S0:
     if (!power_has_signals(IN_PGOOD_S5)) {
-        shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+        ccprintf("ERROR: system Alw PG Abnormal\n");
         /* Required rail went away */
         return POWER_S5G3;
     } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 0) {

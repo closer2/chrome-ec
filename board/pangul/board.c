@@ -550,6 +550,7 @@ static void board_init_config(void)
         wakeup_cause_record(LOG_ID_WAKEUP_0x40);
     } else if (IS_BIT_SET(current_reset_flags, 3)) {
         wakeup_cause_record(LOG_ID_WAKEUP_0x41);
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0xFC);
     } else if (IS_BIT_SET(current_reset_flags, 4)) {
         wakeup_cause_record(LOG_ID_WAKEUP_0x42);
     } else if (IS_BIT_SET(current_reset_flags, 5)) {

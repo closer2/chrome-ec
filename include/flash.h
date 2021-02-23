@@ -431,6 +431,12 @@ void mfg_data_write(uint8_t index, uint8_t data);
  * @return        mfg data
  */
 uint8_t mfg_data_read(uint8_t index);
+/*
+ * record Abnormal PowerDown ID
+ * record system_Alw_PG Abnormal(S0)
+ */
+uint8_t getAbnormalPowerDownTimes(void);
+void clearAbnormalPowerDownTimes(void);
 
 
 #endif  /* __CROS_EC_FLASH_H */

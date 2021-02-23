@@ -270,7 +270,7 @@
 #define LOG_ID_SHUTDOWN_0x05    0x05
 #define LOG_ID_SHUTDOWN_0x06    union32bit(1, 0x06)    /* abnormal:Power button 4s timeout */
 #define LOG_ID_SHUTDOWN_0x07    union32bit(1, 0x07)    /* abnormal:Power button 10s timeout */
-#define LOG_ID_SHUTDOWN_0x08    union32bit(1, 0x08)    /* abnormal:S0, HWPG pull down */
+#define LOG_ID_SHUTDOWN_0x08    union32bit(1, 0x08)    /* abnormal:S0, HWPG pull down/SYSTEM_ALW_PG fail */
 #define LOG_ID_SHUTDOWN_0x09    union32bit(1, 0x09)    /* abnormal:wakeup WDT timeout */
 #define LOG_ID_SHUTDOWN_0x0A    union32bit(1, 0x0A)    /* abnormal:Sx to S0, HWPG timeout WDT */
 #define LOG_ID_SHUTDOWN_0x0B    union32bit(1, 0x0B)    /* abnormal:Sx to S0, SUSB timeout WDT */
@@ -304,7 +304,7 @@
 #define LOG_ID_SHUTDOWN_0x42    0x42    /* abnormal:EC reset after BIOS tool update EC */
 #define LOG_ID_SHUTDOWN_0x43    0x43    /* Console command apshutdown */
 #define LOG_ID_SHUTDOWN_0x44    union32bit(1, 0x44)    /* abnormal:shutdown wdt timeout */
-#define LOG_ID_SHUTDOWN_0x45    union32bit(1, 0x45)    /* abnormal:SYSTEM_ALW_PG fail */
+#define LOG_ID_SHUTDOWN_0x45    0x45
 #define LOG_ID_SHUTDOWN_0x46    union32bit(1, 0x46)    /* abnormal:PSON# 12V fail */
 #define LOG_ID_SHUTDOWN_0x47    union32bit(1, 0x47)    /* abnormal:all core fail */
 #define LOG_ID_SHUTDOWN_0x48    union32bit(1, 0x48)    /* abnormal:shutdown WDT triggers SMI blue screen */
