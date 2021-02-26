@@ -3,20 +3,22 @@
  * found in the LICENSE file.
  */
 
-/* PanGuN board configuration */
+/* PanGuB board configuration */
 
 #ifndef __CROS_EC_BOARD_H
 #define __CROS_EC_BOARD_H
 
 /*------------------------------------------------------------------------------
  * platform config.
- * choose one platform {PLATFORM_CONFIGURATION_DT01, PLATFORM_CONFIGURATION_DT02}
+ * choose one platform {PLATFORM_CONFIGURATION_DT01, 
+                        PLATFORM_CONFIGURATION_DT02,
+                        PLATFORM_CONFIGURATION_DT03}
  * ----------------------------------------------------------------------------*/
-#define PLATFORM_CONFIGURATION_DT02
+#define PLATFORM_CONFIGURATION_DT03
 
 /* Features depend on chip family */
-#if defined(PLATFORM_CONFIGURATION_DT02)
-#define NPCX_FAMILY_DT02
+#if defined(PLATFORM_CONFIGURATION_DT03)
+#define NPCX_FAMILY_DT03
 #else
 #error "Unsupported platform family"
 #endif
@@ -35,12 +37,12 @@
 *            EC test version for ODM debug
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
-#define BLD_EC_VERSION_YZ       "04"
-#define BLD_EC_VERSION_TEST     "01"
+#define BLD_EC_VERSION_YZ       "00"
+#define BLD_EC_VERSION_TEST     "00"
 
 #define BLD_EC_VERSION_X_HEX    0x00
-#define BLD_EC_VERSION_YZ_HEX   0x04
-#define BLD_EC_VERSION_TEST_HEX 0x01
+#define BLD_EC_VERSION_YZ_HEX   0x00
+#define BLD_EC_VERSION_TEST_HEX 0x00
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
@@ -123,7 +125,7 @@
 #define CONFIG_CMD_RTC                      /* For RTC console command function*/
 #define CONFIG_HOSTCMD_RTC                  /* For host update EC RTC*/
 
-#define CONFIG_HOSTCMD_LPC                  /* For host command interface over LPC bus*/
+#define CONFIG_HOSTCMD_ESPI                 /* For host command interface over eSPI bus*/
 #define CONFIG_UART_HOST                    /* Turn on serial port */
 #define CONFIG_WMI_PORT                     /* os to ec wmi port */
 #define CONFIG_MFG_MODE_FORBID_WRITE        /* MFG mode default mode, when it's no mode, forbid write mode */

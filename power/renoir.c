@@ -128,8 +128,8 @@ void chipset_throttle_cpu(int throttle)
         gpio_set_level(GPIO_CPU_PROCHOT, throttle);
 }
 
-#if 0
 /* This function can be removed since we do not support ESPI */
+#ifdef CONFIG_HOSTCMD_ESPI
 void chipset_handle_espi_reset_assert(void)
 {
     /*
