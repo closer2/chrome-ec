@@ -77,19 +77,19 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_EC_PORT0_PD0, 0);
 
     /* trun off S5 power */
-    gpio_set_level(GPIO_EC_ALW_EN, 0);
-    gpio_set_level(GPIO_PROM19_EN, 0);
+    /* gpio_set_level(GPIO_EC_ALW_EN, 0);
+    gpio_set_level(GPIO_PROM19_EN, 0); */
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
     gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
-    gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
-    gpio_set_level(GPIO_PCH_SMI_L, 0);
+    /* gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0); */
+    /* gpio_set_level(GPIO_PCH_SMI_L, 0); */
     /*gpio_set_level(GPIO_APU_NMI_L, 0);
     gpio_set_level(GPIO_EC_ALERT_L, 0);*/
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
-    gpio_set_level(GPIO_KBRST_L, 0);
+    /* gpio_set_level(GPIO_KBRST_L, 0); */
     
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
@@ -250,12 +250,12 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
         gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
-        gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
-        gpio_set_level(GPIO_PCH_SMI_L, 1);
+        /* gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1); */
+        /* gpio_set_level(GPIO_PCH_SMI_L, 1); */
         /*gpio_set_level(GPIO_APU_NMI_L, 1);
         gpio_set_level(GPIO_EC_ALERT_L, 1);*/
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
-        gpio_set_level(GPIO_KBRST_L, 1);
+        /* gpio_set_level(GPIO_KBRST_L, 1); */
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
         gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
@@ -263,8 +263,8 @@ enum power_state power_handle_state(enum power_state state)
         msleep(10);
         
         /* Enable system power ("*_A" rails) in S5. */
-        gpio_set_level(GPIO_PROM19_EN, 1);
-        gpio_set_level(GPIO_EC_ALW_EN, 1);
+        /* gpio_set_level(GPIO_PROM19_EN, 1); */
+        /* gpio_set_level(GPIO_EC_ALW_EN, 1); */
 
         /* chiset_task pause for wait signal */
         if (power_wait_signals(IN_PGOOD_S5)) {

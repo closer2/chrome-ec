@@ -596,12 +596,12 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
     usleep(10);
     debounce_sample = gpio_get_level(signal);
 
-    if (first_sample == debounce_sample) {
+    if (first_sample == debounce_sample) {/*
         gpio_set_level(GPIO_PCIEX16_RST_L, debounce_sample);
         gpio_set_level(GPIO_PCIEX1_RST_L, debounce_sample);
         gpio_set_level(GPIO_M2_2280_SSD1_RST_L, debounce_sample);
 
-        ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L));
+        ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L)); */
         return;
     }
 

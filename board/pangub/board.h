@@ -240,7 +240,7 @@
 
 /* TODO: need confirm with real hardware */
 /* GPIO mapping from board specific name to EC common name. */
-#define CONFIG_SCI_GPIO                 GPIO_EC_FCH_SCI_ODL
+/* #define CONFIG_SCI_GPIO                 GPIO_EC_FCH_SCI_ODL */
 #define GPIO_CPU_PROCHOT                GPIO_PROCHOT_ODL
 #define GPIO_EC_INT_L                   GPIO_EC_AP_INT_ODL
 #define GPIO_PCH_PWRBTN_L               GPIO_EC_FCH_PWR_BTN_L
