@@ -16,7 +16,7 @@
 
 /* Features depend on chip family */
 #if defined(PLATFORM_CONFIGURATION_DT01)
-#define NPCX_FAMILY_DT01
+#define NPCX_FAMILY_DT01 
 #else
 #error "Unsupported platform family"
 #endif

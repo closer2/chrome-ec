@@ -132,7 +132,7 @@
 #undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
 #undef CONFIG_FINAL_RELEASE                 /* define it when final release */
 #define CONFIG_LAN_WAKE_SWITCH              /* support lan/wlan wake */
-#define CONFIG_AUDIO_SWITCH                 /* support audio switch */
+/* #define CONFIG_AUDIO_SWITCH */           /* support audio switch */
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
