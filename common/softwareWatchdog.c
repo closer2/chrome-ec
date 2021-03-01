@@ -181,7 +181,7 @@ void ShutdownWDtService(void)
             gpio_set_level(GPIO_APU_NMI_L, 0);
             msleep(300);
             gpio_set_level(GPIO_APU_NMI_L, 1);
-		#else
+        #else
         #endif
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);
     #endif
