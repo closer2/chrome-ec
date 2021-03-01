@@ -19,7 +19,7 @@
 #include "gpio.h"
 #include "hooks.h"
 #include "power.h"
-#include "power/renoir.h"
+#include "power/cmlake.h"
 #include "power_button.h"
 #include "pwm.h"
 #include "pwm_chip.h"

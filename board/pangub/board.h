@@ -139,7 +139,7 @@
 #define CONFIG_VBOOT_HASH
 #define CONFIG_CRC8*/                       /* This board no need to verify boot*/
 
-#define CONFIG_CHIPSET_RENOIR               /* For select renoir platform power sequence when build(ec/power/build.mk)*/
+#define CONFIG_CHIPSET_CMLAKE               /* For select renoir platform power sequence when build(ec/power/build.mk)*/
 #define CONFIG_CHIPSET_CAN_THROTTLE         /* Support chipset throttling */
 #define CONFIG_CHIPSET_RESET_HOOK           /* Enable chipset reset hook, requires a deferrable function */
 
@@ -377,7 +377,7 @@
 
 #include "gpio_signal.h"
 #include "math_util.h"
-#include "power/renoir.h"
+#include "power/cmlake.h"
 #include "registers.h"
 
 /* TODO: need confirm with real hardware */
