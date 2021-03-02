@@ -52,7 +52,8 @@
 					   PD_FLAGS_UPDATE_SRC_CAPS | \
 					   PD_FLAGS_TS_DTS_PARTNER | \
 					   PD_FLAGS_SNK_WAITING_BATT | \
-					   PD_FLAGS_CHECK_VCONN_STATE)
+					   PD_FLAGS_CHECK_VCONN_STATE | \
+					   PD_FLAGS_DISABLE_TX_BIST)
 
 #ifdef CONFIG_COMMON_RUNTIME
 #define CPRINTF(format, args...) cprintf(CC_USBPD, format, ## args)
@@ -1632,6 +1633,8 @@ static void handle_data_request(int port, uint32_t head,
     				set_state(port, DUAL_ROLE_IF_ELSE(port,
     						PD_STATE_SNK_DISCONNECTED,
     						PD_STATE_SRC_DISCONNECTED));*/
+
+                    pd[port].flags |= PD_FLAGS_DISABLE_TX_BIST;
                 }
 			} else if ((payload[0] >> 28) == 8) { /* Go to BIST Test Data mode */
 			    CPRINTS("ZXQPD -> BIST Rx start");
@@ -3666,7 +3669,8 @@ void pd_task(void *u)
 			}
 
 			/* Send get sink cap if haven't received it yet */
-			if (!(pd[port].flags & PD_FLAGS_SNK_CAP_RECVD)) {
+			if (!(pd[port].flags & PD_FLAGS_SNK_CAP_RECVD) &&
+                !(pd[port].flags & PD_FLAGS_DISABLE_TX_BIST)) {
 				if (++snk_cap_count <= PD_SNK_CAP_RETRIES) {
 					/* Get sink cap to know if dual-role device */
 					send_control(port, PD_CTRL_GET_SINK_CAP);
@@ -3712,7 +3716,8 @@ void pd_task(void *u)
 
 			/* Send discovery SVDMs last */
 			if (pd[port].data_role == PD_ROLE_DFP &&
-			    (pd[port].flags & PD_FLAGS_CHECK_IDENTITY)) {
+			    (pd[port].flags & PD_FLAGS_CHECK_IDENTITY) &&
+			    !(pd[port].flags & PD_FLAGS_DISABLE_TX_BIST)) {
 #ifndef CONFIG_USB_PD_SIMPLE_DFP
 				pd_send_vdm(port, USB_SID_PD,
 					    CMD_DISCOVER_IDENT, NULL, 0);

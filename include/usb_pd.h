@@ -928,6 +928,7 @@ enum pd_states {
 #define PD_FLAGS_SNK_WAITING_BATT  BIT(21)
 /* Check vconn state in READY */
 #define PD_FLAGS_CHECK_VCONN_STATE BIT(22)
+#define PD_FLAGS_DISABLE_TX_BIST   BIT(23)
 #endif /* CONFIG_USB_PD_TCPMV1 */
 
 /* Per-port battery backed RAM flags */
