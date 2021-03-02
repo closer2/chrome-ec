@@ -32,5 +32,6 @@ void powerled_set_state(enum powerled_state state);
 static inline void powerled_set_state(enum powerled_state state) {}
 
 #endif
+void set_area_Damage_flag(uint8_t value);
 
 #endif /* __CROS_EC_POWER_LED_H */

@@ -386,8 +386,19 @@ static void oem_bios_to_ec_command(void)
             *(bios_cmd+3) = getAbnormalPowerDownTimes();
         } else if (0x02 == *(bios_cmd+2)) {
             clearAbnormalPowerDownTimes();
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
         }
     break;
+    case 0x11: /* Abnormal Power Down Times */
+        if (0x01 == *(bios_cmd+2)) {    /* BIOS get abnormal power down times*/
+            set_area_Damage_flag(0x01);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;

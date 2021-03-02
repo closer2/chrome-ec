@@ -39,6 +39,7 @@
 
 static enum powerled_state led_state = POWERLED_STATE_ON;
 static int power_led_percent = 100;
+static uint8_t areaDamage = 0;
 
 void powerled_set_state(enum powerled_state new_state)
 {
@@ -116,6 +117,26 @@ static int power_led_blink(void)
     power_led_set_duty(power_led_percent);
     return LED_BLINK_TIME;
 }
+
+void set_area_Damage_flag(uint8_t value)
+{
+    areaDamage = value;
+}
+/* bios_boot_block_damage */
+static void area_damage_deferred(void)
+{
+    if (!areaDamage) {
+        powerled_set_state(POWERLED_STATE_BLINK);
+    }
+}
+DECLARE_DEFERRED(area_damage_deferred);
+
+static void area_damage_power_led_blink(void)
+{
+    areaDamage = 0;
+    hook_call_deferred(&area_damage_deferred_data, (5000 * MSEC));
+}
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, area_damage_power_led_blink, HOOK_PRIO_DEFAULT);
 
 void power_led_task(void *u)
 {
