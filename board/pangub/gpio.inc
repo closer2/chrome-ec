@@ -61,8 +61,10 @@ GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SL
 GPIO(PECI,                  PIN(8, 1), GPIO_OUT_HIGH)       /* PECI */
 GPIO(EC_PCI_SSD_RST,        PIN(0, 2), GPIO_OUT_LOW)        /* PCIE SSD RESET */
 GPIO(GPIO_F23_VCCIO0_VID1,  PIN(A, 3), GPIO_OUT_LOW)        /* unkonw */
-GPIO(EC_LAN_WLAN_RST,       PIN(2, 4), GPIO_OUT_LOW)        /* EC_LAN_WLAN_RST */
+GPIO(EC_LAN_WLAN_RST,       PIN(2, 3), GPIO_OUT_LOW)        /* LAN/WLAN RESET */
 GPIO(SLP_S3_PQ9309,         PIN(2, 7), GPIO_OUT_LOW)        /* EC passthrough SLP_S3 */
+GPIO(EC_PCI_SOCKET_RST,     PIN(C, 4), GPIO_OUT_LOW)        /* PCIEX1/PCIEX16 RESET */
+GPIO(EC_TPM_RST,            PIN(8, 3), GPIO_OUT_LOW)        /* TPM RESET */
 
 /* SYS_RST# as gpio */
 GPIO(SYS_RST,			    PIN(C, 5), GPIO_OUT_LOW)			/* SYS_RST# */
