@@ -246,6 +246,7 @@
 #define GPIO_PCH_PWRBTN_L               GPIO_EC_FCH_PWR_BTN_L
 #define GPIO_PCH_RSMRST_L               GPIO_EC_FCH_RSMRST_L
 #define GPIO_PCH_SLP_S3_L               GPIO_SLP_S3_L
+#define GPIO_PCH_SLP_S4_L               GPIO_SLP_S4_L
 #define GPIO_PCH_SLP_S5_L               GPIO_SLP_S5_L
 #define GPIO_PCH_SYS_PWROK              GPIO_EC_FCH_PWROK
 #define GPIO_POWER_BUTTON_L             GPIO_EC_PWR_BTN_ODL
@@ -456,7 +457,7 @@ __override_proto void ppc_interrupt(enum gpio_signal signal);
 #endif
 
 void board_print_temps(void);
-void apu_pcie_reset_interrupt(enum gpio_signal signal);
+void cpu_plt_reset_interrupt(enum gpio_signal signal);
 
 void tcpc_alert_event(enum gpio_signal signal);
 /* Board interfaces */

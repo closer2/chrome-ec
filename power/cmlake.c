@@ -53,9 +53,12 @@ static void chipset_force_g3(void)
 
     /* trun off S0/S3 power */
     gpio_set_level(GPIO_PWRGD_140MS, 0);
-    gpio_set_level(GPIO_EC_FCH_PWRGD, 0);
+    gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
     gpio_set_level(GPIO_EC_SLP_S3_L, 0);
     gpio_set_level(GPIO_EC_SLP_S5_L, 0);
+    gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 0);
+    gpio_set_level(GPIO_VCCST_PWRGD, 0);
+
     gpio_set_level(GPIO_EC_PSON_L, 1);
     gpio_set_level(GPIO_PCH_RSMRST_L, 0);
 
@@ -84,13 +87,14 @@ static void chipset_force_g3(void)
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
-    /* gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0); */
-    /* gpio_set_level(GPIO_PCH_SMI_L, 0); */
-    /*gpio_set_level(GPIO_APU_NMI_L, 0);
-    gpio_set_level(GPIO_EC_ALERT_L, 0);*/
+    gpio_set_level(GPIO_DSW_PWROK_EN, 0);
+    gpio_set_level(GPIO_CPU_NMI_L, 0);
+    /*gpio_set_level(GPIO_EC_ALERT_L, 0);*/
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
     /* gpio_set_level(GPIO_KBRST_L, 0); */
-    
+    gpio_set_level(GPIO_F22_VCCIO0_VID0, 0);
+    gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
+
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
 
@@ -233,7 +237,6 @@ static void s0_to_s5_deferred(void)
 }
 DECLARE_DEFERRED(s0_to_s5_deferred);
 
-
 enum power_state power_handle_state(enum power_state state)
 {
     if (state == POWER_S5 && forcing_shutdown) {
@@ -246,26 +249,31 @@ enum power_state power_handle_state(enum power_state state)
         break;
 
     case POWER_G3S5:
+        if (power_wait_signals(IN_3V3_SB_PGOOD)) {
+            CPRINTS("Power 3V3_SB_PGOOD error!");
+            return POWER_G3;
+        }
+
+        gpio_set_level(GPIO_CPU_NMI_L, 1);
         /* Exit SOC G3 */
-        gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
+        msleep(10);
+        gpio_set_level(GPIO_DSW_PWROK_EN, 1);
+        /* PCH send SLP_SUS# delay time(t > 95ms) want 2s */
+        if (power_wait_signals(IN_SLP_SUS_L)) {
+            CPRINTS("Power PCH SLP SUS error!");
+            return POWER_S5G3;
+        }
         gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
-        gpio_set_level(GPIO_PROCHOT_ODL, 1);
-        /* gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1); */
-        /* gpio_set_level(GPIO_PCH_SMI_L, 1); */
-        /*gpio_set_level(GPIO_APU_NMI_L, 1);
-        gpio_set_level(GPIO_EC_ALERT_L, 1);*/
-        gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
-        /* gpio_set_level(GPIO_KBRST_L, 1); */
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
+        gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
+
+        gpio_set_level(GPIO_PROCHOT_ODL, 1);
+        gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
         gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
         gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
-        msleep(10);
-        
-        /* Enable system power ("*_A" rails) in S5. */
-        /* gpio_set_level(GPIO_PROM19_EN, 1); */
-        /* gpio_set_level(GPIO_EC_ALW_EN, 1); */
 
+        msleep(10);
         /* chiset_task pause for wait signal */
         if (power_wait_signals(IN_PGOOD_S5)) {
             chipset_force_g3();
@@ -288,7 +296,7 @@ enum power_state power_handle_state(enum power_state state)
             /* Required rail went away */
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             return POWER_S5G3;
-        } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 1) {
+        } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 1) {
             /* PCH SLP_S5 turn on, Power up to next state */
             return POWER_S5S3;
         }
@@ -328,15 +336,20 @@ enum power_state power_handle_state(enum power_state state)
             gpio_set_level(GPIO_EC_PSON_L, 0);
             
             if(power_wait_voltage()) {
-                CPRINTS("power wait 12V timeout");
+                CPRINTS("error: power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
                 return POWER_S5G3;
             }
             gpio_set_level(GPIO_EC_SLP_S5_L, 1);
             gpio_set_level(GPIO_EC_SLP_S3_L, 1);
+            msleep(10);
+            gpio_set_level(GPIO_VCCST_PWRGD, 1);
+            gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 1);
+            gpio_set_level(GPIO_F22_VCCIO0_VID0, 1);
+            gpio_set_level(GPIO_F23_VCCIO0_VID1, 1);
             /* PCH SLP_S3 turn on, Power up to next state */
             return POWER_S3S0;
-        } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 0) {
+        } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 0) {
             /* PCH SLP_S5 turn off, Power down to next state */
             return POWER_S3S5;
         }
@@ -367,10 +380,10 @@ enum power_state power_handle_state(enum power_state state)
         /* Power-on Led turn on*/
         powerled_set_state(POWERLED_STATE_ON);
 
-        /* Power sequence doc ask for 10ms delay before pull high GPIO_EC_FCH_PWRGD.
+        /* Power sequence doc ask for 10ms delay before pull high GPIO_EC_PCH_PWRGD.
          */
         msleep(10);
-        gpio_set_level(GPIO_EC_FCH_PWRGD, 1);
+        gpio_set_level(GPIO_EC_PCH_PWRGD, 1);
 
         /* Power sequence doc ask for 140ms delay before pull high GPIO_PWRGD_140MS.
          */
@@ -417,17 +430,21 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_PWRGD_140MS, 0);
 
         /* withdraw EC_FCH_PWRGD */
-        gpio_set_level(GPIO_EC_FCH_PWRGD, 0);
+        gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
 
         /* EC pass through SLP_S3*/
         gpio_set_level(GPIO_EC_SLP_S3_L, 0);
+        gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 0);
+
+        gpio_set_level(GPIO_F22_VCCIO0_VID0, 0);
+        gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
 
         /* withdraw PSON#, low active */
         gpio_set_level(GPIO_EC_PSON_L, 1);
 
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
-        
+
         /*
          * Enable idle task deep sleep. Allow the low power idle task
          * to go into deep sleep in S3 or lower.
@@ -464,6 +481,9 @@ enum power_state power_handle_state(enum power_state state)
         /* EC pass through SLP_S5*/
         gpio_set_level(GPIO_EC_SLP_S5_L, 0);
 
+        /* EC pass through VCCST_PWRGD*/
+        gpio_set_level(GPIO_VCCST_PWRGD, 0);
+
         /* Call hooks after we remove power rails */
         hook_notify(HOOK_CHIPSET_SHUTDOWN_COMPLETE);
 
@@ -482,7 +502,7 @@ enum power_state power_handle_state(enum power_state state)
     default:
         break;
     }
-    
+
     return state;
 }
 

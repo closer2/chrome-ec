@@ -178,9 +178,9 @@ void ShutdownWDtService(void)
             msleep(300);
             gpio_set_level(GPIO_PCH_SMI_L, 1);
         #elif defined(NPCX_FAMILY_DT03)
-            gpio_set_level(GPIO_APU_NMI_L, 0);
+            gpio_set_level(GPIO_CPU_NMI_L, 0);
             msleep(300);
-            gpio_set_level(GPIO_APU_NMI_L, 1);
+            gpio_set_level(GPIO_CPU_NMI_L, 1);
         #else
         #endif
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);

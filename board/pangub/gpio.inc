@@ -19,10 +19,12 @@
 /* Interrupt signal */
 GPIO_INT(USB_C0_MUX_INT_ODL,	PIN(7, 2), GPIO_INT_FALLING, 			tcpc_alert_event)
 
+GPIO_INT(3V3_SB_PGOOD,      PIN(D, 0), GPIO_INT_BOTH,			power_signal_interrupt)     /* 3.3V_SB_PGOOD */
+GPIO_INT(SLP_SUS_L,         PIN(D, 2), GPIO_INT_BOTH,			power_signal_interrupt)     /* SLP_SUS_L */
 GPIO_INT(SYSTEM_ALW_PG,		PIN(9, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_AUX power good */
 GPIO_INT(SLP_S3_L,		    PIN(9, 4), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power enable */
 GPIO_INT(SLP_S4_L,		    PIN(C, 6), GPIO_INT_BOTH,			power_signal_interrupt) 	/* PCH SLP_S4 */
-GPIO_INT(SLP_S5_L,		    PIN(B, 1), GPIO_INT_BOTH,			power_signal_interrupt)
+GPIO_INT(SLP_S5_L,		    PIN(B, 1), GPIO_INT_BOTH,			power_signal_interrupt)     /* PCH SLP_S5 */
 GPIO_INT(ATX_PG,		    PIN(D, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* PSON# 12V power good */
 GPIO_INT(VCORE_EN,		    PIN(6, 3), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power, enable by EC_SLP_S3 */
 GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* VRMPWRGD->CPU_VR_PG */
@@ -30,14 +32,16 @@ GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* 
 GPIO_INT(EC_LAN_WAKE_L,		PIN(2, 2), GPIO_INT_BOTH,			power_lan_wake_interrupt)	    /* LAN Waked up */
 GPIO_INT(EC_WLAN_WAKE_L,    PIN(1, 1), GPIO_INT_BOTH,			power_wlan_wake_interrupt)	    /* WLAN Waked up */
 #endif
-GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)
+GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)   /* power button */
+GPIO_INT(EC_PLT_RST_L,      PIN(3, 1), GPIO_INT_BOTH,			cpu_plt_reset_interrupt)  /* Pass through to other xxx_RST_L (PCIEX1/PCIEX16/M2_2280_SSD1) */
 
 /* Replace of the above for PanGuL board */
-GPIO(EC_FCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_FCH_PWRGD */
-GPIO(DSW_PWROK,             PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
+
+GPIO(EC_PCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_PCH_PWRGD */
+GPIO(DSW_PWROK_EN,          PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
 GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_OUT_LOW)        /* Power Button to SOC, EC_PWRBTN_OUT_N */
 GPIO(EC_1V8_AUX_EN,         PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
-GPIO(EC_RTC_RST,            PIN(E, 2), GPIO_OUT_LOW)        /* RTC reset, EC output */
+GPIO(EC_RTC_RST_L,          PIN(E, 2), GPIO_OUT_HIGH)       /* Reserved Pin, RTC reset, EC output */
 GPIO(VCCST_PWRGD,           PIN(0, 1), GPIO_OUT_LOW)        /* VCCST power OK, EC output */
 GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, output, passthrough SLP_S5_L */
 GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
@@ -51,23 +55,28 @@ GPIO(EC_AUDIO_MUTE_L,       PIN(E, 3), GPIO_OUT_HIGH)       /* EC_AUDIO_MUTE_L *
 GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V enable, default to high */
 GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_HIGH)       /* Finger KBD USB port power enable */
 GPIO(EC_SLP_S3_L,           PIN(D, 5), GPIO_OUT_LOW)        /* EC_SLP_S3#, output, passthrough SLP_S3_L */
+GPIO(EC_SLP_S3_PQ9309_L,    PIN(2, 7), GPIO_OUT_LOW)        /* EC passthrough SLP_S3 */
+GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */
 GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
 GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
 GPIO(EC_LOM_PWR_EN,         PIN(0, 5), GPIO_OUT_LOW)        /* EC_LOM_PWR_EN */
-GPIO(APU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
+GPIO(CPU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
+GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
+GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
+GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
 GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
 GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */
-GPIO(PECI,                  PIN(8, 1), GPIO_OUT_HIGH)       /* PECI */
-GPIO(EC_PCI_SSD_RST,        PIN(0, 2), GPIO_OUT_LOW)        /* PCIE SSD RESET */
-GPIO(GPIO_F23_VCCIO0_VID1,  PIN(A, 3), GPIO_OUT_LOW)        /* unkonw */
-GPIO(EC_LAN_WLAN_RST,       PIN(2, 3), GPIO_OUT_LOW)        /* LAN/WLAN RESET */
-GPIO(SLP_S3_PQ9309,         PIN(2, 7), GPIO_OUT_LOW)        /* EC passthrough SLP_S3 */
-GPIO(EC_PCI_SOCKET_RST,     PIN(C, 4), GPIO_OUT_LOW)        /* PCIEX1/PCIEX16 RESET */
-GPIO(EC_TPM_RST,            PIN(8, 3), GPIO_OUT_LOW)        /* TPM RESET */
+GPIO(POWER_LED,             PIN(0, 3), GPIO_OUT_LOW)        /* power led */
+GPIO(EC_PCI_SOCKET_RST_L,   PIN(C, 4), GPIO_OUT_LOW)        /* PCI SOCKET RST */
+GPIO(EC_PCI_SSD_RST_L,      PIN(0, 2), GPIO_OUT_LOW)        /* PCI SSD RST */
+GPIO(EC_LAN_WLAN_RST_L,     PIN(2, 3), GPIO_OUT_LOW)        /* LAN WLAN RST */
+GPIO(EC_TPM_RST_L,          PIN(8, 3), GPIO_OUT_LOW)        /* TPM RST */
+GPIO(F22_VCCIO0_VID0,	    PIN(1, 4), GPIO_OUT_LOW)	    /* power sequence VCCIO0_VID0 */
+GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCIO0_VID1 */
 
 /* SYS_RST# as gpio */
-GPIO(SYS_RST,			    PIN(C, 5), GPIO_OUT_LOW)			/* SYS_RST# */
+GPIO(SYS_RST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
 
 /* Input */
 GPIO(EC_PROJECT_ID0,		PIN(0, 7), GPIO_INPUT)				/* EC_PROJECT_ID0 */
@@ -77,31 +86,25 @@ GPIO(EC_BRD_ID0,		    PIN(8, 2), GPIO_INPUT)				/* EC_BRD_ID0 */
 GPIO(EC_BRD_ID1,		    PIN(0, 4), GPIO_INPUT)				/* EC_BRD_ID1 */
 GPIO(EC_BRD_ID2,		    PIN(A, 1), GPIO_INPUT)				/* EC_BRD_ID2 */
 GPIO(FPS_RST_L,			    PIN(9, 6), GPIO_INPUT)				/* Connected to CH549, can reset it, but we do not use it */
-GPIO(GPIO_F22_VCCIO0_VID0,	    PIN(1, 4), GPIO_INPUT)				/* power sequence VCCIO0_VID0 */
 GPIO(EC_DDR_VDDQ_EN,		PIN(C, 1), GPIO_INPUT)				/* reserved(not used), EC enable VDDQ power */
 GPIO(EC_DDR_VPP_EN,		    PIN(D, 3), GPIO_INPUT)				/* reserved(not used), EC eanble VPP power */
 GPIO(EC_WLAN_PWR_EN,		PIN(9, 5), GPIO_INPUT)				/* Not used, reserved for WLAN power en, EC_WLAN_PWR_EN */
 GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detection is inbreak? */
-GPIO(H_THERMTRIP,               PIN(2, 6), GPIO_INPUT)                          /* CPU THERMTRIP */
-GPIO(3V3_SB_PGOOD,              PIN(D, 0), GPIO_INPUT)                          /* 3.3v power ok to ec */
-GPIO(PLT_RST,                   PIN(3, 1), GPIO_INPUT)                          /* PLT_RST# */
-GPIO(EC_TS3A227_INT,            PIN(B, 7), GPIO_INPUT)                          /* unknow */
+GPIO(EC_FRONT_HP_JD,        PIN(9, 3), GPIO_INPUT)
+GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin, VCCIO_1_2_GOOG */
 
 /* CLKRUN# as input with pull up */
-UNUSED(PIN(0, 6))								/* EC_3VSBSW */
-UNUSED(PIN(8, 5))								/* EC_LPS_EN_N */
-UNUSED(PIN(E, 0))								/* FPS_IRQ */
-UNUSED(PIN(5, 6))								/* CLKRUN# */
-UNUSED(PIN(1, 3))
-UNUSED(PIN(1, 5))
+UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
+UNUSED(PIN(8, 0))       /* CATEIERR3 */
+UNUSED(PIN(8, 1))       /* PECI */
+UNUSED(PIN(B, 7))       /* EC_TS3A227_INT */
+UNUSED(PIN(2, 4))       /* EC_VIN_5VSB */
+UNUSED(PIN(0, 6))
+UNUSED(PIN(8, 5))
 UNUSED(PIN(2, 5))
-UNUSED(PIN(B, 6))
-UNUSED(PIN(D, 6))
-UNUSED(PIN(3, 5))
+UNUSED(PIN(2, 6))
 UNUSED(PIN(5, 0))
 UNUSED(PIN(5, 7))
-UNUSED(PIN(0, 3))
-UNUSED(PIN(9, 3))
 
 /* The following signal not implmented by PanGuL board, need confirm We Do Not Them!!! */
 UNIMPLEMENTED(AC_PRESENT)
@@ -111,7 +114,7 @@ UNIMPLEMENTED(ENTERING_RW)
 UNIMPLEMENTED(PACKET_MODE_EN)
 
 /*
- * The NPCX LPC driver configures and controls SCI, so PCH_SCI_ODL [PIN(7, 6)]
+ * The NPCX ESPI driver configures and do not neet to controls SCI, so PCH_SCI_ODL [PIN(7, 6)]
  * is not defined here as GPIO.
  */
 
@@ -149,7 +152,7 @@ ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)               /* ADC8:
 
 ALTERNATE(PIN_MASK(C, BIT(2) | BIT(3)), 1, MODULE_PWM, 0)       /* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM */
 
-ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)                /* PWM3: power-on led */
+/* ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)  */              /* PWM3: power-on led */
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */

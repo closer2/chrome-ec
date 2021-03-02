@@ -48,21 +48,36 @@ const int hibernate_wake_pins_used =  ARRAY_SIZE(hibernate_wake_pins);
 
 /* TODO: need confirm with real hardware */
 const struct power_signal_info power_signal_list[] = {
-	[SYSTEM_ALW_PG] = {
-		.gpio = GPIO_SYSTEM_ALW_PG,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "SYSTEM_ALW_PG",
-	},
+    [V3V3_SB_PGOOD] = {
+        .gpio = GPIO_3V3_SB_PGOOD,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "3V3_SB_PGOOD",
+    },
+    [SLP_SUS_L] = {
+        .gpio = GPIO_SLP_SUS_L,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SLP_SUS_L",
+    },
+    [SYSTEM_ALW_PG] = {
+        .gpio = GPIO_SYSTEM_ALW_PG,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SYSTEM_ALW_PG",
+    },
 	[X86_SLP_S3_N] = {
 		.gpio = GPIO_PCH_SLP_S3_L,
 		.flags = POWER_SIGNAL_ACTIVE_HIGH,
 		.name = "SLP_S3_DEASSERTED",
 	},
-	[X86_SLP_S5_N] = {
-		.gpio = GPIO_PCH_SLP_S5_L,
+	[X86_SLP_S4_N] = {
+		.gpio = GPIO_PCH_SLP_S4_L,
 		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "SLP_S5_DEASSERTED",
+		.name = "SLP_S4_DEASSERTED",
 	},
+    [X86_SLP_S5_N] = {
+        .gpio = GPIO_PCH_SLP_S5_L,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SLP_S5_DEASSERTED",
+        },
 	[ATX_PG] = {
 		.gpio = GPIO_ATX_PG,
 		.flags = POWER_SIGNAL_ACTIVE_HIGH,
@@ -588,7 +603,7 @@ static void board_init_config(void)
 }
 DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_DEFAULT);
 
-void apu_pcie_reset_interrupt(enum gpio_signal signal)
+void cpu_plt_reset_interrupt(enum gpio_signal signal)
 {
     int debounce_sample = 0;
 
@@ -596,12 +611,13 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
     usleep(10);
     debounce_sample = gpio_get_level(signal);
 
-    if (first_sample == debounce_sample) {/*
-        gpio_set_level(GPIO_PCIEX16_RST_L, debounce_sample);
-        gpio_set_level(GPIO_PCIEX1_RST_L, debounce_sample);
-        gpio_set_level(GPIO_M2_2280_SSD1_RST_L, debounce_sample);
+    if (first_sample == debounce_sample) {
+        gpio_set_level(GPIO_EC_PCI_SOCKET_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_PCI_SSD_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_LAN_WLAN_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_TPM_RST_L, debounce_sample);
 
-        ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_APU_PCIE_RST_L)); */
+        ccprints("apu_pcie_reset, level=%d\n", gpio_get_level(GPIO_EC_PLT_RST_L));
         return;
     }
 
