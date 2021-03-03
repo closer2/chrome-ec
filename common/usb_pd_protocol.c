@@ -1625,7 +1625,7 @@ static void handle_data_request(int port, uint32_t head,
 			if ((payload[0] >> 28) == 5) {
                 if(1 == pd[port].requested_idx) { /* First PDO is 5V3A, BIST message only valid at 5V*/
     				/* bist data object mode is 2 */
-                    CPRINTS("ZXQPD -> BIST Tx start");
+                    CPRINTS("TCPC -> BIST Tx start");
     				pd_transmit(port, TCPC_TX_BIST_MODE_2, 0,
     					    NULL, AMS_RESPONSE);
                     msleep(80); /* Delay at least enough to finish sending BIST */
@@ -1633,11 +1633,10 @@ static void handle_data_request(int port, uint32_t head,
     				set_state(port, DUAL_ROLE_IF_ELSE(port,
     						PD_STATE_SNK_DISCONNECTED,
     						PD_STATE_SRC_DISCONNECTED));*/
-
-                    pd[port].flags |= PD_FLAGS_DISABLE_TX_BIST;
                 }
 			} else if ((payload[0] >> 28) == 8) { /* Go to BIST Test Data mode */
-			    CPRINTS("ZXQPD -> BIST Rx start");
+			    pd[port].flags |= PD_FLAGS_DISABLE_TX_BIST;
+			    CPRINTS("TCPC -> BIST Rx start");
                 tcpm_set_bist_test_mode(port, 1);
             }
 		}
