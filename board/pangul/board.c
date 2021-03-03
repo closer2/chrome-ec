@@ -140,7 +140,10 @@ int board_get_temp(int idx, int *temp_k)
             break;
         case TEMP_SENSOR_MEMORY_NTC:
             channel = ADC_SENSOR_MEMORY_NTC;
-            break;  
+            break;
+        case TEMP_SENSOR_SSD2_NTC:
+            channel = ADC_SENSOR_SSD2_NTC;
+            break;
         default:
             return EC_ERROR_INVAL;
     }
@@ -208,6 +211,13 @@ const struct adc_t adc_channels[] = {
 		.factor_div = ADC_READ_MAX + 1,
 		.shift = 0,
 	},
+    [ADC_SENSOR_SSD2_NTC] = {
+        .name = "SSD2 NTC",
+        .input_ch = NPCX_ADC_CH2,
+        .factor_mul = ADC_MAX_VOLT,
+        .factor_div = ADC_READ_MAX + 1,
+        .shift = 0,
+    },
 };
 BUILD_ASSERT(ARRAY_SIZE(adc_channels) == ADC_CH_COUNT);
 
@@ -247,6 +257,12 @@ const struct temp_sensor_t temp_sensors[] = {
         .type = TEMP_SENSOR_TYPE_BOARD,
         .read = board_get_temp,
         .idx = TEMP_SENSOR_MEMORY_NTC,
+    },
+    [TEMP_SENSOR_SSD2_NTC] = {
+        .name = "SSD2_NTC",
+        .type = TEMP_SENSOR_TYPE_BOARD,
+        .read = board_get_temp,
+        .idx = TEMP_SENSOR_SSD2_NTC,
     },
 };
 BUILD_ASSERT(ARRAY_SIZE(temp_sensors) == TEMP_SENSOR_COUNT);
@@ -318,6 +334,17 @@ __overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
         .temp_fan_off = C_TO_K(35),
 	    .temp_fan_max = C_TO_K(50)
 	},
+    [TEMP_SENSOR_SSD2_NTC] = {
+        .temp_host = {
+            [EC_TEMP_THRESH_HIGH] = C_TO_K(90),
+            [EC_TEMP_THRESH_HALT] = C_TO_K(92),
+        },
+        .temp_host_release = {
+            [EC_TEMP_THRESH_HIGH] = C_TO_K(80),
+        },
+        .temp_fan_off = C_TO_K(35),
+        .temp_fan_max = C_TO_K(50)
+        },
 };
 BUILD_ASSERT(ARRAY_SIZE(thermal_params) == TEMP_SENSOR_COUNT);
 

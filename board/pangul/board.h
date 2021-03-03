@@ -36,11 +36,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "51"
-#define BLD_EC_VERSION_TEST     "01"
+#define BLD_EC_VERSION_TEST     "02"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x51
-#define BLD_EC_VERSION_TEST_HEX 0x01
+#define BLD_EC_VERSION_TEST_HEX 0x02
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
@@ -424,6 +424,7 @@ enum adc_channel {
     ADC_SENSOR_MEMORY_NTC,
     ADC_3P3V,
     ADC_12V,
+    ADC_SENSOR_SSD2_NTC,
 	ADC_CH_COUNT
 };
 
@@ -435,6 +436,7 @@ enum temp_sensor_id {
         TEMP_SENSOR_PCIEX16_NTC,
         TEMP_SENSOR_CPU_NTC,
         TEMP_SENSOR_MEMORY_NTC,
+        TEMP_SENSOR_SSD2_NTC,
         TEMP_SENSOR_COUNT
 };
 

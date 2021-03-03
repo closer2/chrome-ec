@@ -60,9 +60,7 @@ struct thermal_params_s {
     int   pcie16Ntc;      /* name = "PCIE16 NTC" */
     int   cpuNtc;         /* name = "CPU NTC" */
     int   memoryNtc;      /* name = "Memory NTC" */
-#ifdef NPCX_FAMILY_DT02
     int   ssd2Ntc;        /* name = "SSD2 NTC" */
-#endif
 };
 
 struct thermal_params_s g_fanLevel[CONFIG_FANS] = {0};
@@ -101,7 +99,6 @@ const struct thermal_level_s t_uma_thermal_sys_fan_ssd1_ntc = {
     .data = uma_thermal_sys_fan_ssd1_ntc,
 };
 
-#ifdef NPCX_FAMILY_DT02
 /* UMP sys fan sensor SSD2 NTC*/
 const struct thermal_level_ags uma_thermal_sys_fan_ssd2_ntc[] = {
 /* level    RPM        HowTri       lowTri */
@@ -117,7 +114,6 @@ const struct thermal_level_s t_uma_thermal_sys_fan_ssd2_ntc = {
     .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_ssd2_ntc),
     .data = uma_thermal_sys_fan_ssd2_ntc,
 };
-#endif
 
 /* UMP sys fan sensor memory NTC*/
 const struct thermal_level_ags uma_thermal_sys_fan_memory_ntc[] = {
@@ -425,7 +421,6 @@ static int sys_fan_check_RPM(uint8_t thermalMode)
             g_fanRPM[fan].ssd1Ntc = get_fan_RPM(g_fanLevel[fan].ssd1Ntc, 
                 &t_uma_thermal_sys_fan_ssd1_ntc);
 
-        #ifdef NPCX_FAMILY_DT02
             /* sys fan check SSD2 NTC */
             g_fanLevel[fan].ssd2Ntc =
                 get_fan_level(g_tempSensors[TEMP_SENSOR_SSD2_NTC], 
@@ -435,7 +430,6 @@ static int sys_fan_check_RPM(uint8_t thermalMode)
 
             rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].ssd2Ntc)
                             ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].ssd2Ntc;
-        #endif
 
             /* sys fan check Memory NTC */
             g_fanLevel[fan].memoryNtc =
@@ -444,13 +438,8 @@ static int sys_fan_check_RPM(uint8_t thermalMode)
             g_fanRPM[fan].memoryNtc = get_fan_RPM(g_fanLevel[fan].memoryNtc
                 , &t_uma_thermal_sys_fan_memory_ntc);
 
-        #ifdef NPCX_FAMILY_DT02
             rpm_target = (rpm_target > g_fanRPM[fan].memoryNtc)
                             ?  rpm_target : g_fanRPM[fan].memoryNtc;
-        #else
-            rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].memoryNtc)
-                            ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].memoryNtc;
-        #endif
             rpm_target += temp;
             break;
 
