@@ -511,6 +511,18 @@ DECLARE_DEFERRED(pd_reset_deferred);
 
 static void board_chipset_resume(void)
 {
+    /* re-set cold boot */
+    if(want_reboot_ap_at_g3 && (reboot_ap_at_g3_cyclecount>0)
+			&& reboot_ap_at_g3_delay == 0) {
+        reboot_ap_at_g3_cyclecount--;
+        reboot_ap_at_g3_delay = reboot_ap_at_g3_delay_backup;
+        
+        if(!reboot_ap_at_g3_cyclecount) {
+            want_reboot_ap_at_g3 = false;
+            reboot_ap_at_g3_delay = 0;
+        }
+    }
+
     hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
     
     wakeup_cause_record(LOG_ID_WAKEUP_0x04);
@@ -627,7 +639,7 @@ void cpu_plt_reset_interrupt(enum gpio_signal signal)
 
 static void system_cold_boot(void)
 {
-    if(POWER_S5 == power_get_state()) {
+    if(POWER_S5 == power_get_state() || POWER_S3 == power_get_state()) {
         if((reboot_ap_at_g3_delay>0) && (reboot_ap_at_g3_cyclecount>0)) {
             reboot_ap_at_g3_delay--;
             ccprints("S5 cold boot count down time=%dsec", reboot_ap_at_g3_delay);
