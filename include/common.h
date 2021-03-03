@@ -308,6 +308,8 @@ enum ec_error_list {
 	EC_ERROR_INTERNAL_LAST = 0x1FFFF
 };
 
+#define EC_GENERAL_SIGNES  0xAA
+
 /*
  * Define test_mockable and test_mockable_static for mocking
  * functions.

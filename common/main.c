@@ -159,9 +159,8 @@ test_mockable __keep int main(void)
     
 #ifdef CONFIG_SYSTEM_RESET_DELAY
     system_get_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, &value);
-    if (value == 0x55) {
+    if (value == EC_GENERAL_SIGNES) {
         msleep(300);
-        system_set_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, 0x00);
     }
     ccprintf("EC reboot delay 0x%02x\n", value);
 #endif
