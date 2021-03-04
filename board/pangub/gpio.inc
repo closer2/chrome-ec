@@ -56,14 +56,10 @@ GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V
 GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_HIGH)       /* Finger KBD USB port power enable */
 GPIO(EC_SLP_S3_L,           PIN(D, 5), GPIO_OUT_LOW)        /* EC_SLP_S3#, output, passthrough SLP_S3_L */
 GPIO(EC_SLP_S3_PQ9309_L,    PIN(2, 7), GPIO_OUT_LOW)        /* EC passthrough SLP_S3 */
-GPIO(RV_SELECT,             PIN(6, 6), GPIO_OUT_LOW)        /* Default High, Set Low after EC load, we do not use it, set it to low directly */
 GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
 GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
 GPIO(EC_LOM_PWR_EN,         PIN(0, 5), GPIO_OUT_LOW)        /* EC_LOM_PWR_EN */
 GPIO(CPU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
-GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
-GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
-GPIO(PCIEX16_RST_L,         PIN(2, 0), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
 GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
 GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */
@@ -90,7 +86,7 @@ GPIO(EC_DDR_VDDQ_EN,		PIN(C, 1), GPIO_INPUT)				/* reserved(not used), EC enable
 GPIO(EC_DDR_VPP_EN,		    PIN(D, 3), GPIO_INPUT)				/* reserved(not used), EC eanble VPP power */
 GPIO(EC_WLAN_PWR_EN,		PIN(9, 5), GPIO_INPUT)				/* Not used, reserved for WLAN power en, EC_WLAN_PWR_EN */
 GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detection is inbreak? */
-GPIO(EC_FRONT_HP_JD,        PIN(9, 3), GPIO_INPUT)
+GPIO(EC_DGPU_PROCHOT_L,     PIN(9, 3), GPIO_INPUT)              /* Reserved Pin, DGPU PROCHOT */
 GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin, VCCIO_1_2_GOOG */
 
 /* CLKRUN# as input with pull up */

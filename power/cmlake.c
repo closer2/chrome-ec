@@ -330,11 +330,7 @@ enum power_state power_handle_state(enum power_state state)
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             /* Required rail went away */
             return POWER_S5G3;
-        } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
-
-            /* Enable PSON#, low active */
-            gpio_set_level(GPIO_EC_PSON_L, 0);
-            
+        } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {            
             if(power_wait_voltage()) {
                 CPRINTS("error: power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
