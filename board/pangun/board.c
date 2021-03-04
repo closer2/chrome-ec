@@ -621,21 +621,6 @@ void apu_pcie_reset_interrupt(enum gpio_signal signal)
     return;
 }
 
-static void system_cold_boot(void)
-{
-    if(POWER_S5 == power_get_state() || POWER_S3 == power_get_state()) {
-        if((reboot_ap_at_g3_delay>0) && (reboot_ap_at_g3_cyclecount>0)) {
-            reboot_ap_at_g3_delay--;
-            ccprints("S5 cold boot count down time=%dsec", reboot_ap_at_g3_delay);
-            
-            if(!reboot_ap_at_g3_delay) {
-                power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
-            }
-        }
-    }
-}
-DECLARE_HOOK(HOOK_SECOND, system_cold_boot, HOOK_PRIO_INIT_CHIPSET);
-
 /*******************************************************************************
  * EC firmware version set
  *
