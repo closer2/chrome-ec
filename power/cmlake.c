@@ -98,7 +98,7 @@ static void chipset_force_g3(void)
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
 
-/* Can we use KBRST# to do this? */
+/* Can we use SYSRST# to do this? */
 void chipset_reset(enum chipset_reset_reason reason)
 {
     CPRINTS("%s -> %s : %d", __FILE__, __func__, reason);
@@ -111,7 +111,7 @@ void chipset_reset(enum chipset_reset_reason reason)
     report_ap_reset(reason);
     
     /*
-    * Send a pulse to KBRST_L to trigger a warm reset.
+    * Send a pulse to SYSRST_L to trigger a warm reset.
     */
     /* This Windows Platform do not support chipset_reset,
     * its SYS_RST# pin not connected to EC
@@ -502,6 +502,14 @@ enum power_state power_handle_state(enum power_state state)
     return state;
 }
 
+/* initialize, when LAN/WLAN wake enable, need to exit G3, keep S5 */
+static void lan_wake_init_exit_G3(void)
+{
+    if (get_lan_wake_enable()) {
+        chipset_exit_hard_off();
+    }
+}
+DECLARE_HOOK(HOOK_INIT, lan_wake_init_exit_G3, HOOK_PRIO_INIT_LAN_WAKE);
 
 /*****************************************************************************/
 /* Host commands */

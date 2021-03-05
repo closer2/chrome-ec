@@ -487,6 +487,14 @@ enum power_state power_handle_state(enum power_state state)
     return state;
 }
 
+/* initialize, when LAN/WLAN wake enable, need to exit G3, keep S5 */
+static void lan_wake_init_exit_G3(void)
+{
+    if (get_lan_wake_enable()) {
+        chipset_exit_hard_off();
+    }
+}
+DECLARE_HOOK(HOOK_INIT, lan_wake_init_exit_G3, HOOK_PRIO_INIT_LAN_WAKE);
 
 /*****************************************************************************/
 /* Host commands */

@@ -2157,6 +2157,8 @@ void mfg_data_write(uint8_t index, uint8_t data)
     } else if(MFG_CHASSIS_INTRUSION_DATA_OFFSET == index) {
     } else if(MFG_CHASSIS_INTRUSION_MODE_OFFSET == index) {
     } else if(MFG_POWER_LAST_STATE_OFFSET == index) {
+    } else if(MFG_POWER_LAN_WAKE_OFFSET == index) {
+    } else if(MFG_POWER_WLAN_WAKE_OFFSET == index) {
     } else {
         return;
     }
@@ -2208,6 +2210,21 @@ static void mfg_data_init(void)
     } else {
         g_abnormalPowerDownTimes = *mfgMode;
     }
+
+#ifdef CONFIG_LAN_WAKE_SWITCH
+    /* initialize LAN WLAN enable data */
+    mfgMode = host_get_memmap(EC_MEMMAP_SYS_MISC2);
+    if (EC_GENERAL_SIGNES == mfg_data_map[MFG_POWER_LAN_WAKE_OFFSET]) {
+        (*mfgMode) |= EC_MEMMAP_POWER_LAN_WAKE;
+    } else {
+        (*mfgMode) &= (~EC_MEMMAP_POWER_LAN_WAKE);
+    }
+    if (EC_GENERAL_SIGNES == mfg_data_map[MFG_POWER_WLAN_WAKE_OFFSET]) {
+        (*mfgMode) |= EC_MEMMAP_POWER_WLAN_WAKE;
+    } else {
+        (*mfgMode) &= (~EC_MEMMAP_POWER_WLAN_WAKE);
+    }
+#endif
 
     /* Check MFG MODE when it isn't MFG MODE, force enable MFG MODE */
 #ifdef CONFIG_MFG_FACTORY_MODE

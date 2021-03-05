@@ -263,8 +263,10 @@ static void oem_bios_to_ec_command(void)
         mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
         if (0x01 == *(bios_cmd+2)) {        /* enable */
             (*mptr) |= EC_MEMMAP_POWER_LAN_WAKE;
+            mfg_data_write(MFG_POWER_LAN_WAKE_OFFSET, EC_GENERAL_SIGNES);
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
             (*mptr) &= (~EC_MEMMAP_POWER_LAN_WAKE);
+            mfg_data_write(MFG_POWER_LAN_WAKE_OFFSET, 0x00);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
@@ -275,8 +277,10 @@ static void oem_bios_to_ec_command(void)
         mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
         if (0x01 == *(bios_cmd+2)) {        /* enable */
             (*mptr) |= EC_MEMMAP_POWER_WLAN_WAKE;
+            mfg_data_write(MFG_POWER_WLAN_WAKE_OFFSET, EC_GENERAL_SIGNES);
         } else if(0x02 == *(bios_cmd+2)) {  /* disable */
             (*mptr) &= (~EC_MEMMAP_POWER_WLAN_WAKE);
+            mfg_data_write(MFG_POWER_WLAN_WAKE_OFFSET, 0x00);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

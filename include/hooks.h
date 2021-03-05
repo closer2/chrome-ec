@@ -49,8 +49,10 @@ enum hook_priority {
 	/* Init charge manager before usage in board init */
 	HOOK_PRIO_CHARGE_MANAGER_INIT = HOOK_PRIO_FIRST + 12,
 
-	HOOK_PRIO_INIT_ADC = HOOK_PRIO_DEFAULT,
-	HOOK_PRIO_INIT_DAC = HOOK_PRIO_DEFAULT,
+    HOOK_PRIO_INIT_ADC = HOOK_PRIO_DEFAULT,
+    HOOK_PRIO_INIT_DAC = HOOK_PRIO_DEFAULT,
+    /* Init LAN/WLAN wake enable exit G3,keep in s5, wait LAN/WLAN wake  */
+    HOOK_PRIO_INIT_LAN_WAKE = HOOK_PRIO_DEFAULT + 1,
 
 	/* Specific values to lump temperature-related hooks together */
 	HOOK_PRIO_TEMP_SENSOR = 6000,
