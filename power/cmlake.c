@@ -512,6 +512,46 @@ static void lan_wake_init_exit_G3(void)
 DECLARE_HOOK(HOOK_INIT, lan_wake_init_exit_G3, HOOK_PRIO_INIT_LAN_WAKE);
 
 /*****************************************************************************/
+/*****************************************************************************/
+uint8_t g_PowerButtonFactoryTest = 0;
+
+static void clear_Power_Button_flag(void)
+{
+    g_PowerButtonFactoryTest = 0x00;
+}
+DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN_COMPLETE, clear_Power_Button_flag, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, clear_Power_Button_flag, HOOK_PRIO_DEFAULT);
+
+static void set_Power_Button_flag(void)
+{
+    g_PowerButtonFactoryTest = 0x01;
+}
+DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, set_Power_Button_flag, HOOK_PRIO_DEFAULT);
+
+/* Host commands */
+static enum ec_status
+power_button_factory_test(struct host_cmd_handler_args *args)
+{
+    const struct ec_params_powerbtn_Test *p = args->params;
+    struct ec_response_powerbtn_Test *r = args->response;
+
+    /* No need to obtain information, set r->role = 0xff */
+    r->role = 0xff;
+    if(0x01 == p->role) {  /* clear power button flag */
+        g_PowerButtonFactoryTest = 0;
+    }else if (0x02 == p->role){  /* get power button flag */
+        r->role = g_PowerButtonFactoryTest;
+    } else {
+        return EC_RES_INVALID_PARAM;
+    }
+
+    args->response_size = sizeof(*r);
+    return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_POWERBTN_TEST,
+		     power_button_factory_test,
+		     EC_VER_MASK(0));
+
 /* Host commands */
 static enum ec_status
 switch_fingerprint_usb_connection(struct host_cmd_handler_args *args)
@@ -521,15 +561,23 @@ switch_fingerprint_usb_connection(struct host_cmd_handler_args *args)
 
 	/* No need to obtain information, set r->role = 0xff */
 	r->role = 0xff;
-	if(0 == p->role) {
-		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);	/* set 0 switch to MCU */
-	}else if (1 == p->role){
-		gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);	/* set 1 switch to CPU */
-	}else if (0xaa == p->role){						/* 0xaa to get fingerprint info */
-		r->role = gpio_get_level(GPIO_EC_TO_USB_SWITCH);
-	}else {
-		return EC_RES_INVALID_PARAM;
-	}
+    if(0 == p->role) {
+        /* notify HC32F460 power state S5 */
+        gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 0);
+        /* set 0 switch to MCU */
+        gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
+    }else if (1 == p->role){
+        /* notify HC32F460 power state S0 */
+        gpio_set_level(GPIO_HC32F460_PB0_SLP5, 1);
+        gpio_set_level(GPIO_HC32F460_PB1_SLP3, 1);
+        /* set 1 switch to CPU */
+        gpio_set_level(GPIO_EC_TO_USB_SWITCH, 1);
+    }else if (0xaa == p->role){ /* 0xaa to get fingerprint info */
+        r->role = gpio_get_level(GPIO_EC_TO_USB_SWITCH);
+    }else {
+        return EC_RES_INVALID_PARAM;
+    }
 	
 	args->response_size = sizeof(*r);
 	return EC_RES_SUCCESS;

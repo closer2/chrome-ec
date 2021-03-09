@@ -6935,6 +6935,21 @@ struct ec_response_fingerprint {
 	uint8_t role;	/* 0 switched to MCU, 1 switched to CPU, 0xff no response*/
 } __ec_align4;
 
+/* power button factory test */
+#define EC_CMD_POWERBTN_TEST 0x0201
+
+/*
+ * set 0x01, clear power button factory test flag,
+ * set 0x02, Get power button factory test flag.
+ */
+struct ec_params_powerbtn_Test {
+	uint8_t role;
+} __ec_align4;
+
+struct ec_response_powerbtn_Test {
+	uint8_t role;
+} __ec_align4;
+
 /*****************************************************************************/
 /* The command range 0x200-0x2FF is reserved for Rotor. */
 
