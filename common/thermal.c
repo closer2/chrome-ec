@@ -53,7 +53,8 @@ enum thermal_level {
 
 struct thermal_params_s {
     uint8_t   level;
-    int  rpm_target;
+    int   rpm_target;
+    int   time;
     int   cpuDts;         /* name = "CPU DTS" */
     int   ambiencerNtc;   /* name = "Ambiencer NTC" */
     int   ssd1Ntc;        /* name = "SSD1 NTC" */
@@ -486,82 +487,99 @@ static int sys_fan_check_RPM(uint8_t thermalMode)
 #define TEMP_CPU_DTS_PROTECTION        105
 #define TEMP_CPU_NTC_PROTECTION        105
 #define TEMP_SSD1_NTC_PROTECTION        90
+#define TEMP_SSD2_NTC_PROTECTION        90
 #define TEMP_MEMORY_NTC_PROTECTION      90
 #define TEMP_AMBIENT_NTC_PROTECTION     70
 
 #define TEMP_PROTECTION_COUNT 5
 static void temperature_protection_mechanism(void)
 {
+    #if 0
     /* Device high temperature protection mechanism */
     if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > CPU_DTS_PROCHOT_TEMP) {
         gpio_set_level(GPIO_PROCHOT_ODL, 0); /* low Prochot enable */
     } else if (g_tempSensors[TEMP_SENSOR_CPU_DTS] < CPU_DTS_PROCHOT_TEMP - 6) {
         gpio_set_level(GPIO_PROCHOT_ODL, 1); /* high Prochot disable */
     }
+    #endif
     /* CPU DTS */
     if (g_tempSensors[TEMP_SENSOR_CPU_DTS] > TEMP_CPU_DTS_PROTECTION) {
-        g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts++;
+        g_fanProtect[TEMP_SENSOR_CPU_DTS].time++;
     } else {
-        if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > 0) {
-            g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts--;
+        if (g_fanProtect[TEMP_SENSOR_CPU_DTS].time > 0) {
+            g_fanProtect[TEMP_SENSOR_CPU_DTS].time--;
         }
     }
-    if (g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts > TEMP_PROTECTION_COUNT) {
+    if (g_fanProtect[TEMP_SENSOR_CPU_DTS].time > TEMP_PROTECTION_COUNT) {
         chipset_force_shutdown(LOG_ID_SHUTDOWN_0x30);
-        g_fanProtect[TEMP_SENSOR_CPU_DTS].cpuDts = 0;
+        g_fanProtect[TEMP_SENSOR_CPU_DTS].time = 0;
     }
 
     /* CPU NTC */
     if (g_tempSensors[TEMP_SENSOR_CPU_NTC] > TEMP_CPU_NTC_PROTECTION) {
-        g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc++;
+        g_fanProtect[TEMP_SENSOR_CPU_NTC].time++;
     } else {
-        if (g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc > 0) {
-            g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuNtc--;
+        if (g_fanProtect[TEMP_SENSOR_CPU_NTC].time > 0) {
+            g_fanProtect[TEMP_SENSOR_CPU_NTC].time--;
         }
     }
-    if (g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+    if (g_fanProtect[TEMP_SENSOR_CPU_NTC].time > TEMP_PROTECTION_COUNT) {
         chipset_force_shutdown(LOG_ID_SHUTDOWN_0x31);
-        g_fanProtect[TEMP_SENSOR_CPU_NTC].cpuDts = 0;
+        g_fanProtect[TEMP_SENSOR_CPU_NTC].time = 0;
     }
 
     /* SSD NTC */
     if (g_tempSensors[TEMP_SENSOR_SSD1_NTC] > TEMP_SSD1_NTC_PROTECTION) {
-        g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts++;
+        g_fanProtect[TEMP_SENSOR_SSD1_NTC].time++;
     } else {
-        if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts > 0) {
-            g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts--;
+        if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].time > 0) {
+            g_fanProtect[TEMP_SENSOR_SSD1_NTC].time--;
         }
     }
-    if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+    if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].time > TEMP_PROTECTION_COUNT) {
         chipset_force_shutdown(LOG_ID_SHUTDOWN_0x38);
-        g_fanProtect[TEMP_SENSOR_SSD1_NTC].cpuDts = 0;
+        g_fanProtect[TEMP_SENSOR_SSD1_NTC].time = 0;
     }
 
     /* memory NTC */
     if (g_tempSensors[TEMP_SENSOR_MEMORY_NTC] > TEMP_MEMORY_NTC_PROTECTION) {
-        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc++;
+        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time++;
     } else {
-        if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc > 0) {
-            g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuNtc--;
+        if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time > 0) {
+            g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time--;
         }
     }
-    if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+    if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time > TEMP_PROTECTION_COUNT) {
         chipset_force_shutdown(LOG_ID_SHUTDOWN_0x35);
-        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].cpuDts = 0;
+        g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time = 0;
     }
 
     /* ambience NTC */
     if (g_tempSensors[TEMP_SENSOR_AMBIENCE_NTC] > TEMP_AMBIENT_NTC_PROTECTION) {
-        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc++;
+        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time++;
     } else {
-        if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc > 0) {
-            g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuNtc--;
+        if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time > 0) {
+            g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time--;
         }
     }
-    if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts > TEMP_PROTECTION_COUNT) {
+    if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time > TEMP_PROTECTION_COUNT) {
         chipset_force_shutdown(LOG_ID_SHUTDOWN_0x37);
-        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].cpuDts = 0;
+        g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time = 0;
     }
+
+    /* SSD2 NTC */
+    if (g_tempSensors[TEMP_SENSOR_SSD2_NTC] > TEMP_SSD2_NTC_PROTECTION) {
+        g_fanProtect[TEMP_SENSOR_SSD2_NTC].time++;
+    } else {
+        if (g_fanProtect[TEMP_SENSOR_SSD2_NTC].time > 0) {
+            g_fanProtect[TEMP_SENSOR_SSD2_NTC].time--;
+        }
+    }
+    if (g_fanProtect[TEMP_SENSOR_SSD2_NTC].time > TEMP_PROTECTION_COUNT) {
+        chipset_force_shutdown(LOG_ID_SHUTDOWN_0x49);
+        g_fanProtect[TEMP_SENSOR_SSD2_NTC].time = 0;
+    }
+
 }
 
 static void thermal_control(void)

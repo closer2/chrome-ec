@@ -311,7 +311,7 @@
 #define LOG_ID_SHUTDOWN_0x46    union32bit(1, 0x46)    /* abnormal:PSON# 12V fail */
 #define LOG_ID_SHUTDOWN_0x47    union32bit(1, 0x47)    /* abnormal:all core fail */
 #define LOG_ID_SHUTDOWN_0x48    union32bit(1, 0x48)    /* abnormal:shutdown WDT triggers SMI blue screen */
-
+#define LOG_ID_SHUTDOWN_0x49    union32bit(1, 0x49)    /* abnormal:SSD2 too hot */
 
 /* 50--CF reserve */
 
