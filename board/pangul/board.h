@@ -169,7 +169,7 @@
 #endif */
 #define CONFIG_FAN_FAULT_CHECK_SPEED   50    /* fan check fault percent */
 #define FAN_CHECK_FAULT_TIME           15    /* timebase 200ms */
-#define FAN_DUTY_50_RPM                500   /* fan set duty 50%, check rpm > 500 */
+#define FAN_DUTY_50_RPM                400   /* fan set duty 50%, check rpm > 200 */
 #undef CONFIG_CONSOLE_THERMAL_TEST           /* console thermal test */
 #undef CONFIG_CONSOLE_CHASSIS_TEST          /* console chassis test */
 
