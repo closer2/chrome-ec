@@ -196,6 +196,7 @@ static void oem_bios_to_ec_command(void)
     case 0x01 : /* BIOS write ec reset flag*/
         mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
         *mptr = 0xAA; /* 0xAA is ec reset flag */
+        wakeup_cause_record(LOG_ID_WAKEUP_0xD1);
         break;
 
     case 0x02 : /* power button control */

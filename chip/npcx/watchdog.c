@@ -17,6 +17,7 @@
 #include "util.h"
 #include "system_chip.h"
 #include "watchdog.h"
+#include "flash.h"
 
 /* WDCNT value for watchdog period */
 #define WDCNT_VALUE   ((CONFIG_WATCHDOG_PERIOD_MS*INT_32K_CLOCK) / (1024*1000))
@@ -112,6 +113,7 @@ void __keep watchdog_check(uint32_t excep_lr, uint32_t excep_sp)
 
 		/* Trigger watchdog immediately */
 		system_watchdog_reset();
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0xFE);
 	}
 }
 

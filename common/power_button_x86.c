@@ -234,14 +234,17 @@ static void auto_power_on_control(void)
     
         if (0xFF == mfg_mode) { /* 0xFF:MFG mode, 0xBE:Release Mode*/
             pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+            wakeup_cause_record(LOG_ID_WAKEUP_0xFC);
         } else if (0x01 == ac_recovery_state) {
             pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+            wakeup_cause_record(LOG_ID_WAKEUP_0xFC);
         } else if (0x02 == ac_recovery_state) {
             pwrbtn_state = PWRBTN_STATE_IDLE;       /* power off */
         } else if (0x03 == ac_recovery_state) {
             if(0x55 == power_last_state) {          /* previous state is power off */
                 pwrbtn_state = PWRBTN_STATE_IDLE;
             } else {                                /* previous state is power on */
+                wakeup_cause_record(LOG_ID_WAKEUP_0xFC);
                 pwrbtn_state = PWRBTN_STATE_INIT_ON;
             }
         } else {

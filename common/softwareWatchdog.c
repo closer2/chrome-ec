@@ -183,7 +183,7 @@ void ShutdownWDtService(void)
             gpio_set_level(GPIO_CPU_NMI_L, 1);
         #else
         #endif
-        shutdown_cause_record(LOG_ID_SHUTDOWN_0x48);
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0xD0);
     #endif
         }
     }

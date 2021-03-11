@@ -29,6 +29,7 @@
 #include "util.h"
 #include "ec_commands.h"
 #include "host_command.h"
+#include "flash.h"
 
 #define LED_STATE_TIMEOUT_MIN   (10 * MSEC)   /* Minimum of 15ms per step */
 #define LED_ON_HOLD_TIME        (600 * MSEC)  /* Hold on for 500ms*/
@@ -126,6 +127,7 @@ void set_area_Damage_flag(uint8_t value)
 static void area_damage_deferred(void)
 {
     if (!areaDamage) {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0xD1);
         powerled_set_state(POWERLED_STATE_BLINK);
     }
 }
