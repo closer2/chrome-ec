@@ -820,7 +820,7 @@ static void lpc_init(void)
 	 */
 	NPCX_SMC_CTL = NPCX_SMC_CTL&~0x7F;
 	/* Clear status */
-	NPCX_SMC_STS &= 0x00;
+	NPCX_SMC_STS = NPCX_SMC_STS;
 
 	/* Create mailbox */
 
