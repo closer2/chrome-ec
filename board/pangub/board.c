@@ -120,7 +120,11 @@ const struct thermistor_data_pair thermistor_data[] = {
     { 411 / THERMISTOR_SCALING_FACTOR, 85},
     { 371 / THERMISTOR_SCALING_FACTOR, 90},
     { 329 / THERMISTOR_SCALING_FACTOR, 95},
-    { 292 / THERMISTOR_SCALING_FACTOR, 100}
+    { 292 / THERMISTOR_SCALING_FACTOR, 100},
+    { 260 / THERMISTOR_SCALING_FACTOR, 105},
+    { 232 / THERMISTOR_SCALING_FACTOR, 110},
+    { 207 / THERMISTOR_SCALING_FACTOR, 115},
+    { 185 / THERMISTOR_SCALING_FACTOR, 120}
 };
 
 const struct thermistor_info thermistor_info = {

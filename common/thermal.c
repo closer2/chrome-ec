@@ -120,7 +120,7 @@ const struct thermal_level_s t_uma_thermal_sys_fan_ssd2_ntc = {
 const struct thermal_level_ags uma_thermal_sys_fan_memory_ntc[] = {
 /* level    RPM        HowTri       lowTri */
     {0,     600,      55,   UMA_SYS_FAN_START_TEMP}, 
-    {1,     800,      60,   63},  
+    {1,     800,      60,   53},  
     {2,     1000,     65,   58},  
     {3,     1300,     69,   63},
     {4,     1700,     72,   67},  
@@ -645,6 +645,7 @@ static int cc_Sensorinfo(int argc, char **argv)
     ccprintf("%sPCIE16 NTC: %4d C\n", leader, g_tempSensors[3]);
 	ccprintf("%sCPU NTC: %4d C\n", leader, g_tempSensors[4]);
     ccprintf("%sMemory NTC: %4d C\n", leader, g_tempSensors[5]);
+    ccprintf("%sSSD2 NTC: %4d C\n", leader, g_tempSensors[6]);
 
 	return EC_SUCCESS;
 }
