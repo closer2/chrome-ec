@@ -85,7 +85,7 @@ BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
  * We use 11 as the scaling factor so that the maximum mV value below (2761)
  * can be compressed to fit in a uint8_t.
  */
-#define THERMISTOR_SCALING_FACTOR 11
+#define THERMISTOR_SCALING_FACTOR 15
 
 /*
  * Data derived from Seinhart-Hart equation in a resistor divider circuit with
