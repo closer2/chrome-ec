@@ -19,12 +19,9 @@
 /* Interrupt signal */
 GPIO_INT(USB_C0_MUX_INT_ODL,	PIN(7, 2), GPIO_INT_FALLING, 			tcpc_alert_event)
 
-GPIO_INT(3V3_SB_PGOOD,      PIN(D, 0), GPIO_INT_BOTH,			power_signal_interrupt)     /* 3.3V_SB_PGOOD */
-GPIO_INT(SLP_SUS_L,         PIN(D, 2), GPIO_INT_BOTH,			power_signal_interrupt)     /* SLP_SUS_L */
 GPIO_INT(SYSTEM_ALW_PG,		PIN(9, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_AUX power good */
 GPIO_INT(SLP_S3_L,		    PIN(9, 4), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power enable */
 GPIO_INT(SLP_S4_L,		    PIN(C, 6), GPIO_INT_BOTH,			power_signal_interrupt) 	/* PCH SLP_S4 */
-GPIO_INT(SLP_S5_L,		    PIN(B, 1), GPIO_INT_BOTH,			power_signal_interrupt)     /* PCH SLP_S5 */
 GPIO_INT(ATX_PG,		    PIN(D, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* PSON# 12V power good */
 GPIO_INT(VCORE_EN,		    PIN(6, 3), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power, enable by EC_SLP_S3 */
 GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* VRMPWRGD->CPU_VR_PG */
@@ -40,14 +37,12 @@ GPIO_INT(EC_PLT_RST_L,      PIN(3, 1), GPIO_INT_BOTH,			cpu_plt_reset_interrupt)
 GPIO(EC_PCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_PCH_PWRGD */
 GPIO(DSW_PWROK_EN,          PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
 GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_OUT_LOW)        /* Power Button to SOC, EC_PWRBTN_OUT_N */
-GPIO(EC_1V8_AUX_EN,         PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
-GPIO(EC_RTC_RST_L,          PIN(E, 2), GPIO_OUT_HIGH)       /* Reserved Pin, RTC reset, EC output */
+GPIO(EC_RTC_RST,            PIN(E, 2), GPIO_OUT_LOW)        /* Reserved Pin, RTC reset, EC output */
 GPIO(VCCST_PWRGD,           PIN(0, 1), GPIO_OUT_LOW)        /* VCCST power OK, EC output */
 GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, output, passthrough SLP_S5_L */
 GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
 GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_ODR_LOW)        /* PROCHOT# */
 GPIO(PWRGD_140MS,           PIN(B, 0), GPIO_OUT_LOW)        /* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
-GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power */
 GPIO(USB_PWR_EN_L,          PIN(E, 4), GPIO_OUT_HIGH)       /* USB_PWR_EN# */
 GPIO(EC_LAN_OFF,            PIN(3, 2), GPIO_OUT_LOW)        /* EC_LAN_OFF */
 GPIO(EC_TO_USB_SWITCH,      PIN(A, 2), GPIO_OUT_LOW)        /* G3 to low, other state should to High, connect usb to APU */
@@ -75,6 +70,9 @@ GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCI
 GPIO(SYS_RST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
 
 /* Input */
+GPIO(3V3_SB_PGOOD,		    PIN(D, 0), GPIO_INPUT)				/* 3.3V_SB_PGOOD */
+GPIO(SLP_SUS_L,		        PIN(D, 2), GPIO_INPUT)				/* SLP_SUS_L */
+GPIO(SLP_S5_L,		        PIN(B, 1), GPIO_INPUT)              /* PCH SLP_S5 */
 GPIO(EC_PROJECT_ID0,		PIN(0, 7), GPIO_INPUT)				/* EC_PROJECT_ID0 */
 GPIO(EC_PROJECT_ID1,		PIN(3, 0), GPIO_INPUT)				/* EC_PROJECT_ID1 */
 GPIO(EC_PROJECT_ID2,		PIN(6, 7), GPIO_INPUT)				/* EC_PROJECT_ID2 */
@@ -89,7 +87,9 @@ GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detect
 GPIO(EC_DGPU_PROCHOT_L,     PIN(9, 3), GPIO_INPUT)              /* Reserved Pin, DGPU PROCHOT */
 GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin, VCCIO_1_2_GOOG */
 
-/* CLKRUN# as input with pull up */
+/* CLKRUN# as input with pull up */  
+UNUSED(PIN(7, 0))		/* 1.8V AUX Enable, EC_1.8V_AUX_EN */
+UNUSED(PIN(A, 0))		/* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
 UNUSED(PIN(8, 0))       /* CATEIERR3 */
 UNUSED(PIN(8, 1))       /* PECI */

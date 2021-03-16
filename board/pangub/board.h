@@ -139,7 +139,7 @@
 #define CONFIG_VBOOT_HASH
 #define CONFIG_CRC8*/                       /* This board no need to verify boot*/
 
-#define CONFIG_CHIPSET_CMLAKE               /* For select renoir platform power sequence when build(ec/power/build.mk)*/
+#define CONFIG_CHIPSET_ROCKETLAKE           /* For select renoir platform power sequence when build(ec/power/build.mk)*/
 #define CONFIG_CHIPSET_CAN_THROTTLE         /* Support chipset throttling */
 #define CONFIG_CHIPSET_RESET_HOOK           /* Enable chipset reset hook, requires a deferrable function */
 
@@ -171,7 +171,7 @@
 #endif */
 #define CONFIG_FAN_FAULT_CHECK_SPEED   50    /* fan check fault percent */
 #define FAN_CHECK_FAULT_TIME           15    /* timebase 200ms */
-#define FAN_DUTY_50_RPM                400   /* fan set duty 50%, check rpm > 500 */
+#define FAN_DUTY_50_RPM                400   /* fan set duty 50%, check rpm > 400 */
 #undef CONFIG_CONSOLE_THERMAL_TEST           /* console thermal test */
 #undef CONFIG_CONSOLE_CHASSIS_TEST          /* console chassis test */
 
@@ -378,7 +378,7 @@
 
 #include "gpio_signal.h"
 #include "math_util.h"
-#include "power/cmlake.h"
+#include "power/rocketlake.h"
 #include "registers.h"
 
 /* TODO: need confirm with real hardware */

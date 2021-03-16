@@ -19,7 +19,7 @@
 #include "gpio.h"
 #include "hooks.h"
 #include "power.h"
-#include "power/cmlake.h"
+#include "power/rocketlake.h"
 #include "power_button.h"
 #include "pwm.h"
 #include "pwm_chip.h"
@@ -48,16 +48,6 @@ const int hibernate_wake_pins_used =  ARRAY_SIZE(hibernate_wake_pins);
 
 /* TODO: need confirm with real hardware */
 const struct power_signal_info power_signal_list[] = {
-    [V3V3_SB_PGOOD] = {
-        .gpio = GPIO_3V3_SB_PGOOD,
-        .flags = POWER_SIGNAL_ACTIVE_HIGH,
-        .name = "3V3_SB_PGOOD",
-    },
-    [SLP_SUS_L] = {
-        .gpio = GPIO_SLP_SUS_L,
-        .flags = POWER_SIGNAL_ACTIVE_HIGH,
-        .name = "SLP_SUS_L",
-    },
     [SYSTEM_ALW_PG] = {
         .gpio = GPIO_SYSTEM_ALW_PG,
         .flags = POWER_SIGNAL_ACTIVE_HIGH,
@@ -73,11 +63,6 @@ const struct power_signal_info power_signal_list[] = {
 		.flags = POWER_SIGNAL_ACTIVE_HIGH,
 		.name = "SLP_S4_DEASSERTED",
 	},
-    [X86_SLP_S5_N] = {
-        .gpio = GPIO_PCH_SLP_S5_L,
-        .flags = POWER_SIGNAL_ACTIVE_HIGH,
-        .name = "SLP_S5_DEASSERTED",
-        },
 	[ATX_PG] = {
 		.gpio = GPIO_ATX_PG,
 		.flags = POWER_SIGNAL_ACTIVE_HIGH,

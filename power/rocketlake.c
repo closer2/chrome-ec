@@ -14,7 +14,7 @@
 #include "host_command.h"
 #include "lid_switch.h"
 #include "power.h"
-#include "power/cmlake.h"
+#include "power/rocketlake.h"
 #include "power_button.h"
 #include "power_led.h"
 #include "system.h"
@@ -82,8 +82,8 @@ static void chipset_force_g3(void)
     /* trun off S5 power */
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
-    gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
+    /* gpio_set_level(GPIO_EC_1V8_AUX_EN, 0); */
+    /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
@@ -195,34 +195,6 @@ enum power_state power_chipset_init(void)
     return POWER_G3;
 }
 
-#if 0
-static void handle_slp_sx_pass_through(enum gpio_signal pin_in,
-                    enum gpio_signal pin_out)
-{
-    int in_level = gpio_get_level(pin_in);
-    int out_level = gpio_get_level(pin_out);
-
-    if (in_level == out_level)
-        return;
-
-    CPRINTS("Before pass through : %s(%d) -> %s(%d) ",
-            gpio_get_name(pin_in), gpio_get_level(pin_in),
-            gpio_get_name(pin_out), gpio_get_level(pin_out));
-
-    /* Ec pass through slp3/slp5 signal needs delay of 285ms.
-    * The APU sends the slp3 and slp5 signals at the same time,
-    * so ec only has to delay the slp5 signal
-    */
-    if(pin_in == GPIO_SLP_S5_L)
-        msleep(685);
-
-    gpio_set_level(pin_out, in_level);
-    msleep(10);
-    CPRINTS("After Pass through: %s(%d) -> %s(%d)",
-            gpio_get_name(pin_in), gpio_get_level(pin_in),
-            gpio_get_name(pin_out), gpio_get_level(pin_out));
-}
-#endif
 static void s5_to_s0_deferred(void)
 {
     /* switch FingerPrint USB connection to FCH */
@@ -249,23 +221,25 @@ enum power_state power_handle_state(enum power_state state)
         break;
 
     case POWER_G3S5:
-        if (power_wait_signals(IN_3V3_SB_PGOOD)) {
+        if (!gpio_get_level(GPIO_3V3_SB_PGOOD)) {
             CPRINTS("Power 3V3_SB_PGOOD error!");
             return POWER_G3;
         }
 
-        gpio_set_level(GPIO_CPU_NMI_L, 1);
         /* Exit SOC G3 */
         msleep(10);
+        /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1); */
+        /* gpio_set_level(GPIO_EC_1V8_AUX_EN, 1); */
         gpio_set_level(GPIO_DSW_PWROK_EN, 1);
-        /* PCH send SLP_SUS# delay time(t > 95ms) want 2s */
-        if (power_wait_signals(IN_SLP_SUS_L)) {
+        /* PCH send SLP_SUS# delay time(t > 95ms) */
+        msleep(100);
+        if (!gpio_get_level(GPIO_SLP_SUS_L)) {
             CPRINTS("Power PCH SLP SUS error!");
             return POWER_S5G3;
         }
-        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
+
+        gpio_set_level(GPIO_CPU_NMI_L, 1);
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
-        gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
 
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
@@ -278,7 +252,7 @@ enum power_state power_handle_state(enum power_state state)
         if (power_wait_signals(IN_PGOOD_S5)) {
             chipset_force_g3();
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
-            return POWER_G3;
+            /* return POWER_G3; */
         }
 
         /* Power sequence doc ask for 10ms delay before pull high PCH_RSMRST_L.
@@ -330,7 +304,7 @@ enum power_state power_handle_state(enum power_state state)
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             /* Required rail went away */
             return POWER_S5G3;
-        } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {            
+        } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
             if(power_wait_voltage()) {
                 CPRINTS("error: power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);

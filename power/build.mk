@@ -23,6 +23,6 @@ power-$(CONFIG_CHIPSET_SDM845)+=sdm845.o
 power-$(CONFIG_CHIPSET_SKYLAKE)+=skylake.o intel_x86.o
 power-$(CONFIG_CHIPSET_STONEY)+=stoney.o
 power-$(CONFIG_CHIPSET_RENOIR)+=renoir.o
-power-$(CONFIG_CHIPSET_CMLAKE)+=cmlake.o
+power-$(CONFIG_CHIPSET_ROCKETLAKE)+=rocketlake.o
 power-$(CONFIG_POWER_COMMON)+=common.o
 power-$(CONFIG_POWER_TRACK_HOST_SLEEP_STATE)+=host_sleep.o
