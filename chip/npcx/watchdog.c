@@ -112,7 +112,6 @@ void __keep watchdog_check(uint32_t excep_lr, uint32_t excep_sp)
 		cflush();
 
 		/* Trigger watchdog immediately */
-        shutdown_cause_record(LOG_ID_SHUTDOWN_0xFE);
 		system_watchdog_reset();
 	}
 }

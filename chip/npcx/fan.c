@@ -547,7 +547,7 @@ void fan_tick_func(void)
         /* Get actual rpm */
         p_status->rpm_actual = mft_fan_rpm(ch);
 
-		/* Make sure rpm mode is enabled, and fan no fault */
+		/* Make sure rpm mode is enabled*/
 		if ((p_status->fan_mode != TACHO_FAN_RPM) 
             || (get_fan_fault(ch) == FAN_STATUS_FAULT)){
 			if (p_status->rpm_actual > 0)
