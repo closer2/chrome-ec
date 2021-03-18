@@ -457,8 +457,9 @@ __override_proto void ppc_interrupt(enum gpio_signal signal);
 #endif
 
 void board_print_temps(void);
+#if 0
 void cpu_plt_reset_interrupt(enum gpio_signal signal);
-
+#endif
 void tcpc_alert_event(enum gpio_signal signal);
 /* Board interfaces */
 void board_set_usb_output_voltage(int mv);

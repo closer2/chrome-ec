@@ -391,6 +391,12 @@ int espi_vw_disable_wire_int(enum espi_vw_signal signal)
 /*****************************************************************************/
 /* VW event handlers */
 
+static void espi_plt_reset(void)
+{
+    hook_notify(HOOK_PLT_RESET);
+}
+DECLARE_DEFERRED(espi_plt_reset);
+
 #ifdef CONFIG_CHIPSET_RESET_HOOK
 static void espi_chipset_reset(void)
 {
@@ -404,7 +410,8 @@ void espi_vw_evt_pltrst(void)
 {
 	int pltrst = espi_vw_get_wire(VW_PLTRST_L);
 
-	CPRINTS("VW PLTRST: %d", pltrst);
+    CPRINTS("VW PLTRST: %d", pltrst);
+    hook_call_deferred(&espi_plt_reset_data, MSEC);
 
 	if (pltrst) {
 		/* PLTRST# deasserted */

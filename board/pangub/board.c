@@ -33,7 +33,7 @@
 #include "usb_pd_tcpm.h"
 #include "usbc_ppc.h"
 #include "flash.h"
-
+#include "espi.h"
 
 #define CPRINTSUSB(format, args...) cprints(CC_USBCHARGE, format, ## args)
 #define CPRINTFUSB(format, args...) cprintf(CC_USBCHARGE, format, ## args)
@@ -48,36 +48,41 @@ const int hibernate_wake_pins_used =  ARRAY_SIZE(hibernate_wake_pins);
 
 /* TODO: need confirm with real hardware */
 const struct power_signal_info power_signal_list[] = {
+    [X86_SLP_SUS_N] = {
+        .gpio = GPIO_PCH_SLP_SUS_L,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SLP_SUS_DEASSERTED",
+    },
     [SYSTEM_ALW_PG] = {
         .gpio = GPIO_SYSTEM_ALW_PG,
         .flags = POWER_SIGNAL_ACTIVE_HIGH,
         .name = "SYSTEM_ALW_PG",
     },
-	[X86_SLP_S3_N] = {
-		.gpio = GPIO_PCH_SLP_S3_L,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "SLP_S3_DEASSERTED",
-	},
-	[X86_SLP_S4_N] = {
-		.gpio = GPIO_PCH_SLP_S4_L,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "SLP_S4_DEASSERTED",
-	},
-	[ATX_PG] = {
-		.gpio = GPIO_ATX_PG,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "ATX_PG",
-	},
-	[VCORE_EN] = {
-		.gpio = GPIO_VCORE_EN,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "VCORE_EN",
-	},
-	[VRMPWRGD] = {
-		.gpio = GPIO_VRMPWRGD,
-		.flags = POWER_SIGNAL_ACTIVE_HIGH,
-		.name = "VRMPWRGD",
-	},
+    [X86_SLP_S3_N] = {
+        .gpio = GPIO_PCH_SLP_S3_L,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SLP_S3_DEASSERTED",
+    },
+    [X86_SLP_S4_N] = {
+        .gpio = GPIO_PCH_SLP_S4_L,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "SLP_S4_DEASSERTED",
+    },
+    [ATX_PG] = {
+        .gpio = GPIO_ATX_PG,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "ATX_PG",
+    },
+    [VCORE_EN] = {
+        .gpio = GPIO_VCORE_EN,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "VCORE_EN",
+    },
+    [VRMPWRGD] = {
+        .gpio = GPIO_VRMPWRGD,
+        .flags = POWER_SIGNAL_ACTIVE_HIGH,
+        .name = "VRMPWRGD",
+    },
 };
 BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
 
@@ -603,7 +608,7 @@ static void board_init_config(void)
     }
 }
 DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_DEFAULT);
-
+#if 0
 void cpu_plt_reset_interrupt(enum gpio_signal signal)
 {
     int debounce_sample = 0;
@@ -625,6 +630,31 @@ void cpu_plt_reset_interrupt(enum gpio_signal signal)
     ccprints("Error: apu_pcie_reset glitch, please check");
     return;
 }
+#endif
+
+static void cpu_plt_reset(void)
+{
+    int debounce_sample = 0;
+
+    int first_sample = espi_vw_get_wire(VW_PLTRST_L);
+    usleep(10);
+    debounce_sample = espi_vw_get_wire(VW_PLTRST_L);
+
+    if (first_sample == debounce_sample) {
+        gpio_set_level(GPIO_EC_PCI_SOCKET_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_PCI_SSD_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_LAN_WLAN_RST_L, debounce_sample);
+        gpio_set_level(GPIO_EC_TPM_RST_L, debounce_sample);
+
+        ccprints("cpu_plt_reset, level=%d\n", espi_vw_get_wire(VW_PLTRST_L));
+        return;
+    }
+
+    ccprints("Error: cpu_plt_reset glitch, please check");
+    return;
+}
+
+DECLARE_HOOK(HOOK_PLT_RESET, cpu_plt_reset, HOOK_PRIO_DEFAULT);
 
 /*******************************************************************************
  * EC firmware version set

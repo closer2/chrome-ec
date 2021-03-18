@@ -231,10 +231,9 @@ enum power_state power_handle_state(enum power_state state)
         /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1); */
         /* gpio_set_level(GPIO_EC_1V8_AUX_EN, 1); */
         gpio_set_level(GPIO_DSW_PWROK_EN, 1);
-        /* PCH send SLP_SUS# delay time(t > 95ms) */
-        msleep(100);
-        if (!gpio_get_level(GPIO_SLP_SUS_L)) {
-            CPRINTS("Power PCH SLP SUS error!");
+        /* PCH send SLP_SUS# delay time(t > 95ms) max wait 2s  */
+        if (power_wait_signals(IN_SLP_SUS_N)) {
+            CPRINTS("Wait power PCH SLP SUS time out!");
             return POWER_S5G3;
         }
 

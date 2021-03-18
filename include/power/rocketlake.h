@@ -2,8 +2,7 @@
 #define __POWER_ROCKETLAKE_H
 
 enum power_signal {
-    /* V3V3_SB_PGOOD, */     /* 3V3_SB_PGOOD */
-    /* SLP_SUS_L, */         /* SLP_SUS_L */
+    X86_SLP_SUS_N,      /* PCH  -> SLP_SUS_L */
     SYSTEM_ALW_PG,      /* ALW power googd */
     X86_SLP_S3_N,       /* PCH  -> SLP_S3_L */
     X86_SLP_S4_N,       /* PCH  -> SLP_S4_L */
@@ -25,6 +24,7 @@ enum power_signal {
 #define IN_ATX_PG       POWER_SIGNAL_MASK(ATX_PG)
 #define IN_VCORE_EN     POWER_SIGNAL_MASK(VCORE_EN)
 #define IN_VRMPWRGD     POWER_SIGNAL_MASK(VRMPWRGD)
+#define IN_SLP_SUS_N        POWER_SIGNAL_MASK(X86_SLP_SUS_N)
 #define IN_SLP_S3_N     POWER_SIGNAL_MASK(X86_SLP_S3_N)
 #define IN_SLP_S4_N     POWER_SIGNAL_MASK(X86_SLP_S4_N)
 

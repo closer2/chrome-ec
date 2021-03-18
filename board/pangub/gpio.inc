@@ -19,6 +19,7 @@
 /* Interrupt signal */
 GPIO_INT(USB_C0_MUX_INT_ODL,	PIN(7, 2), GPIO_INT_FALLING, 			tcpc_alert_event)
 
+GPIO_INT(PCH_SLP_SUS_L,		PIN(D, 2), GPIO_INT_BOTH,			power_signal_interrupt)		/* PCH_SLP_SUS_L */
 GPIO_INT(SYSTEM_ALW_PG,		PIN(9, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_AUX power good */
 GPIO_INT(SLP_S3_L,		    PIN(9, 4), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power enable */
 GPIO_INT(SLP_S4_L,		    PIN(C, 6), GPIO_INT_BOTH,			power_signal_interrupt) 	/* PCH SLP_S4 */
@@ -30,9 +31,10 @@ GPIO_INT(EC_LAN_WAKE_L,		PIN(2, 2), GPIO_INT_BOTH,			power_lan_wake_interrupt)	 
 GPIO_INT(EC_WLAN_WAKE_L,    PIN(1, 1), GPIO_INT_BOTH,			power_wlan_wake_interrupt)	    /* WLAN Waked up */
 #endif
 GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)   /* power button */
+#if 0
 GPIO_INT(EC_PLT_RST_L,      PIN(3, 1), GPIO_INT_BOTH,			cpu_plt_reset_interrupt)  /* Pass through to other xxx_RST_L (PCIEX1/PCIEX16/M2_2280_SSD1) */
-
-/* Replace of the above for PanGuL board */
+#endif
+/* Replace of the above for PanGuB board */
 
 GPIO(EC_PCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_PCH_PWRGD */
 GPIO(DSW_PWROK_EN,          PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
@@ -71,7 +73,6 @@ GPIO(SYS_RST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
 
 /* Input */
 GPIO(3V3_SB_PGOOD,		    PIN(D, 0), GPIO_INPUT)				/* 3.3V_SB_PGOOD */
-GPIO(SLP_SUS_L,		        PIN(D, 2), GPIO_INPUT)				/* SLP_SUS_L */
 GPIO(SLP_S5_L,		        PIN(B, 1), GPIO_INPUT)              /* PCH SLP_S5 */
 GPIO(EC_PROJECT_ID0,		PIN(0, 7), GPIO_INPUT)				/* EC_PROJECT_ID0 */
 GPIO(EC_PROJECT_ID1,		PIN(3, 0), GPIO_INPUT)				/* EC_PROJECT_ID1 */

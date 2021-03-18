@@ -273,6 +273,10 @@ SECTIONS
 		KEEP(*(.rodata.HOOK_CHIPSET_RESET))
 		__hooks_chipset_reset_end = .;
 
+		__hooks_plt_reset = .;
+		KEEP(*(.rodata.HOOK_PLT_RESET))
+		__hooks_plt_reset_end = .;
+
 		__hooks_ac_change = .;
 		KEEP(*(.rodata.HOOK_AC_CHANGE))
 		__hooks_ac_change_end = .;

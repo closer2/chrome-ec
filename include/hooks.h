@@ -168,6 +168,13 @@ enum hook_type {
 	 */
 	HOOK_CHIPSET_RESET,
 
+    /*
+     * espi VM plt rst in S0.  All rails are still up.
+     *
+     * Hook routines are called from the plt rst.
+     */
+    HOOK_PLT_RESET,
+
 	/*
 	 * AC power plugged in or removed.
 	 *
