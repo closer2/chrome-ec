@@ -128,6 +128,8 @@ void fan_set_count(int count);
 
 int is_thermal_control_enabled(int idx);
 
+uint8_t get_fan_fault(uint8_t fan);
+
 void pwm_fan_control(int fan, int enable);
 
 void clear_fan_fault_flag(void);
