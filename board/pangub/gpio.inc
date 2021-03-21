@@ -60,13 +60,15 @@ GPIO(CPU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
 GPIO(EC_CASE_OPEN_CLR,      PIN(1, 0), GPIO_OUT_LOW)        /* Chassis Intrusion Status Clear */
 GPIO(HC32F460_PB1_SLP3,     PIN(6, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP3 status */
 GPIO(HC32F460_PB0_SLP5,     PIN(C, 0), GPIO_OUT_LOW)        /* EC to HC32F460 SLP5 status */
-GPIO(POWER_LED,             PIN(0, 3), GPIO_OUT_LOW)        /* power led */
+/* GPIO(POWER_LED,             PIN(0, 3), GPIO_OUT_LOW) */       /* power led */
 GPIO(EC_PCI_SOCKET_RST_L,   PIN(C, 4), GPIO_OUT_LOW)        /* PCI SOCKET RST */
 GPIO(EC_PCI_SSD_RST_L,      PIN(0, 2), GPIO_OUT_LOW)        /* PCI SSD RST */
 GPIO(EC_LAN_WLAN_RST_L,     PIN(2, 3), GPIO_OUT_LOW)        /* LAN WLAN RST */
 GPIO(EC_TPM_RST_L,          PIN(8, 3), GPIO_OUT_LOW)        /* TPM RST */
 GPIO(F22_VCCIO0_VID0,	    PIN(1, 4), GPIO_OUT_LOW)	    /* power sequence VCCIO0_VID0 */
 GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCIO0_VID1 */
+GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
+GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
 
 /* SYS_RST# as gpio */
 GPIO(SYS_RST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
@@ -89,8 +91,6 @@ GPIO(EC_DGPU_PROCHOT_L,     PIN(9, 3), GPIO_INPUT)              /* Reserved Pin,
 GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin, VCCIO_1_2_GOOG */
 
 /* CLKRUN# as input with pull up */  
-UNUSED(PIN(7, 0))		/* 1.8V AUX Enable, EC_1.8V_AUX_EN */
-UNUSED(PIN(A, 0))		/* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
 UNUSED(PIN(8, 0))       /* CATEIERR3 */
 UNUSED(PIN(8, 1))       /* PECI */

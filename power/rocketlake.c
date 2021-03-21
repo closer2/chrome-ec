@@ -82,8 +82,8 @@ static void chipset_force_g3(void)
     /* trun off S5 power */
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
-    /* gpio_set_level(GPIO_EC_1V8_AUX_EN, 0); */
-    /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
+    gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
+    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
@@ -228,14 +228,15 @@ enum power_state power_handle_state(enum power_state state)
 
         /* Exit SOC G3 */
         msleep(10);
-        /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1); */
-        /* gpio_set_level(GPIO_EC_1V8_AUX_EN, 1); */
         gpio_set_level(GPIO_DSW_PWROK_EN, 1);
-        /* PCH send SLP_SUS# delay time(t > 95ms) max wait 2s  */
+        /* PCH send SLP_SUS# delay time(t > 95ms) max wait 2s */
         if (power_wait_signals(IN_SLP_SUS_N)) {
             CPRINTS("Wait power PCH SLP SUS time out!");
             return POWER_S5G3;
         }
+
+        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
+        gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
 
         gpio_set_level(GPIO_CPU_NMI_L, 1);
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
@@ -395,6 +396,12 @@ enum power_state power_handle_state(enum power_state state)
         /* Suspend wireless, whether need?*/
         //wireless_set_state(WIRELESS_SUSPEND);
 
+        /* withdraw PSON#, low active */
+        gpio_set_level(GPIO_EC_PSON_L, 1);
+
+        /* withdraw SYS_RST_L, low active */
+        /* gpio_set_level(GPIO_SYS_RST_L, 0); */
+
         /* withdraw PWRGD_140MS */
         gpio_set_level(GPIO_PWRGD_140MS, 0);
 
@@ -407,9 +414,6 @@ enum power_state power_handle_state(enum power_state state)
 
         gpio_set_level(GPIO_F22_VCCIO0_VID0, 0);
         gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
-
-        /* withdraw PSON#, low active */
-        gpio_set_level(GPIO_EC_PSON_L, 1);
 
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
