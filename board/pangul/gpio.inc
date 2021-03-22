@@ -43,7 +43,7 @@ GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, outpu
 GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
 GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_ODR_LOW)        /* PROCHOT# */
 GPIO(PWRGD_140MS,           PIN(B, 0), GPIO_OUT_LOW)        /* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
-GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power */
+GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_HIGH)        /* Control 3V/5V ALW power */
 GPIO(USB_PWR_EN_L,          PIN(E, 4), GPIO_OUT_HIGH)       /* USB_PWR_EN# */
 GPIO(EC_LAN_OFF,            PIN(3, 2), GPIO_OUT_LOW)        /* EC_LAN_OFF */
 GPIO(EC_TO_USB_SWITCH,      PIN(A, 2), GPIO_OUT_LOW)        /* G3 to low, other state should to High, connect usb to APU */
