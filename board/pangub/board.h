@@ -99,7 +99,10 @@
 /* TODO: need confirm TEMP_SENSOR AND TYPE*/
 #define CONFIG_TEMP_SENSOR                  /* Compile common code for temperature sensor support */
 #define CONFIG_THERMISTOR_NCP15WB           /* Support particular thermistors */
-#define CONFIG_TEMP_SENSOR_SB_TSI           /* SB_TSI sensor, on I2C bus */
+#define CONFIG_PECI
+#define CONFIG_PECI_COMMON
+#define CONFIG_PECI_TJMAX 105
+#define CONFIG_CMD_PECI
 
 #undef CONFIG_LID_SWITCH                    /* no lid switch */
 
