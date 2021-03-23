@@ -23,7 +23,6 @@
 #include "power_button.h"
 #include "pwm.h"
 #include "pwm_chip.h"
-#include "sb_tsi.h"
 #include "switch.h"
 #include "system.h"
 #include "task.h"
@@ -34,6 +33,7 @@
 #include "usbc_ppc.h"
 #include "flash.h"
 #include "espi.h"
+#include "peci.h"
 
 #define CPRINTSUSB(format, args...) cprints(CC_USBCHARGE, format, ## args)
 #define CPRINTFUSB(format, args...) cprintf(CC_USBCHARGE, format, ## args)
@@ -90,7 +90,7 @@ BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
  * We use 11 as the scaling factor so that the maximum mV value below (2761)
  * can be compressed to fit in a uint8_t.
  */
-#define THERMISTOR_SCALING_FACTOR 11
+#define THERMISTOR_SCALING_FACTOR 15
 
 /*
  * Data derived from Seinhart-Hart equation in a resistor divider circuit with
@@ -234,7 +234,7 @@ const struct temp_sensor_t temp_sensors[] = {
 	[TEMP_SENSOR_CPU_DTS] = {
 		.name = "CPU_DTS",
 		.type = TEMP_SENSOR_TYPE_CPU,
-		.read = sb_tsi_get_val,
+		.read = peci_temp_sensor_get_val,
 		.idx = TEMP_SENSOR_CPU_DTS,
 	},	
 	[TEMP_SENSOR_AMBIENCE_NTC] = {
@@ -379,13 +379,6 @@ const struct i2c_port_t i2c_ports[] = {
 		.kbps = 400,
 		.scl = GPIO_EC_PD_I2C1_SCL,
 		.sda = GPIO_EC_PD_I2C1_SDA,
-	},
-	{
-		.name = "thermal",
-		.port = I2C_PORT_THERMAL_AP,
-		.kbps = 400,
-		.scl = GPIO_FCH_SIC,
-		.sda = GPIO_FCH_SID,
 	},
 };
 const unsigned int i2c_ports_used = ARRAY_SIZE(i2c_ports);
@@ -647,7 +640,7 @@ static void cpu_plt_reset(void)
         gpio_set_level(GPIO_EC_LAN_WLAN_RST_L, debounce_sample);
         gpio_set_level(GPIO_EC_TPM_RST_L, debounce_sample);
 
-        ccprints("cpu_plt_reset, level=%d\n", espi_vw_get_wire(VW_PLTRST_L));
+        ccprints("cpu_plt_reset, level=%d", espi_vw_get_wire(VW_PLTRST_L));
         return;
     }
 

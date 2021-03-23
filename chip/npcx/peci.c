@@ -51,7 +51,9 @@ enum peci_command_t {
 
 /* PECI Domain Number */
 static int temp_vals[TEMP_AVG_LENGTH];
+#ifndef CONFIG_PECI_COMMON
 static int temp_idx;
+#endif
 static uint8_t peci_sts;
 /* For PECI Done interrupt usage */
 static int peci_pending_task_id;
@@ -134,7 +136,31 @@ static uint8_t peci_check_error_state(void)
 	return peci_sts;
 }
 
+int peci_transaction(struct peci_data *peci)
+{
+	uint32_t events;
+
+	/* Start PECI trans */
+	events = peci_trans(peci->w_len, peci->r_len,
+				peci->cmd_code, peci->w_buf);
+
+	/* if return DONE , that mean slave had a PECI response */
+	if ((events & TASK_EVENT_PECI_DONE) == TASK_EVENT_PECI_DONE) {
+		/* check CRC & ABRT */
+		events = peci_check_error_state();
+		if (events) {
+			return events;
+		} else {
+			peci->r_buf[0] = NPCX_PECI_DATA_IN(0);
+			peci->r_buf[1] = NPCX_PECI_DATA_IN(1);
+			return 0;
+		}
+	}
+	return -1;
+}
+
 /*****************************************************************************/
+#ifndef CONFIG_PECI_COMMON
 /* PECI drivers */
 int peci_get_cpu_temp(void)
 {
@@ -203,6 +229,7 @@ static void peci_temp_sensor_poll(void)
 	}
 }
 DECLARE_HOOK(HOOK_TICK, peci_temp_sensor_poll, HOOK_PRIO_TEMP_SENSOR);
+#endif
 
 static void peci_freq_changed(void)
 {
@@ -282,7 +309,7 @@ DECLARE_IRQ(NPCX_IRQ_PECI, peci_done_interrupt, 4);
 
 /*****************************************************************************/
 /* Console commands */
-
+#ifndef CONFIG_PECI_COMMON
 static int command_peci_temp(int argc, char **argv)
 {
 	int t = peci_get_cpu_temp();
@@ -296,3 +323,4 @@ static int command_peci_temp(int argc, char **argv)
 DECLARE_CONSOLE_COMMAND(pecitemp, command_peci_temp,
 		NULL,
 		"Print CPU temperature");
+#endif

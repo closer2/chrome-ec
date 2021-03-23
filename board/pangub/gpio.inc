@@ -93,7 +93,6 @@ GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin,
 /* CLKRUN# as input with pull up */  
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
 UNUSED(PIN(8, 0))       /* CATEIERR3 */
-UNUSED(PIN(8, 1))       /* PECI */
 UNUSED(PIN(B, 7))       /* EC_TS3A227_INT */
 UNUSED(PIN(2, 4))       /* EC_VIN_5VSB */
 UNUSED(PIN(0, 6))
@@ -122,14 +121,11 @@ GPIO(SMBCLK_AUX,            PIN(9, 0), GPIO_INPUT)                      /* EC_I2
 GPIO(SMBDATA_AUX,           PIN(8, 7), GPIO_INPUT)                      /* EC_I2C1_SDA0 */
 GPIO(EC_PD_I2C1_SCL,        PIN(F, 3), GPIO_INPUT)                      /* EC_I2C4_SCL1 */
 GPIO(EC_PD_I2C1_SDA,        PIN(F, 2), GPIO_INPUT)                      /* EC_I2C4_SDA1 */
-GPIO(FCH_SIC,               PIN(F, 5), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SCL1 */
-GPIO(FCH_SID,               PIN(F, 4), GPIO_INPUT | GPIO_SEL_1P8V)      /* EC_I2C5_SDA1 */
 
 ALTERNATE(PIN_MASK(B, BIT(4) | BIT(5)), 0, MODULE_I2C, 0)               /* I2C0_SDA0 I2C0_SCL0 */
 ALTERNATE(PIN_MASK(9, BIT(0)), 0, MODULE_I2C, 0)                        /* I2C1_SCL0 */
 ALTERNATE(PIN_MASK(8, BIT(7)), 0, MODULE_I2C, 0)                        /* I2C1_SDA0 */
 ALTERNATE(PIN_MASK(F, BIT(2) | BIT(3)), 0, MODULE_I2C, 0)               /* I2C4_SDA1 I2C4_SCL1 */
-ALTERNATE(PIN_MASK(F, BIT(4) | BIT(5)), 0, MODULE_I2C, GPIO_SEL_1P8V)   /* I2C5_SDA1 I2C5_SCL1 */
 
 ALTERNATE(PIN_MASK(6, BIT(4) | BIT(5)), 0, MODULE_UART, 0)  /* Cr50 requires no pullups. */
 
