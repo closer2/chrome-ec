@@ -82,8 +82,8 @@ static void chipset_force_g3(void)
     /* trun off S5 power */
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
-    gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
+    /*gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
+    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);*/
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
@@ -252,7 +252,7 @@ enum power_state power_handle_state(enum power_state state)
         if (power_wait_signals(IN_PGOOD_S5)) {
             chipset_force_g3();
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
-            /* return POWER_G3; */
+            return POWER_G3;
         }
 
         /* Power sequence doc ask for 10ms delay before pull high PCH_RSMRST_L.
