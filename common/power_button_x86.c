@@ -448,15 +448,16 @@ static void state_machine(uint64_t tnow)
 		}
 		break;
 	case PWRBTN_STATE_IDLE:
+        break;
 	case PWRBTN_STATE_HELD:
-        if (tnow>tnext_state) {
+        if (tnow > tnext_state) {
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x06);
             tnext_state = tnow + PWRBTN_DELAY_T3;
 		    pwrbtn_state = PWRBTN_STATE_HELD_1;
         }
         break;
     case PWRBTN_STATE_HELD_1:
-        if (tnow>tnext_state) {
+        if (tnow > tnext_state) {
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x07);
             CPRINTS("PSW 10s EC reboot......");
             system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);

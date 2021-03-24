@@ -57,8 +57,7 @@ static int raw_power_button_pressed(void)
 
 #ifdef CONFIG_POWER_BUTTON_LOCK_HOST
         if (get_power_button_lock_flag() & EC_MEMMAP_POWER_LOCK) {
-            CPRINTS("Power button lock......\n");
-            return 0; 
+            return 0;
         }
 #endif
 
