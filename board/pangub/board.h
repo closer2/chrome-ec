@@ -37,12 +37,12 @@
 *            EC test version for ODM debug
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
-#define BLD_EC_VERSION_YZ       "01"
-#define BLD_EC_VERSION_TEST     "01"
+#define BLD_EC_VERSION_YZ       "02"
+#define BLD_EC_VERSION_TEST     "00"
 
 #define BLD_EC_VERSION_X_HEX    0x00
-#define BLD_EC_VERSION_YZ_HEX   0x01
-#define BLD_EC_VERSION_TEST_HEX 0x01
+#define BLD_EC_VERSION_YZ_HEX   0x02
+#define BLD_EC_VERSION_TEST_HEX 0x00
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
