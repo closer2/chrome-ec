@@ -310,6 +310,10 @@ enum power_state power_handle_state(enum power_state state)
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
                 return POWER_S5G3;
             }
+
+            /* Enable PSON#, low active */
+            gpio_set_level(GPIO_EC_PSON_L, 0);
+
             gpio_set_level(GPIO_EC_SLP_S5_L, 1);
             gpio_set_level(GPIO_EC_SLP_S3_L, 1);
             msleep(10);
