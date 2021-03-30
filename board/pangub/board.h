@@ -101,7 +101,7 @@
 #define CONFIG_THERMISTOR_NCP15WB           /* Support particular thermistors */
 #define CONFIG_PECI
 #define CONFIG_PECI_COMMON
-#define CONFIG_PECI_TJMAX 105
+#define CONFIG_PECI_TJMAX 100
 #define CONFIG_CMD_PECI
 
 #undef CONFIG_LID_SWITCH                    /* no lid switch */
