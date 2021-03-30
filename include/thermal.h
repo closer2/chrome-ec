@@ -32,5 +32,9 @@ int thermal_fan_percent(int low, int high, int cur);
  */
 void board_override_fan_control(int fan, int *tmp);
 void thermal_type(enum thermal_mode type);
+int getTempSensors(uint8_t sensorType);
+void temperature_protection_mechanism(void);
+int cpu_fan_check_RPM(uint8_t thermalMode);
+int sys_fan_check_RPM(uint8_t thermalMode);
 
 #endif  /* __CROS_EC_THERMAL_H */

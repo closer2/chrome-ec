@@ -85,7 +85,7 @@ BUILD_ASSERT(ARRAY_SIZE(power_signal_list) == POWER_SIGNAL_COUNT);
  * We use 11 as the scaling factor so that the maximum mV value below (2761)
  * can be compressed to fit in a uint8_t.
  */
-#define THERMISTOR_SCALING_FACTOR 11
+#define THERMISTOR_SCALING_FACTOR 15
 
 /*
  * Data derived from Seinhart-Hart equation in a resistor divider circuit with
@@ -271,87 +271,6 @@ const struct temp_sensor_t temp_sensors[] = {
     },
 };
 BUILD_ASSERT(ARRAY_SIZE(temp_sensors) == TEMP_SENSOR_COUNT);
-
-__overridable struct ec_thermal_config thermal_params[TEMP_SENSOR_COUNT] = {
-	[TEMP_SENSOR_CPU_DTS] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(25),
-	    .temp_fan_max = C_TO_K(45)
-	},
-    [TEMP_SENSOR_AMBIENCE_NTC] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(10),
-	    .temp_fan_max = C_TO_K(40)
-	},
-	[TEMP_SENSOR_SSD1_NTC] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(35),
-	    .temp_fan_max = C_TO_K(50)
-	},
-	[TEMP_SENSOR_PCIEX16_NTC] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(10),
-	    .temp_fan_max = C_TO_K(40)
-	},
-	[TEMP_SENSOR_CPU_NTC] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(25),
-	    .temp_fan_max = C_TO_K(45)
-	},
-	[TEMP_SENSOR_MEMORY_NTC] = {
-		.temp_host = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-			[EC_TEMP_THRESH_HALT] = C_TO_K(92),
-		},
-		.temp_host_release = {
-			[EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-		},
-        .temp_fan_off = C_TO_K(35),
-	    .temp_fan_max = C_TO_K(50)
-	},
-    [TEMP_SENSOR_SSD2_NTC] = {
-        .temp_host = {
-            [EC_TEMP_THRESH_HIGH] = C_TO_K(90),
-            [EC_TEMP_THRESH_HALT] = C_TO_K(92),
-        },
-        .temp_host_release = {
-            [EC_TEMP_THRESH_HIGH] = C_TO_K(80),
-        },
-        .temp_fan_off = C_TO_K(35),
-        .temp_fan_max = C_TO_K(50)
-        },
-};
-BUILD_ASSERT(ARRAY_SIZE(thermal_params) == TEMP_SENSOR_COUNT);
 
 /* TODO: check with real hardware, this is error */
 const struct i2c_port_t i2c_ports[] = {

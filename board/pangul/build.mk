@@ -12,4 +12,4 @@ CHIP_VARIANT:=npcx7m6fc
 # We do not use BASEBOARD, just use one board file.
 # BASEBOARD:=zork
 
-board-y=board.o usb_pd_policy.o
+board-y=board.o usb_pd_policy.o thermalInfo.o

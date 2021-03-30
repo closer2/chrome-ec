@@ -395,8 +395,8 @@ static void oem_bios_to_ec_command(void)
             break;
         }
     break;
-    case 0x11: /* Abnormal Power Down Times */
-        if (0x01 == *(bios_cmd+2)) {    /* BIOS get abnormal power down times*/
+    case 0x11: /* Bios boot block damage */
+        if (0x01 == *(bios_cmd+2)) {    /* bios boot block no damage*/
             set_area_Damage_flag(0x01);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
