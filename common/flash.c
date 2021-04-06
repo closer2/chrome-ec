@@ -1737,6 +1737,10 @@ void shutdown_cause_record(uint32_t data)
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
 
+    if ((data >> 16) & 0x01) {
+        set_abnormal_shutdown(0x01);
+    }
+
     // check shutdown cause write index
     base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
     end_address = (uint32_t)(SHUTDOWN_DATA_OFFSET+SHUTDOWN_DATA_SIZE);

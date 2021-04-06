@@ -421,9 +421,11 @@ DECLARE_DEFERRED(pd_reset_deferred);
 
 static void board_chipset_resume(void)
 {
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+
     /* re-set cold boot */
     if(want_reboot_ap_at_g3 && (reboot_ap_at_g3_cyclecount>0)
-			&& reboot_ap_at_g3_delay == 0) {
+        && reboot_ap_at_g3_delay == 0) {
         reboot_ap_at_g3_cyclecount--;
         reboot_ap_at_g3_delay = reboot_ap_at_g3_delay_backup;
         
@@ -434,7 +436,10 @@ static void board_chipset_resume(void)
     }
 
     hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
-    
+
+    *mptr &= ~(EC_MEMMAP_SYSTEM_REBOOT | EC_MEMMAP_SYSTEM_ENTER_S3
+        | EC_MEMMAP_SYSTEM_ENTER_S4 | EC_MEMMAP_SYSTEM_ENTER_S5);
+
     wakeup_cause_record(LOG_ID_WAKEUP_0x04);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -443,9 +448,14 @@ DECLARE_HOOK(HOOK_CHIPSET_RESUME, board_chipset_resume, HOOK_PRIO_DEFAULT);
  
 static void board_chipset_suspend(void)
 {
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+
     hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
-    
-    shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
+
+    if (*mptr & EC_MEMMAP_SYSTEM_ENTER_S3) {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
+    }
+
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
@@ -454,6 +464,7 @@ DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, board_chipset_suspend, HOOK_PRIO_DEFAULT);
 static void board_chipset_shutdown(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
+    uint8_t *state = host_get_memmap(EC_MEMMAP_SYS_MISC1);
 
     if(0xAA == (*mptr))
     {
@@ -468,8 +479,12 @@ static void board_chipset_shutdown(void)
     mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0x55);  /* Record last power state */
 
     /* S3 to S4/S5 fail off */
-    if (chipset_in_state(CHIPSET_STATE_SUSPEND)) {
+    if (*state & EC_MEMMAP_SYSTEM_ENTER_S3) {
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
+    } else {
+        if (!get_abnormal_shutdown()) {
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x01);
+        }
     }
 
     ccprints("%s -> %s", __FILE__, __func__);

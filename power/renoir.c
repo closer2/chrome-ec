@@ -31,6 +31,17 @@
 #define CPRINTS(format, args...) cprints(CC_CHIPSET, format, ##args)
 
 static int forcing_shutdown; /* Forced shutdown in progress? */
+static int g_abnormal_shutdown;
+
+uint8_t get_abnormal_shutdown(void)
+{
+    return g_abnormal_shutdown;
+}
+
+void set_abnormal_shutdown(uint8_t value)
+{
+    g_abnormal_shutdown = value;
+}
 
 void chipset_force_shutdown(uint32_t shutdown_id)
 {
@@ -380,6 +391,9 @@ enum power_state power_handle_state(enum power_state state)
 
         /* Enable wireless, whether need? */
         //wireless_set_state(WIRELESS_ON);
+
+        /* clear abnormal shutdown flag */
+        g_abnormal_shutdown = 0;
 
         /* Call hooks now that rails are up */
         hook_notify(HOOK_CHIPSET_RESUME);
