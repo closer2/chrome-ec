@@ -318,10 +318,11 @@ enum power_state power_handle_state(enum power_state state)
             gpio_set_level(GPIO_EC_SLP_S5_L, 1);
             gpio_set_level(GPIO_EC_SLP_S3_L, 1);
             msleep(10);
-            gpio_set_level(GPIO_VCCST_PWRGD, 1);
             gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 1);
-            gpio_set_level(GPIO_F22_VCCIO0_VID0, 1);
-            gpio_set_level(GPIO_F23_VCCIO0_VID1, 1);
+            msleep(10);
+            gpio_set_level(GPIO_VCCST_PWRGD, 1);
+            /*gpio_set_level(GPIO_F22_VCCIO0_VID0, 1);
+            gpio_set_level(GPIO_F23_VCCIO0_VID1, 1);*/
             /* PCH SLP_S3 turn on, Power up to next state */
             return POWER_S3S0;
         } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 0) {
@@ -413,6 +414,9 @@ enum power_state power_handle_state(enum power_state state)
         /* withdraw EC_FCH_PWRGD */
         gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
 
+        /* EC pass through VCCST_PWRGD*/
+        gpio_set_level(GPIO_VCCST_PWRGD, 0);
+
         /* EC pass through SLP_S3*/
         gpio_set_level(GPIO_EC_SLP_S3_L, 0);
         gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 0);
@@ -460,7 +464,8 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_EC_SLP_S5_L, 0);
 
         /* EC pass through VCCST_PWRGD*/
-        gpio_set_level(GPIO_VCCST_PWRGD, 0);
+        /* gpio_set_level(GPIO_VCCST_PWRGD, 0); */
+
 
         /* Call hooks after we remove power rails */
         hook_notify(HOOK_CHIPSET_SHUTDOWN_COMPLETE);
