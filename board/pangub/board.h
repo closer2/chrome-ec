@@ -236,7 +236,7 @@
 
 
 #define I2C_PORT_HC32F460	NPCX_I2C_PORT0_0
-#define I2C_PORT_SMB_AUX	NPCX_I2C_PORT1_0
+#define I2C_PORT_TS3A227E	NPCX_I2C_PORT1_0
 #define I2C_PORT_TCPC0		NPCX_I2C_PORT4_1
 #define I2C_PORT_THERMAL_AP	NPCX_I2C_PORT5_1
 
@@ -463,6 +463,7 @@ void board_print_temps(void);
 #if 0
 void cpu_plt_reset_interrupt(enum gpio_signal signal);
 #endif
+void audio_ts3a227_interrupt(enum gpio_signal signal);
 void tcpc_alert_event(enum gpio_signal signal);
 /* Board interfaces */
 void board_set_usb_output_voltage(int mv);

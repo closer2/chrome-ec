@@ -286,11 +286,11 @@ const struct i2c_port_t i2c_ports[] = {
         .sda = GPIO_F460_PA3_DAT,
     },
 	{
-		.name = "smb-ext",
-		.port = I2C_PORT_SMB_AUX,
+		.name = "TS3A227E",
+		.port = I2C_PORT_TS3A227E,
 		.kbps = 400,
-		.scl = GPIO_SMBCLK_AUX,
-		.sda = GPIO_SMBDATA_AUX,
+		.scl = GPIO_TI_I2C_SCL,
+		.sda = GPIO_TI_I2C_SDA,
 	},
 	{
 		.name = "tcpc0",
@@ -583,6 +583,18 @@ static void cpu_plt_reset(void)
 }
 
 DECLARE_HOOK(HOOK_PLT_RESET, cpu_plt_reset, HOOK_PRIO_DEFAULT);
+
+void audio_ts3a227_interrupt(enum gpio_signal signal)
+{
+	switch (signal) {
+	case GPIO_EC_TS3A227_INT:
+		ccprints("Front Panel Microphone ising insert");
+		break;
+	default:
+		break;
+	}
+
+}
 
 /*******************************************************************************
  * EC firmware version set

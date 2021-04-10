@@ -26,6 +26,7 @@ GPIO_INT(SLP_S4_L,		    PIN(C, 6), GPIO_INT_BOTH,			power_signal_interrupt) 	/* 
 GPIO_INT(ATX_PG,		    PIN(D, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* PSON# 12V power good */
 GPIO_INT(VCORE_EN,		    PIN(6, 3), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power, enable by EC_SLP_S3 */
 GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* VRMPWRGD->CPU_VR_PG */
+GPIO_INT(EC_TS3A227_INT,    PIN(B, 7), GPIO_INT_BOTH,	        audio_ts3a227_interrupt)        /* EC_TS3A227_INT */
 #ifdef CONFIG_LAN_WAKE_SWITCH
 GPIO_INT(EC_LAN_WAKE_L,		PIN(2, 2), GPIO_INT_BOTH,			power_lan_wake_interrupt)	    /* LAN Waked up */
 GPIO_INT(EC_WLAN_WAKE_L,    PIN(1, 1), GPIO_INT_BOTH,			power_wlan_wake_interrupt)	    /* WLAN Waked up */
@@ -93,7 +94,6 @@ GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin,
 /* CLKRUN# as input with pull up */  
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
 UNUSED(PIN(8, 0))       /* CATEIERR3 */
-UNUSED(PIN(B, 7))       /* EC_TS3A227_INT */
 UNUSED(PIN(2, 4))       /* EC_VIN_5VSB */
 UNUSED(PIN(0, 6))
 UNUSED(PIN(8, 5))
@@ -117,8 +117,8 @@ UNIMPLEMENTED(PACKET_MODE_EN)
 /* I2C pins - these will be reconfigured for alternate function below */
 GPIO(F460_PA2_CLK,          PIN(B, 5), GPIO_INPUT)                      /* EC_I2C0_SCL0 */
 GPIO(F460_PA3_DAT,          PIN(B, 4), GPIO_INPUT)                      /* EC_I2C0_SDA0 */
-GPIO(SMBCLK_AUX,            PIN(9, 0), GPIO_INPUT)                      /* EC_I2C1_SCL0 */
-GPIO(SMBDATA_AUX,           PIN(8, 7), GPIO_INPUT)                      /* EC_I2C1_SDA0 */
+GPIO(TI_I2C_SCL,            PIN(9, 0), GPIO_INPUT)                      /* EC_I2C1_SCL0 */
+GPIO(TI_I2C_SDA,            PIN(8, 7), GPIO_INPUT)                      /* EC_I2C1_SDA0 */
 GPIO(EC_PD_I2C1_SCL,        PIN(F, 3), GPIO_INPUT)                      /* EC_I2C4_SCL1 */
 GPIO(EC_PD_I2C1_SDA,        PIN(F, 2), GPIO_INPUT)                      /* EC_I2C4_SDA1 */
 
