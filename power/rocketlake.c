@@ -90,6 +90,9 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);
     gpio_set_level(GPIO_EC_PORT0_PD0, 0);
 
+    /* CPU reset low effective */
+    gpio_set_level(GPIO_SYS_RESET_L, 0);
+
     /* trun off S5 power */
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
@@ -371,6 +374,8 @@ enum power_state power_handle_state(enum power_state state)
          */
         msleep(10);
         gpio_set_level(GPIO_EC_PCH_PWRGD, 1);
+
+        gpio_set_level(GPIO_SYS_RESET_L, 1);
 
         /* Power sequence doc ask for 140ms delay before pull high GPIO_PWRGD_140MS.
          */

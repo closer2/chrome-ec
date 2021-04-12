@@ -72,7 +72,7 @@ GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_HIGH)        /* Control 3V/5V ALW 
 GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_HIGH)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
 
 /* SYS_RST# as gpio */
-GPIO(SYS_RST_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
+GPIO(SYS_RESET_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
 
 /* Input */
 GPIO(3V3_SB_PGOOD,		    PIN(D, 0), GPIO_INPUT)				/* 3.3V_SB_PGOOD */
