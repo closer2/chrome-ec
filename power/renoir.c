@@ -57,6 +57,8 @@ void chipset_force_shutdown(uint32_t shutdown_id)
 
 static void chipset_force_g3(void)
 {
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+
     /* In theory, EC should withdraw PWRGD,
      * pull low RSMRST_L, then shut down always power,
      * system will enter G3,
@@ -91,14 +93,16 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0);
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
+    if (*mptr & EC_MEMMAP_CHINA_REGION) {
+        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
+    }
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
     gpio_set_level(GPIO_EC_FCH_SCI_ODL, 0);
     gpio_set_level(GPIO_PCH_SMI_L, 0);
-    /*gpio_set_level(GPIO_APU_NMI_L, 0);
-    gpio_set_level(GPIO_EC_ALERT_L, 0);*/
+    gpio_set_level(GPIO_APU_NMI_L, 0);
+    /* gpio_set_level(GPIO_EC_ALERT_L, 0); */
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
     gpio_set_level(GPIO_KBRST_L, 0);
     
@@ -264,8 +268,8 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_PROCHOT_ODL, 1);
         gpio_set_level(GPIO_EC_FCH_SCI_ODL, 1);
         gpio_set_level(GPIO_PCH_SMI_L, 1);
-        /*gpio_set_level(GPIO_APU_NMI_L, 1);
-        gpio_set_level(GPIO_EC_ALERT_L, 1);*/
+        gpio_set_level(GPIO_APU_NMI_L, 1);
+        /*gpio_set_level(GPIO_EC_ALERT_L, 1);*/
         gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 1);
         gpio_set_level(GPIO_KBRST_L, 1);
         gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);

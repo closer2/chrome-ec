@@ -648,13 +648,13 @@ void board_reset_pd_mcu(void)
 
 void board_set_usb_output_voltage(int mv)
 {
-    if((POWER_S5==power_get_state()) ||
-        (POWER_G3==power_get_state())) {
+    if ((POWER_S5 == power_get_state()) ||
+        (POWER_G3 == power_get_state())) {
         gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);
-		gpio_set_level(GPIO_EC_PORT0_PD0, 0);
+        gpio_set_level(GPIO_EC_PORT0_PD0, 0);
         return;
     }
-    
+
 	if(mv < 0) {
 		/* Turn off output voltage, default LDO to 5V */
 		gpio_set_level(GPIO_TYPEC_VBUS_CTRL, 1);

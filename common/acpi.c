@@ -214,10 +214,11 @@ static void oem_bios_to_ec_command(void)
         mptr = host_get_memmap(EC_MEMMAP_POWER_FLAG1);
         if (0x01 == *(bios_cmd+2)) {        /* disable */
             (*mptr) |= EC_MEMMAP_DISABLE_G3;
-        } else if (0 == *(bios_cmd+2)) {     /* enable */
+        } else if (0x00 == *(bios_cmd+2)) {     /* enable */
             (*mptr) &= (~EC_MEMMAP_DISABLE_G3);
-        }
-        else {
+        } else if (0x02 == *(bios_cmd+2)) { /* get G3 state */
+            *(bios_cmd + 3) = *mptr & EC_MEMMAP_DISABLE_G3;
+        } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;
         }
@@ -396,8 +397,15 @@ static void oem_bios_to_ec_command(void)
         }
     break;
     case 0x11: /* Bios boot block damage */
+        mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
         if (0x01 == *(bios_cmd+2)) {    /* bios boot block no damage*/
             set_area_Damage_flag(0x01);
+        } else if (0x02 == *(bios_cmd + 2)) { /* overseas */
+            *mptr |= EC_MEMMAP_CHINA_REGION;
+            break;
+        } else if (0x03 == *(bios_cmd + 2)) { /* china region */
+            *mptr &= ~EC_MEMMAP_CHINA_REGION;
+            break;
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

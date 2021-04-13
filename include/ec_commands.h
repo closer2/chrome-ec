@@ -174,6 +174,8 @@ extern "C" {
 #define EC_MEMMAP_SYSTEM_ENTER_S4   BIT(4) /* System enters S4 */
 #define EC_MEMMAP_SYSTEM_ENTER_S5   BIT(5) /* System enters S5 */
 #define EC_MEMMAP_ACPI_MODE         BIT(6) /* ACPI MODE */
+#define EC_MEMMAP_CHINA_REGION      BIT(7) /* 0:china region  1: overseas */
+
 
 #define EC_MEMMAP_SYS_MISC2                 0x1B /* SYS_MISC2 */
 #define EC_MEMMAP_AC_ADAPTER_FLAG   BIT(0) /* AC adapter Status (0:Off-line;1:On-line) */

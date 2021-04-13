@@ -43,11 +43,10 @@ GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, outpu
 GPIO(TYPEC_VBUS_CTRL,       PIN(D, 7), GPIO_OUT_HIGH)       /* EC control Type-C VBUS power, default to H, no output 5V */
 GPIO(PROCHOT_ODL,           PIN(D, 4), GPIO_ODR_LOW)        /* PROCHOT# */
 GPIO(PWRGD_140MS,           PIN(B, 0), GPIO_OUT_LOW)        /* VRMPWRGD && PWRGD_140MS -> SYSPWRGD */
-GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_HIGH)        /* Control 3V/5V ALW power */
+GPIO(EC_3V_5V_ALW_EN,       PIN(A, 0), GPIO_OUT_LOW)        /* Control 3V/5V ALW power */
 GPIO(USB_PWR_EN_L,          PIN(E, 4), GPIO_OUT_HIGH)       /* USB_PWR_EN# */
 GPIO(EC_LAN_OFF,            PIN(3, 2), GPIO_OUT_LOW)        /* EC_LAN_OFF */
 GPIO(EC_TO_USB_SWITCH,      PIN(A, 2), GPIO_OUT_LOW)        /* G3 to low, other state should to High, connect usb to APU */
-GPIO(EC_AUDIO_MUTE_L,       PIN(E, 3), GPIO_OUT_HIGH)       /* EC_AUDIO_MUTE_L */
 GPIO(EC_PSON_L,             PIN(E, 5), GPIO_OUT_HIGH)       /* EC_PSO_N, PSU 12V enable, default to high */
 GPIO(PROM19_EN,             PIN(D, 2), GPIO_OUT_LOW)        /* Refer to Power Sequence */
 GPIO(USB_FING_BLUE_EN_L,    PIN(9, 7), GPIO_OUT_HIGH)       /* Finger KBD USB port power enable */
@@ -58,7 +57,7 @@ GPIO(EC_FCH_RSMRST_L,       PIN(A, 7), GPIO_OUT_LOW)        /* RSMRST_L */
 GPIO(EC_PORT0_PD0,          PIN(6, 1), GPIO_OUT_LOW)        /* TODO: confirm its intial output, EC_PORT0_PD0 */
 GPIO(EC_ALERT_L,            PIN(B, 7), GPIO_OUT_HIGH)       /* TODO: confirm its function, EC_ALERT# */
 GPIO(EC_LOM_PWR_EN,         PIN(0, 5), GPIO_OUT_LOW)        /* EC_LOM_PWR_EN */
-GPIO(APU_NMI_L,             PIN(9, 2), GPIO_OUT_HIGH)       /* APU_NMI# */
+GPIO(APU_NMI_L,             PIN(9, 2), GPIO_ODR_LOW)       /* APU_NMI# */
 GPIO(EC_ALW_EN,             PIN(D, 0), GPIO_OUT_LOW)        /* EC_ALW_EN */
 GPIO(PCIEX1_RST_L,          PIN(1, 6), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
 GPIO(M2_2280_SSD1_RST_L,    PIN(1, 7), GPIO_OUT_LOW)        /* APU_PCIE_RST_L pass through to this signal */
@@ -98,6 +97,7 @@ UNUSED(PIN(8, 5))								/* EC_LPS_EN_N */
 UNUSED(PIN(E, 0))								/* FPS_IRQ */
 UNUSED(PIN(0, 3))								/* FPS_ID */
 UNUSED(PIN(5, 6))								/* CLKRUN# */
+UNUSED(PIN(E, 3))
 UNUSED(PIN(1, 3))
 UNUSED(PIN(1, 5))
 UNUSED(PIN(2, 5))
