@@ -38,11 +38,11 @@
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
 #define BLD_EC_VERSION_YZ       "03"
-#define BLD_EC_VERSION_TEST     "00"
+#define BLD_EC_VERSION_TEST     "01"
 
 #define BLD_EC_VERSION_X_HEX    0x00
 #define BLD_EC_VERSION_YZ_HEX   0x03
-#define BLD_EC_VERSION_TEST_HEX 0x00
+#define BLD_EC_VERSION_TEST_HEX 0x01
 
 /*------------------------------------------------------------------------------
 * NPCX7 config
@@ -135,7 +135,10 @@
 #undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
 #undef CONFIG_FINAL_RELEASE                 /* define it when final release */
 #define CONFIG_LAN_WAKE_SWITCH              /* support lan/wlan wake */
-/* #define CONFIG_AUDIO_SWITCH */           /* support audio switch */
+#define CONFIG_AUDIO_HEADSET_VOLUME          /* support headset volume */
+#define HAS_TASK_KEYPROTO
+#define CONFIG_KEYBOARD_PROTOCOL_8042
+
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
@@ -235,10 +238,9 @@
 
 
 
-#define I2C_PORT_HC32F460	NPCX_I2C_PORT0_0
-#define I2C_PORT_TS3A227E	NPCX_I2C_PORT1_0
-#define I2C_PORT_TCPC0		NPCX_I2C_PORT4_1
-#define I2C_PORT_THERMAL_AP	NPCX_I2C_PORT5_1
+#define I2C_PORT_HC32F460       NPCX_I2C_PORT0_0
+#define I2C_PORT_TS3A227E       NPCX_I2C_PORT1_0
+#define I2C_PORT_TCPC0          NPCX_I2C_PORT4_1
 
 
 /* TODO: need confirm with real hardware */
@@ -463,7 +465,13 @@ void board_print_temps(void);
 #if 0
 void cpu_plt_reset_interrupt(enum gpio_signal signal);
 #endif
+
+#ifdef CONFIG_AUDIO_HEADSET_VOLUME
 void audio_ts3a227_interrupt(enum gpio_signal signal);
+#else
+static inline void audio_ts3a227_interrupt(enum gpio_signal signal) { }
+#endif
+
 void tcpc_alert_event(enum gpio_signal signal);
 /* Board interfaces */
 void board_set_usb_output_voltage(int mv);

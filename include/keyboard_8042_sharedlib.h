@@ -143,6 +143,7 @@ enum scancode_values {
 	SCANCODE_BRIGHTNESS_UP = 0xe035,	/* e015 in codeset 1 */
 	SCANCODE_PRIVACY_SCRN_TOGGLE = 0xe03c,	/* e016 in codeset 1 */
 	SCANCODE_VOLUME_MUTE = 0xe023,		/* e020 in codeset 1 */
+    SCANCODE_VOLUME_PLAY = 0xe034,      /* e022 in codeset 1 */
 	SCANCODE_VOLUME_DOWN = 0xe021,		/* e02e in codeset 1 */
 	SCANCODE_VOLUME_UP = 0xe032,		/* e030 in codeset 1 */
 	SCANCODE_KBD_BKLIGHT_DOWN = 0xe043,	/* e017 in codeset 1 */

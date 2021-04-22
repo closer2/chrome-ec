@@ -584,17 +584,6 @@ static void cpu_plt_reset(void)
 
 DECLARE_HOOK(HOOK_PLT_RESET, cpu_plt_reset, HOOK_PRIO_DEFAULT);
 
-void audio_ts3a227_interrupt(enum gpio_signal signal)
-{
-	switch (signal) {
-	case GPIO_EC_TS3A227_INT:
-		ccprints("Front Panel Microphone ising insert");
-		break;
-	default:
-		break;
-	}
-
-}
 
 /*******************************************************************************
  * EC firmware version set

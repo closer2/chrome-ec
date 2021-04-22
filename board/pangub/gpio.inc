@@ -26,7 +26,7 @@ GPIO_INT(SLP_S4_L,		    PIN(C, 6), GPIO_INT_BOTH,			power_signal_interrupt) 	/* 
 GPIO_INT(ATX_PG,		    PIN(D, 1), GPIO_INT_BOTH,			power_signal_interrupt)		/* PSON# 12V power good */
 GPIO_INT(VCORE_EN,		    PIN(6, 3), GPIO_INT_BOTH,			power_signal_interrupt)		/* xxx_MAIN power, enable by EC_SLP_S3 */
 GPIO_INT(VRMPWRGD,		    PIN(A, 5), GPIO_INT_BOTH,			power_signal_interrupt)		/* VRMPWRGD->CPU_VR_PG */
-GPIO_INT(EC_TS3A227_INT,    PIN(B, 7), GPIO_INT_BOTH,	        audio_ts3a227_interrupt)        /* EC_TS3A227_INT */
+GPIO_INT(EC_TS3A227_INT,    PIN(B, 7), GPIO_INT_FALLING,	    audio_ts3a227_interrupt)        /* EC_TS3A227_INT */
 #ifdef CONFIG_LAN_WAKE_SWITCH
 GPIO_INT(EC_LAN_WAKE_L,		PIN(2, 2), GPIO_INT_BOTH,			power_lan_wake_interrupt)	    /* LAN Waked up */
 GPIO_INT(EC_WLAN_WAKE_L,    PIN(1, 1), GPIO_INT_BOTH,			power_wlan_wake_interrupt)	    /* WLAN Waked up */

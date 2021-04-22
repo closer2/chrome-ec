@@ -635,11 +635,14 @@ void host_register_init(void)
 	sib_write_reg(SIO_OFFSET, 0x07, 0x06);
 	sib_write_reg(SIO_OFFSET, 0x30, 0x01);
 
-	/* LDN = 0x05 : mouse */
-	if (IS_ENABLED(CONFIG_PS2)) {
-		sib_write_reg(SIO_OFFSET, 0x07, 0x05);
-		sib_write_reg(SIO_OFFSET, 0x30, 0x01);
-	}
+#ifdef LOGICAL_DEVICE_MOUSE
+    /* LDN = 0x05 : mouse */
+    if (IS_ENABLED(CONFIG_PS2)) {
+        sib_write_reg(SIO_OFFSET, 0x07, 0x05);
+        sib_write_reg(SIO_OFFSET, 0x30, 0x01);
+    }
+#endif
+
 #endif
 
 	/* Setting PMC2 */

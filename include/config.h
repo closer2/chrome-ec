@@ -2581,7 +2581,7 @@
  *  - A response to EC_CMD_GET_KEYBD_CONFIG command from coreboot
  *  - Boards can specify their custom layout for top keys.
  */
-#define CONFIG_KEYBOARD_VIVALDI
+#undef CONFIG_KEYBOARD_VIVALDI
 
 /* Compile code for MKBP keyboard protocol */
 #undef CONFIG_KEYBOARD_PROTOCOL_MKBP
