@@ -323,13 +323,14 @@ enum power_state power_handle_state(enum power_state state)
             /* Enable PSON#, low active */
             gpio_set_level(GPIO_EC_PSON_L, 0);
 
+            /* EC pass through SLP_S5*/
+            gpio_set_level(GPIO_EC_SLP_S5_L, 1);
             if(power_wait_voltage()) {
                 CPRINTS("error: power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
                 return POWER_S5G3;
             }
 
-            gpio_set_level(GPIO_EC_SLP_S5_L, 1);
             gpio_set_level(GPIO_EC_SLP_S3_L, 1);
             msleep(10);
             gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 1);
@@ -480,6 +481,7 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
 
         /* EC pass through SLP_S5*/
+        msleep(30);
         gpio_set_level(GPIO_EC_SLP_S5_L, 0);
 
         /* EC pass through VCCST_PWRGD*/
