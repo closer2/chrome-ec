@@ -607,6 +607,20 @@ static void ec_oem_version_set(void)
 DECLARE_HOOK(HOOK_INIT, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 DECLARE_HOOK(HOOK_CHIPSET_STARTUP, ec_oem_version_set, HOOK_PRIO_DEFAULT);
 
+/*******************************************************************************
+ * phase EVT DVT PVT MP different board to configure.
+ * EVT:001 DVT:000 PVT:010 MP:011
+ */
+static void phase_gpio_init(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_GPIO_BOARD_ID);
+
+    if ((*mptr > PHASE_EVT) || (*mptr == PHASE_DVT)) {
+        gpio_set_flags(GPIO_EC_SLP_S4_L, GPIO_OUT_LOW); /* gpio24 EC_SLP_S4_L */
+    }
+}
+DECLARE_HOOK(HOOK_INIT, phase_gpio_init, HOOK_PRIO_DEFAULT);
+
 
 /******************************************************************************/
 /* USB PD functions */

@@ -96,8 +96,8 @@ static void chipset_force_g3(void)
     /* trun off S5 power */
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
-    /*gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);*/
+    gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
+    /*gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);*/
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
@@ -225,6 +225,8 @@ DECLARE_DEFERRED(s0_to_s5_deferred);
 
 enum power_state power_handle_state(enum power_state state)
 {
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_GPIO_BOARD_ID);
+
     if (state == POWER_S5 && forcing_shutdown) {
         power_button_pch_release();
         forcing_shutdown = 0;
@@ -241,6 +243,7 @@ enum power_state power_handle_state(enum power_state state)
         }
 
         /* Exit SOC G3 */
+        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
         msleep(10);
         gpio_set_level(GPIO_DSW_PWROK_EN, 1);
         /* PCH send SLP_SUS# delay time(t > 95ms) max wait 2s */
@@ -249,7 +252,6 @@ enum power_state power_handle_state(enum power_state state)
             return POWER_S5G3;
         }
 
-        gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
         gpio_set_level(GPIO_EC_1V8_AUX_EN, 1);
 
         gpio_set_level(GPIO_CPU_NMI_L, 1);
@@ -325,6 +327,11 @@ enum power_state power_handle_state(enum power_state state)
 
             /* EC pass through SLP_S5*/
             gpio_set_level(GPIO_EC_SLP_S5_L, 1);
+            /* EC pass through SLP_S4*/
+            if ((*mptr > PHASE_EVT) || (*mptr == PHASE_DVT)) {
+                gpio_set_level(GPIO_EC_SLP_S4_L, 1);
+            }
+
             if(power_wait_voltage()) {
                 CPRINTS("error: power wait 12V timeout");
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x46);
@@ -480,6 +487,10 @@ enum power_state power_handle_state(enum power_state state)
         /* switch FingerPrint USB connection to MCU */
         gpio_set_level(GPIO_EC_TO_USB_SWITCH, 0);
 
+        /* EC pass through SLP_S4*/
+        if ((*mptr > PHASE_EVT) || (*mptr == PHASE_DVT)) {
+            gpio_set_level(GPIO_EC_SLP_S4_L, 0);
+        }
         /* EC pass through SLP_S5*/
         msleep(30);
         gpio_set_level(GPIO_EC_SLP_S5_L, 0);

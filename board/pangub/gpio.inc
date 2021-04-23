@@ -36,7 +36,6 @@ GPIO_INT(EC_PWR_BTN_ODL,	PIN(0, 0), GPIO_INT_BOTH,			power_button_interrupt)   /
 GPIO_INT(EC_PLT_RST_L,      PIN(3, 1), GPIO_INT_BOTH,			cpu_plt_reset_interrupt)  /* Pass through to other xxx_RST_L (PCIEX1/PCIEX16/M2_2280_SSD1) */
 #endif
 /* Replace of the above for PanGuB board */
-
 GPIO(EC_PCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_PCH_PWRGD */
 GPIO(DSW_PWROK_EN,          PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
 GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_OUT_LOW)        /* Power Button to SOC, EC_PWRBTN_OUT_N */
@@ -68,8 +67,8 @@ GPIO(EC_LAN_WLAN_RST_L,     PIN(2, 3), GPIO_OUT_LOW)        /* LAN WLAN RST */
 GPIO(EC_TPM_RST_L,          PIN(8, 3), GPIO_OUT_LOW)        /* TPM RST */
 GPIO(F22_VCCIO0_VID0,	    PIN(1, 4), GPIO_OUT_LOW)	    /* power sequence VCCIO0_VID0 */
 GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCIO0_VID1 */
-GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_HIGH)        /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
-GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_HIGH)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
+GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_HIGH)       /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
+GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
 
 /* SYS_RST# as gpio */
 GPIO(SYS_RESET_L,			    PIN(C, 5), GPIO_OUT_LOW)			/* reserved pin SYS_RST# */
@@ -91,10 +90,13 @@ GPIO(EC_GPIO0_CASE_OPEN_L,	PIN(6, 2), GPIO_INPUT)				/* Chassis Intrusion Detect
 GPIO(EC_DGPU_PROCHOT_L,     PIN(9, 3), GPIO_INPUT)              /* Reserved Pin, DGPU PROCHOT */
 GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin, VCCIO_1_2_GOOG */
 
+/* Phase gpio Optional */  
+GPIO(EC_SLP_S4_L,            PIN(2, 4),        GPIO_INPUT)      /* EC_SLP_S4#, EVT input DVT output, passthrough SLP_S4_L */
+GPIO(POWER_LED,              PIN(0, 3),        GPIO_INPUT)      /* power led */
+
 /* CLKRUN# as input with pull up */  
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
 UNUSED(PIN(8, 0))       /* CATEIERR3 */
-UNUSED(PIN(2, 4))       /* EC_VIN_5VSB */
 UNUSED(PIN(0, 6))
 UNUSED(PIN(8, 5))
 UNUSED(PIN(2, 5))

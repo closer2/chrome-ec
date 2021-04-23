@@ -386,6 +386,17 @@
 #include "power/rocketlake.h"
 #include "registers.h"
 
+/*
+ * phase EVT DVT PVT MP different board to configure.
+ * EVT:001 DVT:000 PVT:010 MP:011
+ */
+enum phase_board_id {
+    PHASE_DVT = 0,
+    PHASE_EVT,
+    PHASE_PVT,
+    PHASE_MP
+};
+
 /* TODO: need confirm with real hardware */
 enum pwm_channel {
     PWM_CH_CPU_FAN = 0,
