@@ -92,11 +92,10 @@ GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin,
 
 /* Phase gpio Optional */  
 GPIO(EC_SLP_S4_L,            PIN(2, 4),        GPIO_INPUT)      /* EC_SLP_S4#, EVT input DVT output, passthrough SLP_S4_L */
-GPIO(POWER_LED,              PIN(0, 3),        GPIO_INPUT)      /* power led */
+GPIO(POWER_LED,              PIN(8, 0),        GPIO_INPUT)      /* power led */
 
 /* CLKRUN# as input with pull up */  
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
-UNUSED(PIN(8, 0))       /* CATEIERR3 */
 UNUSED(PIN(0, 6))
 UNUSED(PIN(8, 5))
 UNUSED(PIN(2, 5))

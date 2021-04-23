@@ -617,6 +617,7 @@ static void phase_gpio_init(void)
 
     if ((*mptr > PHASE_EVT) || (*mptr == PHASE_DVT)) {
         gpio_set_flags(GPIO_EC_SLP_S4_L, GPIO_OUT_LOW); /* gpio24 EC_SLP_S4_L */
+        gpio_config_pin(MODULE_PWM, GPIO_POWER_LED, 1); /* gpio80 POWER_LED */
     }
 }
 DECLARE_HOOK(HOOK_INIT, phase_gpio_init, HOOK_PRIO_DEFAULT);
