@@ -92,7 +92,7 @@ GPIO(VCCIO_1_2_GOOG,        PIN(5, 6), GPIO_INPUT)              /* Reserved Pin,
 
 /* Phase gpio Optional */  
 GPIO(EC_SLP_S4_L,            PIN(2, 4),        GPIO_INPUT)      /* EC_SLP_S4#, EVT input DVT output, passthrough SLP_S4_L */
-GPIO(POWER_LED,              PIN(8, 0),        GPIO_INPUT)      /* power led */
+/*GPIO(POWER_LED,              PIN(8, 0),        GPIO_INPUT)*/      /* power led */
 
 /* CLKRUN# as input with pull up */  
 UNUSED(PIN(E, 0))		/* SX_EXIT_HOLDOFF# */
@@ -146,7 +146,7 @@ ALTERNATE(PIN_MASK(F, BIT(0) | BIT(1)), 0, MODULE_ADC, 0)               /* ADC8:
 
 ALTERNATE(PIN_MASK(C, BIT(2) | BIT(3)), 1, MODULE_PWM, 0)       /* PWM1: SYS_FAN_PWM, PWM0: CPU_FAN_PWM */
 
-/* ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)  */              /* PWM3: power-on led */
+ALTERNATE(PIN_MASK(8, BIT(0)), 1, MODULE_PWM, 0)                /* PWM3: power-on led */
 
 /* Power Switch Logic (PSL) inputs */
 ALTERNATE(PIN_MASK(0, BIT(0)), 0, MODULE_PMU, 0)				/* POWER_BUTTON_L */
