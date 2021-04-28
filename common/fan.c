@@ -631,10 +631,15 @@ static void pwm_fan_start(void)
 	 * Upon booting to S0, if needed AP will disable/throttle it using
 	 * host commands.
 	 */
-	if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
+#ifdef NPCX_FAMILY_DT03
+    if (chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
         return;
     }
-
+#else
+    if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
+        return;
+    }   
+#endif
     /* power on check fan fault */
     for (fan = 0; fan < fan_count; fan++) {
         /* set_thermal_control_enabled(fan, 0); */
@@ -644,7 +649,9 @@ static void pwm_fan_start(void)
     }
     g_fan_parameter.fanFaultCheckStart = 0x01;
 }
-
+#ifdef NPCX_FAMILY_DT03
+DECLARE_HOOK(HOOK_CHIPSET_STARTUP, pwm_fan_start, HOOK_PRIO_INIT_PWM + 1);
+#endif
 static void fan_fault_check(void)
 {
     int fan;
@@ -675,7 +682,7 @@ static void fan_fault_check(void)
         }
     }
 }
-DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_INIT_PWM + 10);
+DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_INIT_PWM + 1);
 
 /* s0-s5 and System reboot will clear fan falut flag */
 void thermal_control_start(void)
