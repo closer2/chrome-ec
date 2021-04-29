@@ -116,7 +116,9 @@
                         CC_MASK(CC_SYSTEM) | \
                         CC_MASK(CC_COMMAND)| \
                         CC_MASK(CC_SWITCH) | \
-                        CC_MASK(CC_LPC))
+                        CC_MASK(CC_LPC) | \
+                        CC_MASK(CC_USBPD))
+
 
 #define CONFIG_IO900_WRITE_PROTECT          /* for IO/900-9CF write protection */
 
