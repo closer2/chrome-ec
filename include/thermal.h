@@ -36,5 +36,6 @@ int getTempSensors(uint8_t sensorType);
 void temperature_protection_mechanism(void);
 int cpu_fan_check_RPM(uint8_t thermalMode);
 int sys_fan_check_RPM(uint8_t thermalMode);
+void set_cpu_model(uint8_t value);
 
 #endif  /* __CROS_EC_THERMAL_H */

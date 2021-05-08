@@ -411,6 +411,22 @@ static void oem_bios_to_ec_command(void)
             break;
         }
         break;
+    case 0x12: /* Bios notify EC CPU model */
+        mptr = host_get_memmap(EC_MEMMAP_CPU_MODEL);
+        if (0x01 == *(bios_cmd+2)) {    /* CPU model: i3 */
+            *mptr = 0x01;
+            set_cpu_model(0x01);
+        } else if (0x02 == *(bios_cmd + 2)) { /* CPU model: i5 */
+            *mptr = 0x02;
+            set_cpu_model(0x02);
+        } else if (0x03 == *(bios_cmd + 2)) { /* CPU model: i7 */
+            *mptr = 0x03;
+            set_cpu_model(0x03);
+        } else {
+            *(bios_cmd+1) = 0xFF; /* unknown command */
+            break;
+        }
+        break;
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;
