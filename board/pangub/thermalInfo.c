@@ -11,7 +11,9 @@
 #include "hooks.h"
 #include "thermal.h"
 
-#define UMA_SYS_FAN_START_TEMP  38
+static uint8_t cpu_model; /* 0x01:i3, 0x02:i5, 0x03:i7 */
+
+#define UMA_SYS_FAN_START_TEMP  36
 #define UMA_CPU_FAN_START_TEMP  37
 #define GFX_SYS_FAN_START_TEMP  39
 #define GFX_CPU_FAN_START_TEMP  40
@@ -66,101 +68,275 @@ struct thermal_level_s {
     const struct thermal_level_ags *data;
 };
 
+/*
+ * fan table for cpu model is i3
+ */
+
 /* UMP sys fan sensor SSD1 NTC*/
-const struct thermal_level_ags uma_thermal_sys_fan_ssd1_ntc[] = {
+const struct thermal_level_ags i3_uma_thermal_sys_fan_ssd1_ntc[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     600,      53,   UMA_SYS_FAN_START_TEMP},
-    {1,     800,      54,   51},
-    {2,     1000,     55,   52},
-    {3,     1300,     58,   53},
-    {4,     1600,     62,   56},
-    {5,     2800,     62,   60}
+    {0,     800,      43,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   42},
+    {2,     1200,     51,   45},
+    {3,     1500,     55,   49},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
 };
-const struct thermal_level_s t_uma_thermal_sys_fan_ssd1_ntc = {
+const struct thermal_level_s t_i3_uma_thermal_sys_fan_ssd1_ntc = {
     .name = "SSD1 NTC",
-    .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_ssd1_ntc),
-    .data = uma_thermal_sys_fan_ssd1_ntc,
+    .num_pairs = ARRAY_SIZE(i3_uma_thermal_sys_fan_ssd1_ntc),
+    .data = i3_uma_thermal_sys_fan_ssd1_ntc,
 };
 
 /* UMP sys fan sensor SSD2 NTC*/
-const struct thermal_level_ags uma_thermal_sys_fan_ssd2_ntc[] = {
+const struct thermal_level_ags i3_uma_thermal_sys_fan_ssd2_ntc[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     600,      64,   UMA_SYS_FAN_START_TEMP},
-    {1,     800,      65,   62},
-    {2,     1000,     66,   63},
-    {3,     1300,     72,   64},
-    {4,     1600,     78,   69},
-    {5,     2800,     78,   76}
+    {0,     800,      44,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   43},
+    {2,     1200,     49,   44},
+    {3,     1500,     55,   47},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
 };
-const struct thermal_level_s t_uma_thermal_sys_fan_ssd2_ntc = {
+const struct thermal_level_s t_i3_uma_thermal_sys_fan_ssd2_ntc = {
     .name = "SSD2 NTC",
-    .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_ssd2_ntc),
-    .data = uma_thermal_sys_fan_ssd2_ntc,
+    .num_pairs = ARRAY_SIZE(i3_uma_thermal_sys_fan_ssd2_ntc),
+    .data = i3_uma_thermal_sys_fan_ssd2_ntc,
 };
 
 /* UMP sys fan sensor memory NTC*/
-const struct thermal_level_ags uma_thermal_sys_fan_memory_ntc[] = {
+const struct thermal_level_ags i3_uma_thermal_sys_fan_memory_ntc[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     600,      55,   UMA_SYS_FAN_START_TEMP},
-    {1,     800,      60,   53},
-    {2,     1000,     65,   58},
-    {3,     1300,     69,   63},
-    {4,     1600,     72,   67},
-    {5,     2800,     72,   70}
+    {0,     800,      40,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      55,   39},
+    {2,     1200,     58,   54},
+    {3,     1500,     60,   57},
+    {4,     1800,     62,   59},
+    {5,     2000,     70,   61},
+    {6,     2800,     70,   68}
 };
-const struct thermal_level_s t_uma_thermal_sys_fan_memory_ntc = {
+const struct thermal_level_s t_i3_uma_thermal_sys_fan_memory_ntc = {
     .name = "Memory NTC",
-    .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_memory_ntc),
-    .data = uma_thermal_sys_fan_memory_ntc,
-};
-
-/* UMP sys fan sensor PCIEx16 NTC */
-const struct thermal_level_ags uma_thermal_sys_fan_pciex16_ntc[] = {
-/* level    RPM        HowTri        lowTri */
-    {0,     600,      55,   UMA_SYS_FAN_START_TEMP},
-    {1,     800,      58,   52},
-    {2,     1000,     60,   56},
-    {3,     1300,     65,   58},
-    {4,     1600,     75,   63},
-    {5,     2800,     75,   73}
-};
-const struct thermal_level_s t_uma_thermal_sys_fan_pciex16_ntc = {
-    .name = "PCIEX16 NTC",
-    .num_pairs = ARRAY_SIZE(uma_thermal_sys_fan_pciex16_ntc),
-    .data = uma_thermal_sys_fan_pciex16_ntc,
+    .num_pairs = ARRAY_SIZE(i3_uma_thermal_sys_fan_memory_ntc),
+    .data = i3_uma_thermal_sys_fan_memory_ntc,
 };
 
 /* UMP CPU fan sensor CPU DTS*/
-const struct thermal_level_ags  uma_thermal_cpu_fan_cpu_dts[] = {
+const struct thermal_level_ags  i3_uma_thermal_cpu_fan_cpu_dts[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     700,      60,   UMA_CPU_FAN_START_TEMP},
-    {1,     1000,     68,   57},
-    {2,     1300,     77,   65},
-    {3,     1600,     89,   71},
-    {4,     1800,     96,   87},
-    {5,     2800,     96,   95}
+    {0,     800,      38,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     65,   36},
+    {2,     1200,     83,   63},
+    {3,     1500,     89,   81},
+    {4,     1700,     91,   87},
+    {5,     1900,     95,   89},
+    {6,     2800,     95,   93}
 };
-const struct thermal_level_s t_uma_thermal_cpu_fan_cpu_dts = {
+const struct thermal_level_s t_i3_uma_thermal_cpu_fan_cpu_dts = {
     .name = "CPU DTS",
-    .num_pairs = ARRAY_SIZE(uma_thermal_cpu_fan_cpu_dts),
-    .data = uma_thermal_cpu_fan_cpu_dts,
+    .num_pairs = ARRAY_SIZE(i3_uma_thermal_cpu_fan_cpu_dts),
+    .data = i3_uma_thermal_cpu_fan_cpu_dts,
+};
+
+/* UMP CPU fan sensor CPU NTC*/
+const struct thermal_level_ags i3_uma_thermal_cpu_fan_cpu_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     800,      38,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     60,   36},
+    {2,     1200,     75,   58},
+    {3,     1500,     79,   73},
+    {4,     1700,     81,   77},
+    {5,     1900,     86,   79},
+    {6,     2800,     86,   83}
+};
+const struct thermal_level_s t_i3_uma_thermal_cpu_fan_cpu_ntc = {
+    .name = "CPU NTC",
+    .num_pairs = ARRAY_SIZE(i3_uma_thermal_cpu_fan_cpu_ntc),
+    .data = i3_uma_thermal_cpu_fan_cpu_ntc,
+};
+
+
+/*
+ * fan table for cpu model is i5
+ */
+
+/* UMP sys fan sensor SSD1 NTC*/
+const struct thermal_level_ags i5_uma_thermal_sys_fan_ssd1_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      43,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   42},
+    {2,     1200,     51,   45},
+    {3,     1500,     55,   49},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
+};
+const struct thermal_level_s t_i5_uma_thermal_sys_fan_ssd1_ntc = {
+    .name = "SSD1 NTC",
+    .num_pairs = ARRAY_SIZE(i5_uma_thermal_sys_fan_ssd1_ntc),
+    .data = i5_uma_thermal_sys_fan_ssd1_ntc,
+};
+
+/* UMP sys fan sensor SSD2 NTC*/
+const struct thermal_level_ags i5_uma_thermal_sys_fan_ssd2_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      44,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   43},
+    {2,     1200,     51,   45},
+    {3,     1500,     55,   49},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
+};
+const struct thermal_level_s t_i5_uma_thermal_sys_fan_ssd2_ntc = {
+    .name = "SSD2 NTC",
+    .num_pairs = ARRAY_SIZE(i5_uma_thermal_sys_fan_ssd2_ntc),
+    .data = i5_uma_thermal_sys_fan_ssd2_ntc,
+};
+
+/* UMP sys fan sensor memory NTC*/
+const struct thermal_level_ags i5_uma_thermal_sys_fan_memory_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      40,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      55,   39},
+    {2,     1200,     58,   54},
+    {3,     1500,     60,   57},
+    {4,     1800,     62,   59},
+    {5,     2000,     70,   61},
+    {6,     2800,     70,   68}
+};
+const struct thermal_level_s t_i5_uma_thermal_sys_fan_memory_ntc = {
+    .name = "Memory NTC",
+    .num_pairs = ARRAY_SIZE(i5_uma_thermal_sys_fan_memory_ntc),
+    .data = i5_uma_thermal_sys_fan_memory_ntc,
+};
+
+/* UMP CPU fan sensor CPU DTS*/
+const struct thermal_level_ags  i5_uma_thermal_cpu_fan_cpu_dts[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     800,      36,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     65,   35},
+    {2,     1200,     83,   63},
+    {3,     1500,     89,   81},
+    {4,     1700,     91,   87},
+    {5,     1900,     95,   89},
+    {6,     2800,     95,   93}
+};
+const struct thermal_level_s t_i5_uma_thermal_cpu_fan_cpu_dts = {
+    .name = "CPU DTS",
+    .num_pairs = ARRAY_SIZE(i5_uma_thermal_cpu_fan_cpu_dts),
+    .data = i5_uma_thermal_cpu_fan_cpu_dts,
 };
         
 /* UMP CPU fan sensor CPU NTC*/    
-const struct thermal_level_ags uma_thermal_cpu_fan_cpu_ntc[] = {
+const struct thermal_level_ags i5_uma_thermal_cpu_fan_cpu_ntc[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     700,      60,   UMA_CPU_FAN_START_TEMP},
-    {1,     1000,     69,   57},
-    {2,     1300,     78,   65},
-    {3,     1600,     82,   72},
-    {4,     1800,     88,   79},
-    {5,     2800,     88,   86}
+    {0,     800,      36,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     60,   35},
+    {2,     1200,     75,   58},
+    {3,     1500,     79,   73},
+    {4,     1700,     81,   77},
+    {5,     1900,     86,   79},
+    {6,     2800,     86,   83}
 }; 
-const struct thermal_level_s t_uma_thermal_cpu_fan_cpu_ntc = {
+const struct thermal_level_s t_i5_uma_thermal_cpu_fan_cpu_ntc = {
     .name = "CPU NTC",
-    .num_pairs = ARRAY_SIZE(uma_thermal_cpu_fan_cpu_ntc),
-    .data = uma_thermal_cpu_fan_cpu_ntc,
+    .num_pairs = ARRAY_SIZE(i5_uma_thermal_cpu_fan_cpu_ntc),
+    .data = i5_uma_thermal_cpu_fan_cpu_ntc,
 };
+
+
+/*
+ * fan table for cpu model is i7
+ */
+
+/* UMP sys fan sensor SSD1 NTC*/
+const struct thermal_level_ags i7_uma_thermal_sys_fan_ssd1_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      43,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   42},
+    {2,     1200,     51,   45},
+    {3,     1500,     55,   49},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
+};
+const struct thermal_level_s t_i7_uma_thermal_sys_fan_ssd1_ntc = {
+    .name = "SSD1 NTC",
+    .num_pairs = ARRAY_SIZE(i7_uma_thermal_sys_fan_ssd1_ntc),
+    .data = i7_uma_thermal_sys_fan_ssd1_ntc,
+};
+
+/* UMP sys fan sensor SSD2 NTC*/
+const struct thermal_level_ags i7_uma_thermal_sys_fan_ssd2_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      44,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      47,   43},
+    {2,     1200,     51,   45},
+    {3,     1500,     55,   49},
+    {4,     1800,     60,   53},
+    {5,     2000,     65,   58},
+    {6,     2800,     65,   63}
+};
+const struct thermal_level_s t_i7_uma_thermal_sys_fan_ssd2_ntc = {
+    .name = "SSD2 NTC",
+    .num_pairs = ARRAY_SIZE(i7_uma_thermal_sys_fan_ssd2_ntc),
+    .data = i7_uma_thermal_sys_fan_ssd2_ntc,
+};
+
+/* UMP sys fan sensor memory NTC*/
+const struct thermal_level_ags i7_uma_thermal_sys_fan_memory_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      40,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      55,   39},
+    {2,     1200,     58,   54},
+    {3,     1500,     60,   57},
+    {4,     1800,     62,   59},
+    {5,     2000,     70,   61},
+    {6,     2800,     70,   68}
+};
+const struct thermal_level_s t_i7_uma_thermal_sys_fan_memory_ntc = {
+    .name = "Memory NTC",
+    .num_pairs = ARRAY_SIZE(i7_uma_thermal_sys_fan_memory_ntc),
+    .data = i7_uma_thermal_sys_fan_memory_ntc,
+};
+
+/* UMP CPU fan sensor CPU DTS*/
+const struct thermal_level_ags  i7_uma_thermal_cpu_fan_cpu_dts[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      36,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     65,   35},
+    {2,     1200,     83,   63},
+    {3,     1500,     89,   81},
+    {4,     1700,     91,   87},
+    {5,     1900,     95,   89},
+    {6,     2800,     95,   93}
+};
+const struct thermal_level_s t_i7_uma_thermal_cpu_fan_cpu_dts = {
+    .name = "CPU DTS",
+    .num_pairs = ARRAY_SIZE(i7_uma_thermal_cpu_fan_cpu_dts),
+    .data = i7_uma_thermal_cpu_fan_cpu_dts,
+};
+
+/* UMP CPU fan sensor CPU NTC*/
+const struct thermal_level_ags i7_uma_thermal_cpu_fan_cpu_ntc[] = {
+/* level    RPM        HowTri       lowTri */
+    {0,     700,      36,   UMA_CPU_FAN_START_TEMP},
+    {1,     1000,     60,   35},
+    {2,     1200,     75,   58},
+    {3,     1500,     79,   73},
+    {4,     1700,     81,   77},
+    {5,     1900,     86,   79},
+    {6,     2800,     86,   83}
+}; 
+const struct thermal_level_s t_i7_uma_thermal_cpu_fan_cpu_ntc = {
+    .name = "CPU NTC",
+    .num_pairs = ARRAY_SIZE(i7_uma_thermal_cpu_fan_cpu_ntc),
+    .data = i7_uma_thermal_cpu_fan_cpu_ntc,
+};
+
 
 /*****************************************************************/
 /* GFX sys fan sensor SSD1 NTC*/
@@ -354,6 +530,11 @@ int thermal_fan_percent(int low, int high, int cur)
  */
 BUILD_ASSERT(EC_TEMP_THRESH_COUNT == 3);
 
+void set_cpu_model(uint8_t value)
+{
+    cpu_model = value;
+}
+
 static uint8_t get_fan_level(uint16_t temp, uint8_t fan_level, const struct thermal_level_s *fantable)
 {
 	uint8_t new_level = 0x0;
@@ -412,26 +593,39 @@ int cpu_fan_check_RPM(uint8_t thermalMode)
     uint8_t fan = PWM_CH_CPU_FAN;
     int rpm_target = 0x0;
     int temp = 0x0;
+    const struct thermal_level_s *fantable_cpu_dts;
+    const struct thermal_level_s *fantable_cpu_ntc;
 
     /* sensor model form the configuration table board.c */
     switch(thermalMode) { 
         case THERMAL_UMA:
+            if (0x01 == cpu_model) {
+                fantable_cpu_dts = &t_i3_uma_thermal_cpu_fan_cpu_dts;
+                fantable_cpu_ntc = &t_i3_uma_thermal_cpu_fan_cpu_ntc;
+            } else if (0x02 == cpu_model) {
+                fantable_cpu_dts = &t_i5_uma_thermal_cpu_fan_cpu_dts;
+                fantable_cpu_ntc = &t_i5_uma_thermal_cpu_fan_cpu_ntc;
+            } else {
+                fantable_cpu_dts = &t_i7_uma_thermal_cpu_fan_cpu_dts;
+                fantable_cpu_ntc = &t_i7_uma_thermal_cpu_fan_cpu_ntc;
+            }
+
             /* cpu fan start status  */ 
             temp = cpu_fan_start_temp(THERMAL_UMA);
 
             /* cpu fan check CPU DTS */
             g_fanLevel[fan].cpuDts =
-                get_fan_level(getTempSensors(TEMP_SENSOR_CPU_DTS), 
-                    g_fanLevel[fan].cpuDts, &t_uma_thermal_cpu_fan_cpu_dts);
+                get_fan_level(getTempSensors(TEMP_SENSOR_CPU_DTS),
+                    g_fanLevel[fan].cpuDts, fantable_cpu_dts);
             g_fanRPM[fan].cpuDts = get_fan_RPM(g_fanLevel[fan].cpuDts, 
-                &t_uma_thermal_cpu_fan_cpu_dts);
+                    fantable_cpu_dts);
 
             /* cpu fan check CPU NTC */    
             g_fanLevel[fan].cpuNtc =
                 get_fan_level(getTempSensors(TEMP_SENSOR_CPU_NTC), 
-                    g_fanLevel[fan].cpuNtc, &t_uma_thermal_cpu_fan_cpu_ntc); 
-            g_fanRPM[fan].cpuNtc = get_fan_RPM(g_fanLevel[fan].cpuNtc
-                , &t_uma_thermal_cpu_fan_cpu_ntc);
+                    g_fanLevel[fan].cpuNtc, fantable_cpu_ntc);
+            g_fanRPM[fan].cpuNtc = get_fan_RPM(g_fanLevel[fan].cpuNtc,
+                    fantable_cpu_ntc);
 
 
             rpm_target = (g_fanRPM[fan].cpuDts > g_fanRPM[fan].cpuNtc)
@@ -495,26 +689,43 @@ int sys_fan_check_RPM(uint8_t thermalMode)
     uint8_t fan = PWM_CH_SYS_FAN;
     int rpm_target = 0x0;
     int temp = 0x0;
+    const struct thermal_level_s *fantable_ssd1_ntc;
+    const struct thermal_level_s *fantable_ssd2_ntc;
+    const struct thermal_level_s *fantable_memory_ntc;
 
     /* sensor model form the configuration table board.c */
     switch(thermalMode) {
         case THERMAL_UMA:
+            if (0x01 == cpu_model) {
+                fantable_ssd1_ntc = &t_i3_uma_thermal_sys_fan_ssd1_ntc;
+                fantable_ssd2_ntc = &t_i3_uma_thermal_sys_fan_ssd2_ntc;
+                fantable_memory_ntc = &t_i3_uma_thermal_sys_fan_memory_ntc;
+            } else if (0x02 == cpu_model) {
+                fantable_ssd1_ntc = &t_i5_uma_thermal_sys_fan_ssd1_ntc;
+                fantable_ssd2_ntc = &t_i5_uma_thermal_sys_fan_ssd2_ntc;
+                fantable_memory_ntc = &t_i5_uma_thermal_sys_fan_memory_ntc;
+            } else {
+                fantable_ssd1_ntc = &t_i7_uma_thermal_sys_fan_ssd1_ntc;
+                fantable_ssd2_ntc = &t_i7_uma_thermal_sys_fan_ssd2_ntc;
+                fantable_memory_ntc = &t_i7_uma_thermal_sys_fan_memory_ntc;
+            }
+
             /* sys fan start status ambience NTC */
             temp = sys_fan_start_temp(THERMAL_UMA);
 
             /* sys fan check SSD1 NTC */
             g_fanLevel[fan].ssd1Ntc =
                 get_fan_level(getTempSensors(TEMP_SENSOR_SSD1_NTC),
-                    g_fanLevel[fan].ssd1Ntc, &t_uma_thermal_sys_fan_ssd1_ntc);
+                    g_fanLevel[fan].ssd1Ntc, fantable_ssd1_ntc);
             g_fanRPM[fan].ssd1Ntc = get_fan_RPM(g_fanLevel[fan].ssd1Ntc, 
-                &t_uma_thermal_sys_fan_ssd1_ntc);
+                fantable_ssd1_ntc);
 
             /* sys fan check SSD2 NTC */
             g_fanLevel[fan].ssd2Ntc =
                 get_fan_level(getTempSensors(TEMP_SENSOR_SSD2_NTC),
-                g_fanLevel[fan].ssd2Ntc, &t_uma_thermal_sys_fan_ssd2_ntc);
+                g_fanLevel[fan].ssd2Ntc, fantable_ssd2_ntc);
             g_fanRPM[fan].ssd2Ntc = get_fan_RPM(g_fanLevel[fan].ssd2Ntc, 
-                &t_uma_thermal_sys_fan_ssd2_ntc);
+                fantable_ssd2_ntc);
 
             rpm_target = (g_fanRPM[fan].ssd1Ntc > g_fanRPM[fan].ssd2Ntc)
                             ?  g_fanRPM[fan].ssd1Ntc : g_fanRPM[fan].ssd2Ntc;
@@ -522,22 +733,12 @@ int sys_fan_check_RPM(uint8_t thermalMode)
             /* sys fan check Memory NTC */
             g_fanLevel[fan].memoryNtc =
                 get_fan_level(getTempSensors(TEMP_SENSOR_MEMORY_NTC),
-                    g_fanLevel[fan].memoryNtc, &t_uma_thermal_sys_fan_memory_ntc);
+                    g_fanLevel[fan].memoryNtc, fantable_memory_ntc);
             g_fanRPM[fan].memoryNtc = get_fan_RPM(g_fanLevel[fan].memoryNtc
-                , &t_uma_thermal_sys_fan_memory_ntc);
+                , fantable_memory_ntc);
 
             rpm_target = (rpm_target > g_fanRPM[fan].memoryNtc)
                             ?  rpm_target : g_fanRPM[fan].memoryNtc;
-
-            /* sys fan check pciE16 NTC */
-            g_fanLevel[fan].pcie16Ntc =
-                get_fan_level(getTempSensors(TEMP_SENSOR_PCIEX16_NTC),
-                    g_fanLevel[fan].pcie16Ntc, &t_uma_thermal_sys_fan_pciex16_ntc);
-            g_fanRPM[fan].pcie16Ntc = get_fan_RPM(g_fanLevel[fan].pcie16Ntc,
-                &t_uma_thermal_sys_fan_pciex16_ntc);
-
-            rpm_target = (rpm_target > g_fanRPM[fan].pcie16Ntc)
-                            ?  rpm_target : g_fanRPM[fan].pcie16Ntc;
             rpm_target += temp;
             break;
 
