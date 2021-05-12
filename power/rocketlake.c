@@ -492,7 +492,7 @@ enum power_state power_handle_state(enum power_state state)
             gpio_set_level(GPIO_EC_SLP_S4_L, 0);
         }
         /* EC pass through SLP_S5*/
-        msleep(30);
+        msleep(40);
         gpio_set_level(GPIO_EC_SLP_S5_L, 0);
 
         /* EC pass through VCCST_PWRGD*/

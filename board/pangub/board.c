@@ -374,21 +374,33 @@ BUILD_ASSERT(ARRAY_SIZE(mft_channels) == MFT_CH_COUNT);
  * b/164921478: On G3->S5, wait for RSMRST_L to be deasserted before asserting
  * PWRBTN_L.
  */
+#define WAIT_GPIO_S5_PGOOD_TIME 20 /* time base ms */
 void board_pwrbtn_to_pch(int level)
 {
+    int i;
+
     /* Add delay for G3 exit if asserting PWRBTN_L and S5_PGOOD is low. */
     if (!level && !gpio_get_level(GPIO_S5_PGOOD)) {
         /*
         * From Power Sequence, wait 10 ms for RSMRST_L to rise after
         * S5_PGOOD.
         */
-        msleep(10);
 
-        if (!gpio_get_level(GPIO_S5_PGOOD))
-            ccprints("Error: pwrbtn S5_PGOOD low");
+        for (i = 0; i <= WAIT_GPIO_S5_PGOOD_TIME; i++) {
+            if (gpio_get_level(GPIO_S5_PGOOD)) {
+                break;
+            }
+
+            if (i > (WAIT_GPIO_S5_PGOOD_TIME - 1)) {
+                ccprints("Error: pwrbtn S5_PGOOD low ");
+                break;
+            }
+            msleep(80);
+        }
     }
-    
+
     gpio_set_level(GPIO_PCH_PWRBTN_L, level);
+
 }
 #ifdef RECORD_POWER_BUTTON_SHUTDOWN
 static void power_button_record(void)
