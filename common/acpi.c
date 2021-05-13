@@ -411,6 +411,7 @@ static void oem_bios_to_ec_command(void)
             break;
         }
         break;
+#ifdef NPCX_FAMILY_DT03
     case 0x12: /* Bios notify EC CPU model */
         mptr = host_get_memmap(EC_MEMMAP_CPU_MODEL);
         if (0x01 == *(bios_cmd+2)) {    /* CPU model: i3 */
@@ -427,6 +428,7 @@ static void oem_bios_to_ec_command(void)
             break;
         }
         break;
+#endif
     default :
         *(bios_cmd+1) = 0xFF; /* unknown command */
         break;

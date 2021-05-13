@@ -50,6 +50,5 @@ enum power_signal {
 
 void set_abnormal_shutdown(uint8_t value);
 uint8_t get_abnormal_shutdown(void);
-void chipset_force_power_off(uint32_t shutdown_id);
 
 #endif
