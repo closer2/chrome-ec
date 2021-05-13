@@ -84,6 +84,12 @@ uint32_t reboot_ap_at_g3_delay;
 uint32_t reboot_ap_at_g3_delay_backup;
 uint32_t reboot_ap_at_g3_cyclecount;
 
+uint8_t want_reboot_ap_at_s3;/* Want to reboot AP from s3? */
+/* Want to reboot AP from s3 with delay? */
+uint32_t reboot_ap_at_s3_delay;
+uint32_t reboot_ap_at_s3_delay_backup;
+uint32_t reboot_ap_at_s3_cyclecount;
+
 static enum ec_status
 host_command_reboot_ap_on_g3(struct host_cmd_handler_args *args)
 {
@@ -117,6 +123,40 @@ host_command_reboot_ap_on_g3(struct host_cmd_handler_args *args)
 DECLARE_HOST_COMMAND(EC_CMD_REBOOT_AP_ON_G3,
 		     host_command_reboot_ap_on_g3,
 		     EC_VER_MASK(0) | EC_VER_MASK(1));
+
+static enum ec_status
+host_command_reboot_ap_on_s3(struct host_cmd_handler_args *args)
+{
+    const struct ec_params_reboot_ap_on_s3_v1 *cmd = args->params;
+
+    switch (args->version) {
+    case 0:
+        break;
+    case 1:
+        /* Store user specified delay to wait in s3 state */
+        reboot_ap_at_s3_delay = cmd->reboot_ap_at_s3_delay;
+        reboot_ap_at_s3_delay_backup = cmd->reboot_ap_at_s3_delay;
+        reboot_ap_at_s3_cyclecount = cmd->reboot_ap_at_s3_cyclecount;
+
+        if(reboot_ap_at_s3_cyclecount>0) {
+            /* Store request for processing at s3 */
+            want_reboot_ap_at_s3 = true;
+        } else {
+            want_reboot_ap_at_s3 = false;
+            reboot_ap_at_s3_delay = 0;
+            reboot_ap_at_s3_delay_backup = 0;
+        }
+
+        break;
+    default:
+        return EC_RES_INVALID_PARAM;
+    }
+
+    return EC_RES_SUCCESS;
+}
+DECLARE_HOST_COMMAND(EC_CMD_REBOOT_AP_ON_S3,
+              host_command_reboot_ap_on_s3,
+              EC_VER_MASK(0) | EC_VER_MASK(1));
 
 __overridable int power_signal_get_level(enum gpio_signal signal)
 {
@@ -769,6 +809,7 @@ static void power_ac_change(void)
 DECLARE_HOOK(HOOK_AC_CHANGE, power_ac_change, HOOK_PRIO_DEFAULT);
 #endif
 
+#ifdef NPCX_FAMILY_DT01
 static void system_cold_boot(void)
 {
     if(POWER_S5 == power_get_state() || POWER_S3 == power_get_state()) {
@@ -783,6 +824,39 @@ static void system_cold_boot(void)
     }
 }
 DECLARE_HOOK(HOOK_SECOND, system_cold_boot, HOOK_PRIO_INIT_CHIPSET);
+#endif
+
+#ifdef NPCX_FAMILY_DT03
+static void system_cold_boot(void)
+{
+    if(POWER_S5 == power_get_state()) {
+        if((reboot_ap_at_g3_delay>0) && (reboot_ap_at_g3_cyclecount>0)) {
+            reboot_ap_at_g3_delay--;
+            ccprints("S5 cold boot count down time=%dsec", reboot_ap_at_g3_delay);
+
+            if(!reboot_ap_at_g3_delay) {
+                power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
+            }
+        }
+    }
+}
+DECLARE_HOOK(HOOK_SECOND, system_cold_boot, HOOK_PRIO_INIT_CHIPSET);
+
+static void system_s3_wake(void)
+{
+    if(POWER_S3 == power_get_state()) {
+        if((reboot_ap_at_s3_delay>0) && (reboot_ap_at_s3_cyclecount>0)) {
+            reboot_ap_at_s3_delay--;
+            ccprints("S3 cold boot count down time=%dsec", reboot_ap_at_s3_delay);
+
+            if(!reboot_ap_at_s3_delay) {
+                power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
+            }
+        }
+    }
+}
+DECLARE_HOOK(HOOK_SECOND, system_s3_wake, HOOK_PRIO_INIT_CHIPSET);
+#endif
 
 /*****************************************************************************/
 /* Interrupts */

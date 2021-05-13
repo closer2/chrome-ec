@@ -432,14 +432,14 @@ static void board_chipset_resume(void)
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
 
     /* re-set cold boot */
-    if(want_reboot_ap_at_g3 && (reboot_ap_at_g3_cyclecount>0)
-        && reboot_ap_at_g3_delay == 0) {
-        reboot_ap_at_g3_cyclecount--;
-        reboot_ap_at_g3_delay = reboot_ap_at_g3_delay_backup;
+    if(want_reboot_ap_at_s3 && (reboot_ap_at_s3_cyclecount>0)
+        && reboot_ap_at_s3_delay == 0) {
+        reboot_ap_at_s3_cyclecount--;
+        reboot_ap_at_s3_delay = reboot_ap_at_s3_delay_backup;
         
-        if(!reboot_ap_at_g3_cyclecount) {
-            want_reboot_ap_at_g3 = false;
-            reboot_ap_at_g3_delay = 0;
+        if(!reboot_ap_at_s3_cyclecount) {
+            want_reboot_ap_at_s3 = false;
+            reboot_ap_at_s3_delay = 0;
         }
     }
 

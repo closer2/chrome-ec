@@ -6954,6 +6954,15 @@ struct ec_response_powerbtn_Test {
 	uint8_t role;
 } __ec_align4;
 
+/* Reboot AP on S3 */
+#define EC_CMD_REBOOT_AP_ON_S3 0x0202
+
+struct ec_params_reboot_ap_on_s3_v1 {
+	/* configurable delay in seconds in s3 state */
+	uint32_t reboot_ap_at_s3_delay;
+    uint32_t reboot_ap_at_s3_cyclecount;
+} __ec_align4;
+
 /*****************************************************************************/
 /* The command range 0x200-0x2FF is reserved for Rotor. */
 

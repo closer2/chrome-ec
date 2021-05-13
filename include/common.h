@@ -27,6 +27,11 @@ extern uint32_t reboot_ap_at_g3_delay;
 extern uint32_t reboot_ap_at_g3_delay_backup;
 extern uint32_t reboot_ap_at_g3_cyclecount;
 
+extern uint8_t want_reboot_ap_at_s3;/* Want to reboot AP from s3? */
+/* Want to reboot AP from s3 with delay? */
+extern uint32_t reboot_ap_at_s3_delay;
+extern uint32_t reboot_ap_at_s3_delay_backup;
+extern uint32_t reboot_ap_at_s3_cyclecount;
 
 /*
  * Macros to concatenate 2 - 4 tokens together to form a single token.
