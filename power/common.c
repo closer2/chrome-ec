@@ -196,8 +196,8 @@ int power_has_signals(uint32_t want)
 	if ((in_signals & want) == want)
 		return 1;
 
-	CPRINTS("power lost input; wanted 0x%04x, got 0x%04x",
-		want, in_signals & want);
+	CPRINTS("power lost input; wanted 0x%04x, in_signals 0x%04x",
+		want, in_signals);
 
 	return 0;
 }
@@ -207,8 +207,8 @@ int power_wait_signals(uint32_t want)
 	int ret = power_wait_signals_timeout(want, DEFAULT_TIMEOUT);
 
 	if (ret == EC_ERROR_TIMEOUT)
-		CPRINTS("power timeout on input; wanted 0x%04x, got 0x%04x",
-			want, in_signals & want);
+		CPRINTS("power timeout on input; wanted 0x%04x, in_signals 0x%04x",
+			want, in_signals);
 	return ret;
 }
 

@@ -25,6 +25,11 @@
 #include "registers.h"
 #include "flash.h"
 #include "wmi_port.h"
+#include "task.h"
+#include "usb_pd.h"
+
+void pd_set_suspend(int port, int suspend);
+
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_CHIPSET, outstr)
@@ -97,7 +102,17 @@ static void chipset_force_g3(void)
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    /*gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);*/
+    /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
+
+    /*
+     * 1. disable interrupt;
+     * 2. switch to gpio input;
+     */
+    gpio_disable_interrupt(GPIO_USB_C0_MUX_INT_ODL);
+    gpio_set_alternate_function(GPIO_F, BIT(2) | BIT(3), GPIO_ALT_FUNC_NONE);
+    gpio_set_flags_by_mask(GPIO_F, BIT(2), GPIO_INPUT);
+    gpio_set_flags_by_mask(GPIO_F, BIT(3), GPIO_INPUT);
+
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
@@ -264,6 +279,16 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_HC32F460_PB0_SLP5, 0);
 
         msleep(10);
+
+        /* mux pd i2c to MODULE_I2C， enable interrupt */
+        CPRINTS("enable pd i2c func, enable inter");
+        gpio_set_alternate_function(GPIO_F, BIT(2) | BIT(3), MODULE_I2C);
+        gpio_enable_interrupt(GPIO_USB_C0_MUX_INT_ODL);
+
+        task_set_event(PD_PORT_TO_TASK_ID(0), PD_EVENT_TCPC_RESET);
+
+        pd_set_suspend(0, 0);
+
         /* chiset_task pause for wait signal */
         if (power_wait_signals(IN_PGOOD_S5)) {
             chipset_force_g3();
