@@ -38,6 +38,9 @@ void pd_set_suspend(int port, int suspend);
 static int forcing_shutdown; /* Forced shutdown in progress? */
 static int g_abnormal_shutdown;
 
+/* BIT0:LOG_ID_SHUTDOWN_0x07 */
+static uint16_t g_cause_id;
+
 uint8_t get_abnormal_shutdown(void)
 {
     return g_abnormal_shutdown;
@@ -46,6 +49,15 @@ uint8_t get_abnormal_shutdown(void)
 void set_abnormal_shutdown(uint8_t value)
 {
     g_abnormal_shutdown = value;
+}
+
+void update_Cause_id(uint16_t value)
+{
+    g_cause_id = value;
+}
+uint16_t get_Cause_id(void)
+{
+    return g_cause_id;
 }
 
 void chipset_force_shutdown(uint32_t shutdown_id)
@@ -74,6 +86,7 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_PWRGD_140MS, 0);
     gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
     gpio_set_level(GPIO_EC_SLP_S3_L, 0);
+    gpio_set_level(GPIO_EC_SLP_S4_L, 0);
     gpio_set_level(GPIO_EC_SLP_S5_L, 0);
     gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 0);
     gpio_set_level(GPIO_VCCST_PWRGD, 0);
@@ -128,6 +141,17 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
 
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
+}
+
+void chipset_force_power_off(uint32_t shutdown_id)
+{
+    if (shutdown_id == LOG_ID_SHUTDOWN_0x07) {
+        update_Cause_id(BIT(0));
+    }
+
+    shutdown_cause_record(shutdown_id);
+    CPRINTS("PSW 10s EC power off......");
+    chipset_force_g3();
 }
 
 /* Can we use SYSRST# to do this? */
@@ -312,7 +336,11 @@ enum power_state power_handle_state(enum power_state state)
     case POWER_S5:
         if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            if (!(get_Cause_id() & BIT(0))) {
+                shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            } else {
+                update_Cause_id(get_Cause_id() & (~ BIT(0)));
+            }
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 1) {
             /* PCH SLP_S5 turn on, Power up to next state */

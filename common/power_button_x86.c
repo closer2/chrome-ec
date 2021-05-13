@@ -458,9 +458,7 @@ static void state_machine(uint64_t tnow)
         break;
     case PWRBTN_STATE_HELD_1:
         if (tnow > tnext_state) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x07);
-            CPRINTS("PSW 10s EC reboot......");
-            system_reset(SYSTEM_RESET_MANUALLY_TRIGGERED);
+            chipset_force_power_off(LOG_ID_SHUTDOWN_0x07);
         }
 	case PWRBTN_STATE_EAT_RELEASE:
 		/* Do nothing */
