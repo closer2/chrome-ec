@@ -67,6 +67,9 @@ static void chipset_force_g3(void)
      * system will enter G3,
      */
 
+    /* Power-on Led turn off */
+    powerled_set_state(POWERLED_STATE_OFF);
+
     /* trun off S0/S3 power */
     gpio_set_level(GPIO_PWRGD_140MS, 0);
     gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
