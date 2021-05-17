@@ -454,6 +454,7 @@ static void board_chipset_suspend(void)
 
     if (*mptr & EC_MEMMAP_SYSTEM_ENTER_S3) {
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
+        mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0x55);
     }
 
     ccprints("%s -> %s", __FILE__, __func__);
