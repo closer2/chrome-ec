@@ -118,7 +118,7 @@ static void chipset_force_g3(void)
     /* gpio_set_level(GPIO_EC_ALW_EN, 0);
     gpio_set_level(GPIO_PROM19_EN, 0); */
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
-    /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
+    gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0);
 
     /*
      * 1. disable interrupt;
