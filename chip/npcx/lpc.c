@@ -796,14 +796,24 @@ static void lpc_init(void)
 	NPCX_WIN_RD_PROT(1) = 0;
 	/* Open Win1 256 byte for Host CMD, Win2 256 for MEMMAP*/
 	NPCX_WIN_SIZE = 0x88;
-	NPCX_WIN_BASE(0) = (uint32_t)shm_mem_host_cmd;
-	NPCX_WIN_BASE(1) = (uint32_t)shm_memmap;
-	#if defined(CONFIG_IO900_WRITE_PROTECT)
-	/* Write protect of Share memory */
+#ifdef NPCX_FAMILY_DT03
+    NPCX_WIN_BASE(1) = (uint32_t)shm_mem_host_cmd;
+    NPCX_WIN_BASE(0) = (uint32_t)shm_memmap;
+#if defined(CONFIG_IO800_WRITE_PROTECT)
+    /* Write protect of Share memory */
     /* 00-CF, Protects the eighth (higher) 1/8 of the RAM1 window */
-	NPCX_WIN_WR_PROT(1) = 0x7F;
-	#endif
-    
+    NPCX_WIN_WR_PROT(0) = 0x7F;
+#endif
+#else
+    NPCX_WIN_BASE(0) = (uint32_t)shm_mem_host_cmd;
+    NPCX_WIN_BASE(1) = (uint32_t)shm_memmap;
+#if defined(CONFIG_IO900_WRITE_PROTECT)
+    /* Write protect of Share memory */
+    /* 00-CF, Protects the eighth (higher) 1/8 of the RAM1 window */
+    NPCX_WIN_WR_PROT(1) = 0x7F;
+#endif
+#endif
+
 	/* We support LPC args and version 3 protocol */
 	*(lpc_get_memmap_range() + EC_MEMMAP_HOST_CMD_FLAGS) =
 			EC_HOST_CMD_FLAG_LPC_ARGS_SUPPORTED |

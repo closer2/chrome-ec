@@ -93,6 +93,39 @@ extern "C" {
 #define EC_LPC_ADDR_HOST_DATA       0x200
 #define EC_LPC_ADDR_HOST_CMD        0x204
 
+#ifdef NPCX_FAMILY_DT03
+/* I/O addresses for host command args and params */
+/* Protocol version 2 */
+#define EC_LPC_ADDR_HOST_ARGS       0x900  /* And 0x801, 0x802, 0x803 */
+#define EC_LPC_ADDR_HOST_PARAM      0x904  /* For version 2 params; size is
+                                            * EC_PROTO2_MAX_PARAM_SIZE
+                                            */
+
+/* Protocol version 3 */
+#define EC_LPC_ADDR_HOST_PACKET     0x900  /* Offset of version 3 packet */
+#define EC_LPC_HOST_PACKET_SIZE     0x100  /* Max size of version 3 packet */
+
+/*
+ * The actual block is 0x800-0x8ff, but some BIOSes think it's 0x880-0x8ff
+ * and they tell the kernel that so we have to think of it as two parts.
+ */
+#define EC_HOST_CMD_REGION0         0x900
+#define EC_HOST_CMD_REGION1         0x980
+#define EC_HOST_CMD_REGION_SIZE     0x80
+
+/* EC command register bit functions */
+#define EC_LPC_CMDR_DATA	BIT(0)  /* Data ready for host to read */
+#define EC_LPC_CMDR_PENDING	BIT(1)  /* Write pending to EC */
+#define EC_LPC_CMDR_BUSY	BIT(2)  /* EC is busy processing a command */
+#define EC_LPC_CMDR_CMD		BIT(3)  /* Last host write was a command */
+#define EC_LPC_CMDR_ACPI_BRST	BIT(4)  /* Burst mode (not used) */
+#define EC_LPC_CMDR_SCI		BIT(5)  /* SCI event is pending */
+#define EC_LPC_CMDR_SMI		BIT(6)  /* SMI event is pending */
+
+#define EC_LPC_ADDR_MEMMAP          0x800
+#define EC_MEMMAP_SIZE              255 /* ACPI IO buffer max is 255 bytes */
+#define EC_MEMMAP_TEXT_MAX          8   /* Size of a string in the memory map */
+#else
 /* I/O addresses for host command args and params */
 /* Protocol version 2 */
 #define EC_LPC_ADDR_HOST_ARGS       0x800  /* And 0x801, 0x802, 0x803 */
@@ -125,6 +158,7 @@ extern "C" {
 #define EC_MEMMAP_SIZE              255 /* ACPI IO buffer max is 255 bytes */
 #define EC_MEMMAP_TEXT_MAX          8   /* Size of a string in the memory map */
 
+#endif
 /******************************************************************************/
 /***************************** EC Share RAM Define ****************************/
 /******************************************************************************/
@@ -199,9 +233,40 @@ extern "C" {
 #define EC_MEMMAP_WRITE_PL4         BIT(5) /* Write PL4 request */
 #define EC_MEMMAP_TIME_UPDATE       BIT(6) /* BIOS set this BIT when time update to EC */  
 #define EC_MEMMAP_BATTERY1_DAMAGED  BIT(7) /* Battery 1 damaged */
-
 /* Unused 0x1E -0x1F */
 
+/* Don't use offset 0x20 */
+#ifdef NPCX_FAMILY_DT03
+/* Sensor temperature, offset 0x21--0x30 */
+#define EC_MEMMAP_TEMP_SENSOR_00        0x21 /* CPU DTS */
+#define EC_MEMMAP_TEMP_SENSOR_01        0x22 /* Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_02        0x23 /* SSD1 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_03        0x24 /* PCIEX16 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_04        0x25 /* CPU VRAM NTC */
+#define EC_MEMMAP_TEMP_SENSOR_05        0x26 /* Memory NTC */
+#define EC_MEMMAP_TEMP_SENSOR_06        0x27 /* SSD2 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_07        0x28 /* Battery */
+#define EC_MEMMAP_TEMP_SENSOR_08        0x29 /* Charger */
+#define EC_MEMMAP_TEMP_SENSOR_09        0x2A /* Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_0A        0x2B /* Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0B        0x2C
+#define EC_MEMMAP_TEMP_SENSOR_0C        0x2D
+#define EC_MEMMAP_TEMP_SENSOR           EC_MEMMAP_TEMP_SENSOR_00
+#define EC_MEMMAP_TEMP_SENSOR_00_AVG    0x2E /* average: CPU DTS */
+#define EC_MEMMAP_TEMP_SENSOR_01_AVG    0x2F /* average: Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_02_AVG    0x30 /* average: SSD1 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_03_AVG    0x31 /* average: PCIEX16 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_04_AVG    0x32 /* average: Ambience NTC */
+#define EC_MEMMAP_TEMP_SENSOR_05_AVG    0x33 /* average: Memory NTC */
+#define EC_MEMMAP_TEMP_SENSOR_06_AVG    0x34 /* average: SSD2 NTC */
+#define EC_MEMMAP_TEMP_SENSOR_07_AVG    0x35 /* average: Battery */
+#define EC_MEMMAP_TEMP_SENSOR_08_AVG    0x36 /* average: Charger */
+#define EC_MEMMAP_TEMP_SENSOR_09_AVG    0x37 /* average: Type-C port-0 */
+#define EC_MEMMAP_TEMP_SENSOR_0A_AVG    0x38 /* average: Type-C port-1 */
+#define EC_MEMMAP_TEMP_SENSOR_0B_AVG    0x39
+#define EC_MEMMAP_TEMP_SENSOR_0C_AVG    0x40
+#define EC_MEMMAP_TEMP_SENSOR_AVG       EC_MEMMAP_TEMP_SENSOR_00_AVG
+#else
 /* Sensor temperature, offset 0x20--0x2F */
 #define EC_MEMMAP_TEMP_SENSOR_00        0x20 /* CPU DTS */
 #define EC_MEMMAP_TEMP_SENSOR_01        0x21 /* Ambience NTC */
@@ -231,6 +296,9 @@ extern "C" {
 #define EC_MEMMAP_TEMP_SENSOR_0B_AVG    0x38
 #define EC_MEMMAP_TEMP_SENSOR_0C_AVG    0x39
 #define EC_MEMMAP_TEMP_SENSOR_AVG       EC_MEMMAP_TEMP_SENSOR_00_AVG
+
+#endif
+
 
 /* Unused 0x3A -0x52 */
 #define EC_MEMMAP_CPU_FAN_STATUS            0x53 /* CPU fan_status */ 
