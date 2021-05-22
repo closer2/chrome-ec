@@ -37,11 +37,11 @@
 *            EC test version for ODM debug
 ------------------------------------------------------------------------------*/
 #define BLD_EC_VERSION_X        "0"
-#define BLD_EC_VERSION_YZ       "54"
+#define BLD_EC_VERSION_YZ       "55"
 #define BLD_EC_VERSION_TEST     "00"
 
 #define BLD_EC_VERSION_X_HEX    0x00
-#define BLD_EC_VERSION_YZ_HEX   0x54
+#define BLD_EC_VERSION_YZ_HEX   0x55
 #define BLD_EC_VERSION_TEST_HEX 0x00
 
 /*------------------------------------------------------------------------------
