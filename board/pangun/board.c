@@ -390,7 +390,8 @@ void board_pwrbtn_to_pch(int level)
         if (!gpio_get_level(GPIO_S5_PGOOD))
             ccprints("Error: pwrbtn S5_PGOOD low");
     }
-    
+
+    ccprints("PB PCH pwrbtn=%s", level ? "HIGH" : "LOW");
     gpio_set_level(GPIO_PCH_PWRBTN_L, level);
 }
 #ifdef RECORD_POWER_BUTTON_SHUTDOWN
