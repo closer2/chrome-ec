@@ -374,7 +374,7 @@ BUILD_ASSERT(ARRAY_SIZE(mft_channels) == MFT_CH_COUNT);
  * b/164921478: On G3->S5, wait for RSMRST_L to be deasserted before asserting
  * PWRBTN_L.
  */
-#define WAIT_GPIO_S5_PGOOD_TIME 20 /* time base ms */
+#define WAIT_GPIO_S5_PGOOD_TIME 80 /* time base ms */
 void board_pwrbtn_to_pch(int level)
 {
     int i;
@@ -388,6 +388,7 @@ void board_pwrbtn_to_pch(int level)
 
         for (i = 0; i <= WAIT_GPIO_S5_PGOOD_TIME; i++) {
             if (gpio_get_level(GPIO_S5_PGOOD)) {
+                msleep(10);
                 break;
             }
 
@@ -395,10 +396,10 @@ void board_pwrbtn_to_pch(int level)
                 ccprints("Error: pwrbtn S5_PGOOD low ");
                 break;
             }
-            msleep(80);
+            msleep(20);
         }
     }
-
+    ccprints("PB PCH pwrbtn=%s", level ? "HIGH" : "LOW");
     gpio_set_level(GPIO_PCH_PWRBTN_L, level);
 
 }

@@ -235,7 +235,7 @@ extern "C" {
 #define EC_MEMMAP_BATTERY1_DAMAGED  BIT(7) /* Battery 1 damaged */
 /* Unused 0x1E -0x1F */
 
-/* Don't use offset 0x20 */
+/* Don't use offset 0x20, intel use 0x820*/
 #ifdef NPCX_FAMILY_DT03
 /* Sensor temperature, offset 0x21--0x30 */
 #define EC_MEMMAP_TEMP_SENSOR_00        0x21 /* CPU DTS */
