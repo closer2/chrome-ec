@@ -67,7 +67,7 @@ GPIO(EC_LAN_WLAN_RST_L,     PIN(2, 3), GPIO_OUT_LOW)        /* LAN WLAN RST */
 GPIO(EC_TPM_RST_L,          PIN(8, 3), GPIO_OUT_LOW)        /* TPM RST */
 GPIO(F22_VCCIO0_VID0,	    PIN(1, 4), GPIO_OUT_LOW)	    /* power sequence VCCIO0_VID0 */
 GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCIO0_VID1 */
-GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_LOW)       /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
+GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_HIGH)       /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
 GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
 
 /* SYS_RST# as gpio */
