@@ -53,6 +53,10 @@ static void thermal_control(void)
     int rpm_target[CONFIG_FANS] = {0x0};
     uint8_t *mptr = NULL;
 
+    if (!chipset_in_state(CHIPSET_STATE_ON)) {
+        return;
+    }
+
     /* go through all the sensors */
     mptr = (uint8_t *)host_get_memmap(EC_MEMMAP_TEMP_SENSOR_AVG);
     for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
@@ -72,15 +76,15 @@ static void thermal_control(void)
 
     /* cpu thermal control */
     fan = PWM_CH_CPU_FAN;
+    rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
     if (is_thermal_control_enabled(fan)) {
-        rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
         fan_set_rpm_target(fan, rpm_target[fan]);
     }
 
     /* sys thermal control */
     fan = PWM_CH_SYS_FAN;
-    if (is_thermal_control_enabled(fan)) {    
-        rpm_target[fan] = sys_fan_check_RPM(g_thermalMode);
+    rpm_target[fan] = sys_fan_check_RPM(g_thermalMode);
+    if (is_thermal_control_enabled(fan)) {
         fan_set_rpm_target(fan, rpm_target[fan]);
     }
 }

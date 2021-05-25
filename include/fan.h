@@ -130,8 +130,10 @@ int is_thermal_control_enabled(int idx);
 
 uint8_t get_fan_fault(uint8_t fan);
 
-void pwm_fan_control(int fan, int enable);
+uint8_t check_CPU_fan_fault(void);
+uint8_t check_SYS_fan_fault(void);
+void FanRebootFlag(void);
 
-void clear_fan_fault_flag(void);
+void pwm_fan_control(int fan, int enable);
 
 #endif  /* __CROS_EC_FAN_H */

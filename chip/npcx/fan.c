@@ -540,23 +540,22 @@ void fan_tick_func(void)
 {
 	int ch;
 
-
 	for (ch = 0; ch < FAN_CH_COUNT ; ch++) {
-        volatile struct fan_status_t *p_status = fan_status + ch;
-
-        /* Get actual rpm */
-        p_status->rpm_actual = mft_fan_rpm(ch);
-
-		/* Make sure rpm mode is enabled*/
-		if ((p_status->fan_mode != TACHO_FAN_RPM) 
-            || (get_fan_fault(ch) == FAN_STATUS_FAULT)){
+		volatile struct fan_status_t *p_status = fan_status + ch;
+		/* Make sure rpm mode is enabled */
+		if (p_status->fan_mode != TACHO_FAN_RPM) {
+		/* Fan in duty mode still want rpm_actual being updated. */
+			p_status->rpm_actual = mft_fan_rpm(ch);
 			if (p_status->rpm_actual > 0)
 				p_status->auto_status = FAN_STATUS_LOCKED;
 			else
 				p_status->auto_status = FAN_STATUS_STOPPED;
 			continue;
 		}
-        
+		if (!fan_get_enabled(ch))
+			continue;
+		/* Get actual rpm */
+		p_status->rpm_actual = mft_fan_rpm(ch);
 		/* Do smart fan stuff */
 		p_status->auto_status = fan_smart_control(ch,
 				p_status->rpm_actual, p_status->rpm_target);

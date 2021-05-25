@@ -42,8 +42,8 @@ extern const struct hook_data __hooks_chipset_suspend[];
 extern const struct hook_data __hooks_chipset_suspend_end[];
 extern const struct hook_data __hooks_chipset_acpi_mode[];
 extern const struct hook_data __hooks_chipset_acpiMode_end[];
-extern const struct hook_data __hooks_chipset_system_s3[];
-extern const struct hook_data __hooks_chipset_systemS3_end[];
+extern const struct hook_data __hooks_chipset_12V_ENABLE[];
+extern const struct hook_data __hooks_chipset_12vEnable_end[];
 #ifdef CONFIG_CHIPSET_RESUME_INIT_HOOK
 extern const struct hook_data __hooks_chipset_resume_init[];
 extern const struct hook_data __hooks_chipset_resume_init_end[];

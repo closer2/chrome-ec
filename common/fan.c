@@ -25,19 +25,16 @@
 
 /* Fan status data structure */
 struct fan_parameter {
-	/* booting check fan fault time */
-    uint16_t count[FAN_CH_COUNT];
-    /* booting check fan fault flag */
-    uint8_t countFlag[FAN_CH_COUNT];
     /* booting check rpm_actual */
     int rpm_actual[FAN_CH_COUNT];
     /* booting fan_fault flag */
     uint8_t fan_fault[FAN_CH_COUNT];
-    /* system enter s3 fan no check fault flag */
-    uint8_t fanFaultCheckStart;
-
 };
 static struct fan_parameter g_fan_parameter;
+
+#define FAN_REBOOT_CPU_CHECK   BIT(0)
+#define FAN_REBOOT_SYS_CHECK   BIT(1)
+uint8_t g_fanRebootFlag = FAN_REBOOT_CPU_CHECK | FAN_REBOOT_SYS_CHECK;
 
 /* True if we're listening to the thermal control task. False if we're setting
  * things manually. */
@@ -162,14 +159,6 @@ static void set_duty_cycle(int fan, int percent)
 uint8_t get_fan_fault(uint8_t fan)
 {
     return g_fan_parameter.fan_fault[fan];
-}
-
-static void clear_fan_fault(uint8_t fan)
-{
-    g_fan_parameter.count[fan] = 0;
-    g_fan_parameter.countFlag[fan] = 0;
-    g_fan_parameter.fan_fault[fan] = 0;
-    g_fan_parameter.fanFaultCheckStart = 0;
 }
 
 /*****************************************************************************/
@@ -523,6 +512,11 @@ struct pwm_fan_state {
 #define FAN_STATE_FLAG_ENABLED	BIT(0)
 #define FAN_STATE_FLAG_THERMAL	BIT(1)
 
+void FanRebootFlag(void)
+{
+    g_fanRebootFlag = FAN_REBOOT_CPU_CHECK | FAN_REBOOT_SYS_CHECK;
+}
+
 static void pwm_fan_init(void)
 {
 	uint16_t *mapped;
@@ -603,98 +597,125 @@ static void pwm_fan_stop(void)
 	 *
 	 * Thermal control may be already disabled if DPTF is used.
 	 */
-    for (fan = 0; fan < fan_count; fan++) {  
+    for (fan = 0; fan < fan_count; fan++) {
         pwm_fan_control(fan, 0); /* crosbug.com/p/8097 */
     }
+    FanRebootFlag();
 }
 DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, pwm_fan_stop, HOOK_PRIO_DEFAULT); /* s0-s3 */
 DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN_COMPLETE, pwm_fan_stop, HOOK_PRIO_DEFAULT); /* s0-s5/s4 */
 
-
-/* s0-s5 and System reboot will clear fan falut flag */
-void clear_fan_fault_flag(void)
+uint8_t check_CPU_fan_fault(void)
 {
-    int fan;
+    uint8_t ch;
 
-    for (fan = 0; fan < fan_count; fan++) {
-        clear_fan_fault(fan);
+    ch = PWM_CH_CPU_FAN;
+    g_fan_parameter.fan_fault[ch] = 0x0;
+    
+    /* Fan in duty mode still want rpm_actual being updated. */
+    g_fan_parameter.rpm_actual[ch] = fan_get_rpm_actual(ch);
+    ccprints("PWM_CH_CPU_FAN***************%d", g_fan_parameter.rpm_actual[PWM_CH_CPU_FAN]);
+
+    /* Upate fan fault status to ram */
+    if (g_fan_parameter.rpm_actual[ch] < FAN_DUTY_50_RPM) {
+        g_fan_parameter.fan_fault[ch] = FAN_STATUS_FAULT;
+        ccprints("Check fan fault, chanel: %s is fault", ch ? "SYs fan" : "CPU fan");
     }
+    return g_fan_parameter.fan_fault[ch];
 }
-DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN_COMPLETE, clear_fan_fault_flag, HOOK_PRIO_DEFAULT);
+
+uint8_t check_SYS_fan_fault(void)
+{
+    uint8_t ch;
+
+    ch = PWM_CH_SYS_FAN;
+    g_fan_parameter.fan_fault[ch] = 0x0;
+    
+    /* Fan in duty mode still want rpm_actual being updated. */
+    g_fan_parameter.rpm_actual[ch] = fan_get_rpm_actual(ch);
+    ccprints("PWM_CH_SYS_FAN***************%d", g_fan_parameter.rpm_actual[PWM_CH_SYS_FAN]);
+
+    /* Upate fan fault status to ram */
+    if (g_fan_parameter.rpm_actual[ch] < FAN_DUTY_50_RPM) {
+        g_fan_parameter.fan_fault[ch] = FAN_STATUS_FAULT;
+        ccprints("Check fan fault, chanel: %s is fault", ch ? "SYs fan" : "CPU fan");
+    }
+
+    return g_fan_parameter.fan_fault[ch];
+}
 
 static void pwm_fan_start(void)
 {
-    uint8_t fan = 0x00;
+    uint8_t ch;
 
-	/*
-	 * Even if the DPTF is enabled, enable thermal control here.
-	 * Upon booting to S0, if needed AP will disable/throttle it using
-	 * host commands.
-	 */
-#ifdef NPCX_FAMILY_DT03
     if (chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
         return;
     }
-#else
-    if (!chipset_in_or_transitioning_to_state(CHIPSET_STATE_ON)) {
-        return;
-    }   
-#endif
     /* power on check fan fault */
-    for (fan = 0; fan < fan_count; fan++) {
-        /* set_thermal_control_enabled(fan, 0); */
-        /* set_enabled(fan, 1); */
-        /* fan_set_duty(fan, CONFIG_FAN_FAULT_CHECK_SPEED); */
-        set_duty_cycle(fan, CONFIG_FAN_FAULT_CHECK_SPEED);
+    ccprints("S5->S0/S3 PWM fan start......");
+    for (ch = 0; ch < fan_count; ch++) {
+        g_fan_parameter.fan_fault[ch] = 0x0;
+        /* s5 -> s0 check fan fault? start set fan duty 50%. */
+        set_duty_cycle(ch, CONFIG_FAN_FAULT_CHECK_SPEED);
     }
-    g_fan_parameter.fanFaultCheckStart = 0x01;
 }
-#ifdef NPCX_FAMILY_DT03
-DECLARE_HOOK(HOOK_CHIPSET_STARTUP, pwm_fan_start, HOOK_PRIO_INIT_PWM + 1);
-#endif
-static void fan_fault_check(void)
-{
-    int fan;
+DECLARE_HOOK(HOOK_CHIPSET_12V_ENABLE, pwm_fan_start, HOOK_PRIO_INIT_PWM);
 
-    if (!g_fan_parameter.fanFaultCheckStart) {
-        pwm_fan_start();
+void Reboot_pwm_fan_control(uint8_t ch)
+{
+    set_thermal_control_enabled(ch, 0x0); /* disable thermal control */
+    fan_set_rpm_mode(ch, 0x1);  /* rpm mode */
+    fan_set_rpm_target(ch, FAN_SET_RPM_TARGET);
+    ccprints("reboot %s PWM fan start......", ch ? "SYs fan" : "CPU fan");
+}
+
+void thermal_control_service(void)
+{
+    uint8_t ch;
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+
+    if (!chipset_in_state(CHIPSET_STATE_ON)) {
         return;
     }
 
-    for (fan = 0; fan < fan_count; fan++) {
-        if ((g_fan_parameter.count[fan] > FAN_CHECK_FAULT_TIME) 
-            && (g_fan_parameter.countFlag[fan] == 0x0)) {
-            g_fan_parameter.countFlag[fan] = 0x01;
-            /* Fan in duty mode still want rpm_actual being updated. */
-            g_fan_parameter.rpm_actual[fan] = fan_get_rpm_actual(fan);
-            /* Upate fan fault status to ram */
-            if (g_fan_parameter.rpm_actual[fan] > FAN_DUTY_50_RPM) {
-                g_fan_parameter.fan_fault[fan] = FAN_STATUS_STOPPED;
-            } else {
-                g_fan_parameter.fan_fault[fan] = FAN_STATUS_FAULT;
-                pwm_fan_control(fan, 0); 
-                CPRINTS("fan fault check ch--%d/n", fan);
+    for (ch = 0; ch < fan_count; ch++) {
+        /* reboot check fan fault? start set fan 1200 rpm. */
+        if (*mptr & EC_MEMMAP_SYSTEM_REBOOT) {
+            if ((ch == PWM_CH_CPU_FAN) && (g_fanRebootFlag & FAN_REBOOT_CPU_CHECK)) {
+                g_fan_parameter.fan_fault[ch] = 0x0;
+                g_fanRebootFlag &= ~FAN_REBOOT_CPU_CHECK;
+                Reboot_pwm_fan_control(ch);
             }
-        } else {
-            if (g_fan_parameter.count[fan] <= FAN_CHECK_FAULT_TIME) {
-                g_fan_parameter.count[fan]++;
+            if ((ch == PWM_CH_SYS_FAN) && (g_fanRebootFlag & FAN_REBOOT_SYS_CHECK)) {
+                g_fan_parameter.fan_fault[ch] = 0x0;
+                g_fanRebootFlag &= ~FAN_REBOOT_SYS_CHECK;
+                Reboot_pwm_fan_control(ch);
             }
         }
-    }
-}
-DECLARE_HOOK(HOOK_TICK, fan_fault_check, HOOK_PRIO_INIT_PWM + 1);
 
-/* s0-s5 and System reboot will clear fan falut flag */
-void thermal_control_start(void)
-{
-    int fan;
-
-    for (fan = 0; fan < fan_count; fan++) {
-        if (FAN_STATUS_FAULT == g_fan_parameter.fan_fault[fan]) {
+        /* fan fault? yes, turn off fan */
+        if(g_fan_parameter.fan_fault[ch] == FAN_STATUS_FAULT) {
+            pwm_fan_control(ch, 0);
             continue;
         }
-        pwm_fan_control(fan, 1); /* crosbug.com/p/8097 */
+
+        /* enable thermal control */
+        if (*mptr & EC_MEMMAP_ACPI_MODE) {
+            set_thermal_control_enabled(ch, 0x01);
+        }
     }
 }
-DECLARE_HOOK(HOOK_CHIPSET_ACPI_MODE, thermal_control_start, HOOK_PRIO_TEMP_SENSOR_DONE);
+DECLARE_HOOK(HOOK_TICK, thermal_control_service, HOOK_PRIO_DEFAULT);
+
+/* s0-s5 and System reboot will clear fan falut flag */
+void acpiModeEnableClear(void)
+{
+    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
+
+    *mptr &= ~(EC_MEMMAP_SYSTEM_REBOOT | EC_MEMMAP_SYSTEM_ENTER_S3
+        | EC_MEMMAP_SYSTEM_ENTER_S4 | EC_MEMMAP_SYSTEM_ENTER_S5);
+
+    g_fanRebootFlag = FAN_REBOOT_CPU_CHECK | FAN_REBOOT_SYS_CHECK;
+}
+DECLARE_HOOK(HOOK_CHIPSET_ACPI_MODE, acpiModeEnableClear, HOOK_PRIO_TEMP_SENSOR_DONE);
 

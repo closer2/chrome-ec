@@ -367,7 +367,7 @@ static void oem_bios_to_ec_command(void)
         mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
         if (0x01 == *(bios_cmd+2)) {        /* system reboot */
             *mptr |= EC_MEMMAP_SYSTEM_REBOOT;
-            clear_fan_fault_flag();
+            FanRebootFlag();
         } else if(0x02 == *(bios_cmd+2)) {  /* System enters S3*/
             *mptr |= EC_MEMMAP_SYSTEM_ENTER_S3;
         } else if(0x03 == *(bios_cmd+2)) {  /* System enters S4 */
@@ -686,6 +686,14 @@ int acpi_ap_to_ec(int is_cmd, uint8_t value, uint8_t *resultptr)
             result = dptf_get_fan_duty_target();
             break;
 #endif
+        case EC_ACPI_MEM_CPU_FAN_FAULT:
+            result = check_CPU_fan_fault();
+            break;
+
+        case EC_ACPI_MEM_SYS_FAN_FAULT:
+            result = check_SYS_fan_fault();
+            break;
+
         default:
             result = acpi_read(acpi_addr);
             break;

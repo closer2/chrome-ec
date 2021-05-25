@@ -127,7 +127,7 @@ enum hook_type {
      * Hook routines are called from the chipset task.
      */
     HOOK_CHIPSET_ACPI_MODE,
-    HOOK_CHIPSET_SYSTEM_S3,
+    HOOK_CHIPSET_12V_ENABLE,
 
 #ifdef CONFIG_CHIPSET_RESUME_INIT_HOOK
 	/*

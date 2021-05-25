@@ -346,13 +346,13 @@ const struct fan_conf fan_conf_1 = {
 const struct fan_rpm fan_rpm_0 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2800,
+	.rpm_max = 2500,
 };
 
 const struct fan_rpm fan_rpm_1 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2800,
+	.rpm_max = 2500,
 };
 
 const struct fan_t fans[] = {
@@ -421,12 +421,7 @@ DECLARE_DEFERRED(pd_reset_deferred);
 
 static void board_chipset_resume(void)
 {
-    uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
-
     hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
-
-    *mptr &= ~(EC_MEMMAP_SYSTEM_REBOOT | EC_MEMMAP_SYSTEM_ENTER_S3
-        | EC_MEMMAP_SYSTEM_ENTER_S4 | EC_MEMMAP_SYSTEM_ENTER_S5);
 
     wakeup_cause_record(LOG_ID_WAKEUP_0x04);
     ccprints("%s -> %s", __FILE__, __func__);
@@ -486,6 +481,7 @@ static void board_chipset_shutdown(void)
         }
     }
 
+    *mptr &= ~(EC_MEMMAP_SYSTEM_REBOOT | EC_MEMMAP_SYSTEM_ENTER_S3);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }

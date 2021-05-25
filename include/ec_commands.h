@@ -573,6 +573,10 @@ extern "C" {
 /* DPTF Target Fan Duty (0-100, 0xff for auto/none) */
 #define EC_ACPI_MEM_FAN_DUTY           0x04
 
+/* check fan fault state,reboot s5->s0 */
+#define EC_ACPI_MEM_CPU_FAN_FAULT          0x53
+#define EC_ACPI_MEM_SYS_FAN_FAULT          0x54
+
 /*
  * DPTF temp thresholds. Any of the EC's temp sensors can have up to two
  * independent thresholds attached to them. The current value of the ID
