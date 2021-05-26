@@ -18,6 +18,7 @@
 #include "task.h"
 #include "timer.h"
 #include "util.h"
+#include "chipset.h"
 
 /* Console output macros */
 #define CPUTS(outstr) cputs(CC_SWITCH, outstr)
@@ -192,10 +193,21 @@ void power_button_interrupt(enum gpio_signal signal)
 	if (raw_power_button_pressed())
 		keyboard_scan_enable(0, KB_SCAN_DISABLE_POWER_BUTTON);
 
+#ifdef NPCX_FAMILY_DT03
+    power_button_is_stable = 0;
+    if(chipset_in_state(CHIPSET_STATE_ON)) {
+        hook_call_deferred(&power_button_change_deferred_data,
+            (600 * MSEC));
+    } else {
+        hook_call_deferred(&power_button_change_deferred_data,
+            power_button.debounce_us);
+    }
+#else
 	/* Reset power button debounce time */
 	power_button_is_stable = 0;
 	hook_call_deferred(&power_button_change_deferred_data,
 			   power_button.debounce_us);
+#endif
 }
 
 /*****************************************************************************/
