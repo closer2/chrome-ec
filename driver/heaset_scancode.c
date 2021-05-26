@@ -181,6 +181,10 @@ void headset_volume_task(void *u)
     while (1) {
         int state_timeout = -1;
 
+        if (!chipset_in_state(CHIPSET_STATE_ON)) {
+            task_wait_event(state_timeout);
+        }
+
         rv = i2c_read8(NPCX_I2C_PORT1_0, TS3A227E_SLAVE_ADDRESS,
             TS3A227E_ACCESSORY_STATUS, &regval);
         if (rv) {
