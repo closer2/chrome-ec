@@ -126,6 +126,12 @@ void WakeUpWDtService(void)
         g_WdtForceingShutdown = 0;
     }
 }
+static void power_On_Machine_deferred(void)
+{
+    CPRINTS("========Wakeup WDT: power on Num=%d", g_wakeupWDT.timeoutNum);
+    power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
+}
+DECLARE_DEFERRED(power_On_Machine_deferred);
 
 static void WakeUpWdtPowerOn(void)
 {
@@ -135,8 +141,7 @@ static void WakeUpWdtPowerOn(void)
             return;
         }
         g_WdtForceingShutdown = 0;
-        power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
-        CPRINTS("========Wakeup WDT: power on Num=%d", g_wakeupWDT.timeoutNum);
+        hook_call_deferred(&power_On_Machine_deferred_data, 3 * MSEC);
     }
 }
 
