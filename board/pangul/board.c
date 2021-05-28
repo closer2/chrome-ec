@@ -433,7 +433,7 @@ static void board_chipset_resume(void)
         }
     }
 
-    hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
+    hook_call_deferred(&pd_reset_deferred_data, (500 * MSEC));
     wakeup_cause_record(LOG_ID_WAKEUP_0x04);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
@@ -444,7 +444,7 @@ static void board_chipset_suspend(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
 
-    hook_call_deferred(&pd_reset_deferred_data, (2 * SECOND));
+    hook_call_deferred(&pd_reset_deferred_data, (500 * MSEC));
 
     if (*mptr & EC_MEMMAP_SYSTEM_ENTER_S3) {
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x03);
