@@ -332,7 +332,7 @@ static void power_lan_wake_init(void)
         CPRINTS("error: power wlan wake init!");
     }
 }
-DECLARE_HOOK(HOOK_INIT, power_lan_wake_init, HOOK_PRIO_INIT_LID);
+DECLARE_HOOK(HOOK_CHIPSET_PRE_INIT, power_lan_wake_init, HOOK_PRIO_DEFAULT);
 
 void power_lan_wake_interrupt(enum gpio_signal signal)
 {
