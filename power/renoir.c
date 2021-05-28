@@ -341,6 +341,9 @@ enum power_state power_handle_state(enum power_state state)
         msleep(10);
         gpio_set_level(GPIO_PCH_RSMRST_L, 1);
 
+        /* Call hooks enable EC_LAN_WAKE/EC_WLAN_WAKE interrupt */
+        hook_notify(HOOK_CHIPSET_PRE_INIT);
+
         CPRINTS("%s -> %s, Power state G3->S5", __FILE__, __func__);
 
         return POWER_S5;
