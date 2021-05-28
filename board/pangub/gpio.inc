@@ -38,7 +38,7 @@ GPIO_INT(EC_PLT_RST_L,      PIN(3, 1), GPIO_INT_BOTH,			cpu_plt_reset_interrupt)
 /* Replace of the above for PanGuB board */
 GPIO(EC_PCH_PWRGD,          PIN(A, 6), GPIO_OUT_LOW)        /* Power OK to SOC, EC_PCH_PWRGD */
 GPIO(DSW_PWROK_EN,          PIN(7, 6), GPIO_OUT_LOW)        /* ec to SOC, DSW_PWROK signal */
-GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_INPUT)          /* Power Button to SOC, EC_PWRBTN_OUT_N */
+GPIO(EC_FCH_PWR_BTN_L,      PIN(7, 4), GPIO_OUT_LOW)          /* Power Button to SOC, EC_PWRBTN_OUT_N */
 GPIO(EC_RTC_RST,            PIN(E, 2), GPIO_OUT_LOW)        /* Reserved Pin, RTC reset, EC output */
 GPIO(VCCST_PWRGD,           PIN(0, 1), GPIO_OUT_LOW)        /* VCCST power OK, EC output */
 GPIO(EC_SLP_S5_L,           PIN(A, 4), GPIO_OUT_LOW)        /* EC_SLP_S5#, output, passthrough SLP_S5_L */
