@@ -193,7 +193,7 @@ void power_button_interrupt(enum gpio_signal signal)
 	if (raw_power_button_pressed())
 		keyboard_scan_enable(0, KB_SCAN_DISABLE_POWER_BUTTON);
 
-#ifdef NPCX_FAMILY_DT03
+#if (defined(NPCX_FAMILY_DT01) || defined(NPCX_FAMILY_DT03))
     power_button_is_stable = 0;
     if(chipset_in_state(CHIPSET_STATE_ON)) {
         hook_call_deferred(&power_button_change_deferred_data,
