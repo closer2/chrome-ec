@@ -1322,6 +1322,7 @@ static void keyboard_restore_state(void)
 DECLARE_HOOK(HOOK_INIT, keyboard_restore_state, HOOK_PRIO_DEFAULT);
 
 #ifdef CONFIG_POWER_BUTTON
+#ifdef CONFIG_POWER_BUTTON_NOTIFY_OS
 /**
  * Handle power button changing state.
  */
@@ -1332,4 +1333,5 @@ static void keyboard_power_button(void)
 }
 DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, keyboard_power_button,
 	     HOOK_PRIO_DEFAULT);
+#endif
 #endif
