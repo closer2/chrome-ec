@@ -29,6 +29,11 @@
 #define CONFIG_POWER_BUTTON_FLAGS 0
 #endif
 
+#if (defined(NPCX_FAMILY_DT01) || defined(NPCX_FAMILY_DT03))
+/* Power Button Factory Test Flag */
+extern uint8_t g_PowerButtonFactoryTest;
+#endif
+
 static int debounced_power_pressed;	/* Debounced power button state */
 static int simulate_power_pressed;
 static volatile int power_button_is_stable = 1;
@@ -195,7 +200,7 @@ void power_button_interrupt(enum gpio_signal signal)
 
 #if (defined(NPCX_FAMILY_DT01) || defined(NPCX_FAMILY_DT03))
     power_button_is_stable = 0;
-    if(chipset_in_state(CHIPSET_STATE_ON)) {
+    if(chipset_in_state(CHIPSET_STATE_ON) && g_PowerButtonFactoryTest != 0) {
         hook_call_deferred(&power_button_change_deferred_data,
             (600 * MSEC));
     } else {

@@ -576,17 +576,11 @@ DECLARE_HOOK(HOOK_INIT, lan_wake_init_exit_G3, HOOK_PRIO_INIT_LAN_WAKE);
 /*****************************************************************************/
 uint8_t g_PowerButtonFactoryTest = 0;
 
-static void clear_Power_Button_flag(void)
-{
-    g_PowerButtonFactoryTest = 0x00;
-}
-DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN_COMPLETE, clear_Power_Button_flag, HOOK_PRIO_DEFAULT);
-DECLARE_HOOK(HOOK_CHIPSET_RESUME, clear_Power_Button_flag, HOOK_PRIO_DEFAULT);
-
 static void set_Power_Button_flag(void)
 {
     g_PowerButtonFactoryTest = 0x01;
 }
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, set_Power_Button_flag, HOOK_PRIO_DEFAULT);
 DECLARE_HOOK(HOOK_POWER_BUTTON_CHANGE, set_Power_Button_flag, HOOK_PRIO_DEFAULT);
 
 /* Host commands */
