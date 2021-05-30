@@ -123,6 +123,7 @@ void WakeUpWDtService(void)
 
     if (g_wakeupWDT.timeoutNum >= TIMEOUT_NUM1) {
         g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
+        g_wakeupWDT.timeoutNum = 0;
         g_WdtForceingShutdown = 0;
     }
 }
@@ -136,12 +137,9 @@ DECLARE_DEFERRED(power_On_Machine_deferred);
 static void WakeUpWdtPowerOn(void)
 {
     if(chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
-        g_WdtForceingShutdown++; /* WDT delay power on */
-        if (g_WdtForceingShutdown < 0x03) {
-            return;
-        }
+         /* WDT delay power on */
         g_WdtForceingShutdown = 0;
-        hook_call_deferred(&power_On_Machine_deferred_data, 3 * MSEC);
+        hook_call_deferred(&power_On_Machine_deferred_data, 5 * SECOND);
     }
 }
 
