@@ -13,6 +13,7 @@
 #include "temp_sensor.h"
 #include "thermal.h"
 #include "timer.h"
+#include "chipset.h"
 #include "util.h"
 
 #define TEMP_SENSORS_AVERAGE_COUNT 10
@@ -60,6 +61,18 @@ static void temp_sensor_average(void)
     int i, j;
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_TEMP_SENSOR);
     uint8_t *mptravg = host_get_memmap(EC_MEMMAP_TEMP_SENSOR_AVG);
+
+    /* G3、S5 state, clear temps*/
+    if (chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
+        for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
+            *(mptravg + i) = 0x0;
+            *(mptr + i) = 0x0;
+            for (j = 0; j < TEMP_SENSORS_AVERAGE_COUNT; j++) {
+                temp_sensors_avg_s[i][j] = 0x0;
+            }
+        }
+        return;
+    }
 
     update_mapped_memory();
     for (i = 0; i < TEMP_SENSOR_COUNT; i++) {
