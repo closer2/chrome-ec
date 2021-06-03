@@ -36,6 +36,10 @@ static struct fan_parameter g_fan_parameter;
 #define FAN_REBOOT_SYS_CHECK   BIT(1)
 uint8_t g_fanRebootFlag = FAN_REBOOT_CPU_CHECK | FAN_REBOOT_SYS_CHECK;
 
+#define FAN_THERMAL_CPU_START   BIT(0)
+#define FAN_THERMAL_SYS_START   BIT(1)
+uint8_t g_fanThermalStart = FAN_THERMAL_CPU_START | FAN_THERMAL_SYS_START;
+
 /* True if we're listening to the thermal control task. False if we're setting
  * things manually. */
 static int thermal_control_enabled[CONFIG_FANS];
@@ -515,6 +519,7 @@ struct pwm_fan_state {
 void FanRebootFlag(void)
 {
     g_fanRebootFlag = FAN_REBOOT_CPU_CHECK | FAN_REBOOT_SYS_CHECK;
+    g_fanThermalStart = FAN_THERMAL_CPU_START | FAN_THERMAL_SYS_START;
 }
 
 static void pwm_fan_init(void)
@@ -675,6 +680,7 @@ void thermal_control_service(void)
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC1);
 
     if (!chipset_in_state(CHIPSET_STATE_ON)) {
+        g_fanThermalStart = FAN_THERMAL_CPU_START | FAN_THERMAL_SYS_START;
         return;
     }
 
@@ -701,7 +707,14 @@ void thermal_control_service(void)
 
         /* enable thermal control */
         if (*mptr & EC_MEMMAP_ACPI_MODE) {
-            set_thermal_control_enabled(ch, 0x01);
+            if ((ch == 0) && (g_fanThermalStart & FAN_THERMAL_CPU_START)) {
+                g_fanThermalStart &= ~FAN_THERMAL_CPU_START;
+                set_thermal_control_enabled(ch, 0x01);
+            }
+            if ((ch == 1) && (g_fanThermalStart & FAN_THERMAL_SYS_START)) {
+                g_fanThermalStart &= ~FAN_THERMAL_SYS_START;
+                set_thermal_control_enabled(ch, 0x01);
+            }
         }
     }
 }
