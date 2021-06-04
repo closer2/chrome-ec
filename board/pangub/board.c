@@ -343,13 +343,13 @@ const struct fan_conf fan_conf_1 = {
 const struct fan_rpm fan_rpm_0 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2500,
+	.rpm_max = 2800,
 };
 
 const struct fan_rpm fan_rpm_1 = {
 	.rpm_min = 220,
 	.rpm_start = 220,
-	.rpm_max = 2500,
+	.rpm_max = 2800,
 };
 
 const struct fan_t fans[] = {

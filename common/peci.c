@@ -40,8 +40,10 @@ static int peci_get_cpu_temp(int *cpu_temp)
 	 * very rare, but when it does happen the temperature returned is
 	 * greater than or equal to CONFIG_PECI_TJMAX.
 	 */
-	if (*cpu_temp >= CONFIG_PECI_TJMAX)
-		return EC_ERROR_UNKNOWN;
+	if (*cpu_temp >= CONFIG_PECI_TJMAX) {
+        *cpu_temp = 0x0;
+		 ccprintf(" PECI *cpu_temp > Tjamx \n");
+    }
 
 	/* temperature in K */
 	*cpu_temp = CONFIG_PECI_TJMAX - *cpu_temp + 273;
