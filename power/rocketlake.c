@@ -322,7 +322,7 @@ enum power_state power_handle_state(enum power_state state)
         /* chiset_task pause for wait signal */
         if (power_wait_signals(IN_PGOOD_S5)) {
             chipset_force_g3();
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
             return POWER_G3;
         }
 
@@ -343,7 +343,7 @@ enum power_state power_handle_state(enum power_state state)
         if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
             if (!(get_Cause_id() & BIT(0))) {
-                shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+                shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
             } else {
                 update_Cause_id(get_Cause_id() & (~ BIT(0)));
             }
@@ -356,7 +356,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S5S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
             /* Required rail went away */
             return POWER_S5G3;
         }
@@ -382,7 +382,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
             /* Required rail went away */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
@@ -423,7 +423,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3S0:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
             /* Required rail went away */
             return POWER_S5G3;
         }
