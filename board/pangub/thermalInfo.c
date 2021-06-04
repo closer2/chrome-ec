@@ -35,6 +35,7 @@ enum thermal_level {
     LEVEL4,
     LEVEL5,
     LEVEL6,
+    LEVEL7,
     LEVEL_COUNT
 };
 
