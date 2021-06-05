@@ -207,6 +207,14 @@
 /*#define CONFIG_USBC_VCONN*/               /* more than zinger */
 #undef  CONFIG_USB_PRL_SM
 
+#define CONFIG_USB_PD_ALT_MODE
+#define CONFIG_USB_PD_ALT_MODE_DFP
+#define CONFIG_USB_PD_TCPM_MUX
+#define CONFIG_USBC_SS_MUX
+#define CONFIG_USB_MUX_VIRTUAL
+
+/* #define CONFIG_USB_PD_DEBUG_LEVEL  2 */
+
 #define CONFIG_NUM_FIXED_BATTERIES  0           /* Used duing VIF generation*/
 #define CONFIG_USB_PD_MODEL_PART_NUMBER "DT01"  /* Used duing VIF generation*/
 #define CONFIG_USB_PD_PRODUCT_REVISION  "V02"   /* Used duing VIF generation*/

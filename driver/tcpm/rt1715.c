@@ -42,6 +42,15 @@ static int rt1715_tcpci_tcpm_init(int port)
 	if (rv)
 		return rv;
 
+	/*
+	TD.PD.LL.E2 Retransmission - Testing Downstream Port (trace)
+	Checking Retransmission
+	UUT must retransmit first message one time within 900 us to 1175 us (retransmitted 0 times) */
+	rv = tcpc_update8(port, RT1715_REG_PHY_CTRL1,
+			  RT1715_REG_PHY_CTRL1_ENRETRY, MASK_SET);
+	if (rv)
+		return rv;
+
 	if (IS_ENABLED(CONFIG_USB_PD_REV30))
 		rt1715_enable_ext_messages(port, 1);
     

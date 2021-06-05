@@ -317,6 +317,37 @@ static const char * const pd_state_names[] = {
 	"ENTER_USB",
 };
 BUILD_ASSERT(ARRAY_SIZE(pd_state_names) == PD_STATE_COUNT);
+
+enum pd_states get_state_pe(const int port)
+{
+	return pd[port].task_state;
+}
+
+static const char * const ctrl_msg_names[] = {
+	"PD_CTRL_NULL",
+	"PD_CTRL_GOOD_CRC",
+	"PD_CTRL_GOTO_MIN",
+	"PD_CTRL_ACCEPT",
+	"PD_CTRL_REJECT",
+	"PD_CTRL_PING",
+	"PD_CTRL_PS_RDY",
+	"PD_CTRL_GET_SOURCE_CAP",
+	"PD_CTRL_GET_SINK_CAP",
+	"PD_CTRL_DR_SWAP",
+	"PD_CTRL_PR_SWAP",
+	"PD_CTRL_VCONN_SWAP",
+	"PD_CTRL_WAIT",
+	"PD_CTRL_SOFT_RESET",
+	"PD_CTRL_14",
+	"PD_CTRL_15",
+	"PD_CTRL_NOT_SUPPORTED",
+	"PD_CTRL_GET_SOURCE_CAP_EXT",
+	"PD_CTRL_GET_STATUS",
+	"PD_CTRL_FR_SWAP",
+	"PD_CTRL_GET_PPS_STATUS",
+	"PD_CTRL_GET_COUNTRY_CODES",
+};
+
 #endif
 
 int pd_comm_is_enabled(int port)
@@ -649,7 +680,7 @@ static bool consume_sop_repeat_message(int port, uint8_t msg_id)
 		pd[port].last_msg_id = msg_id;
 		return false;
 	}
-	CPRINTF("C%d Repeat msg_id %d\n", port, msg_id);
+	CPRINTS("C%d Repeat msg_id %d", port, msg_id);
 	return true;
 }
 
@@ -837,6 +868,8 @@ static inline void set_state(int port, enum pd_states next_state)
 		/* Disable TCPC RX */
 		tcpm_set_rx_enable(port, 0);
 
+		tcpm_set_bist_test_mode(port, 0);
+
 		/* Invalidate message IDs. */
 		invalidate_last_message_id(port);
 
@@ -872,7 +905,7 @@ static inline void set_state(int port, enum pd_states next_state)
 
 #ifdef CONFIG_USB_PD_TCPMV1_DEBUG
 	if (debug_level > 0)
-		CPRINTF("C%d st%d %s\n", port, next_state,
+		CPRINTS("C%d set: %s --> %s", port, pd_state_names[last_state],
 					 pd_state_names[next_state]);
 	else
 #endif
@@ -1001,7 +1034,7 @@ static int send_control(int port, int type)
 
 	bit_len = pd_transmit(port, TCPC_TX_SOP, header, NULL, ams);
 	if (debug_level >= 2)
-		CPRINTF("C%d CTRL[%d]>%d\n", port, type, bit_len);
+		CPRINTF("C%d CTRL[%s]>%d\n", port, ctrl_msg_names[type], bit_len);
 
 	return bit_len;
 }
@@ -1284,13 +1317,38 @@ static void handle_vdm_request(int port, int cnt, uint32_t *payload,
 		}
 	}
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	if (debug_level > 0) {
+		CPRINTF("C%d vdm request st%d %s\n", port, get_state_pe(port), pd_state_names[get_state_pe(port)]);
+	}
+#endif
+
 	if (PD_VDO_SVDM(payload[0]))
 		rlen = pd_svdm(port, cnt, payload, &rdata, head, &rtype);
 	else
 		rlen = pd_custom_vdm(port, cnt, payload, &rdata);
 
+	switch (pd[port].vdm_state) {
+	case VDM_STATE_ERR_TMOUT:
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		if (debug_level > 0) {
+			CPRINTF("C%d ERR timeout VID0x%x\n", port, PD_VDO_VID(payload[0]));
+		}
+#endif
+		rlen = -1;
+		break;
+	default:
+		break;
+	}
+
+
 	if (rlen > 0) {
 		queue_vdm(port, rdata, &rdata[1], rlen - 1, rtype);
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		if (debug_level > 0) {
+			CPRINTF("C%d queue vdm vdo0x%x type%d\n", port, rdata[0], rtype);
+		}
+#endif
 		return;
 	}
 
@@ -1551,6 +1609,10 @@ static void handle_data_request(int port, uint32_t head,
 	int type = PD_HEADER_TYPE(head);
 	int cnt = PD_HEADER_CNT(head);
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d data req type%d\n", port, type);
+#endif
+
 	switch (type) {
 #ifdef CONFIG_USB_PD_DUAL_ROLE
 	case PD_DATA_SOURCE_CAP:
@@ -1727,6 +1789,10 @@ static void handle_ctrl_request(int port, uint32_t head,
 {
 	int type = PD_HEADER_TYPE(head);
 	int res;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d ctrl req type%d\n", port, type);
+#endif
 
 	switch (type) {
 	case PD_CTRL_GOOD_CRC:
@@ -2059,7 +2125,7 @@ static void handle_request(int port, uint32_t head,
 	/* dump received packet content (only dump ping at debug level 3) */
 	if ((debug_level == 2 && PD_HEADER_TYPE(head) != PD_CTRL_PING) ||
 	    debug_level >= 3) {
-		CPRINTF("C%d RECV %04x/%d ", port, head, cnt);
+		CPRINTS("C%d RECV %04x/%d", port, head, cnt);
 		for (p = 0; p < cnt; p++)
 			CPRINTF("[%d]%08x ", p, payload[p]);
 		CPRINTF("\n");
@@ -2069,8 +2135,19 @@ static void handle_request(int port, uint32_t head,
 	 * If we are in disconnected state, we shouldn't get a request. Do
 	 * a hard reset if we get one.
 	 */
-	if (!pd_is_connected(port))
+	if (!pd_is_connected(port)) {
+
+		/*
+		 * TD.PD.PHY.E6/7/8. For RD1711, accidently  negotiation fail.
+		 * If hard reset send, will never negotiation again.
+		 */
+		if ((payload[0] >> 28) == 8) { /* receive BIST Test Data mode */
+			CPRINTS("C%d disconnect, but recv bist test data", port);
+			invalidate_last_message_id(port);
+			return;
+            	}
 		set_state(port, PD_STATE_HARD_RESET_SEND);
+	}
 
 	/*
 	 * When a data role conflict is detected, USB-C ErrorRecovery
@@ -2094,6 +2171,11 @@ static void handle_request(int port, uint32_t head,
 			tcpm_set_cc(port, DUAL_ROLE_IF_ELSE(port, TYPEC_CC_RD,
 							    TYPEC_CC_RP));
 		}
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		CPRINTS("C%d role conflcit src disconnect", port);
+#endif
+
 		set_state(port,
 			  DUAL_ROLE_IF_ELSE(port,
 					    PD_STATE_SNK_DISCONNECTED,
@@ -2127,6 +2209,11 @@ void pd_send_vdm(int port, uint32_t vid, int cmd, const uint32_t *data,
 				   1 : (PD_VDO_CMD(cmd) <= CMD_ATTENTION), cmd);
 #ifdef CONFIG_USB_PD_REV30
 	pd[port].vdo_data[0] |= VDO_SVDM_VERS(vdo_ver[pd[port].rev]);
+#endif
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	if (debug_level > 0) {
+		CPRINTF("C%d send vdm vdo0x%x\n", port, pd[port].vdo_data[0]);
+	}
 #endif
 	queue_vdm(port, pd[port].vdo_data, data, count, TCPC_TX_SOP);
 
@@ -2330,7 +2417,7 @@ static void pd_vdm_send_state_machine(int port)
 	case VDM_STATE_ERR_SEND:
 		/* Sending the VDM failed, so try again. */
 		CPRINTF("C%d VDMretry\n", port);
-		pd[port].vdm_state = VDM_STATE_READY;
+		pd[port].vdm_state = VDM_STATE_DONE;
 		break;
 	default:
 		break;
@@ -3066,6 +3153,14 @@ void pd_task(void *u)
 				    AMS_START);
 		}
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		if (debug_level >= 2) {
+			if (pd[port].task_state > PD_STATE_SRC_DISCONNECTED) {
+				CPRINTS("C%d current %s task wait %d", port, pd_state_names[pd[port].task_state], timeout);
+			}
+		}
+#endif
+
 		/* wait for next event/packet or timeout expiration */
 		evt = task_wait_event(timeout);
 
@@ -3183,6 +3278,25 @@ void pd_task(void *u)
 
 		if (evt & PD_EVENT_RX_HARD_RESET)
 			pd_execute_hard_reset(port);
+
+		/* For CTS TD.PD.SRC.E5
+			Check for state timeout, when wake up from timeout.
+			PD statemachine will goto Hardreset from wakeup.
+		*/
+		now = get_time();
+		if (pd[port].timeout) {
+			if (now.val >= pd[port].timeout) {
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				if (debug_level > 0) {
+					CPRINTS("C%d timeout %s --> %s", port, 
+						pd_state_names[pd[port].task_state],
+						pd_state_names[pd[port].timeout_state]
+					);
+				}
+#endif
+				set_state(port, pd[port].timeout_state);
+			}
+		}
 
 		/* process any potential incoming message */
 		incoming_packet = tcpm_has_pending_message(port);
@@ -3581,7 +3695,7 @@ void pd_task(void *u)
                              the fifth Source Capabilities message must be
                              received within 24--30ms, The measured is 43 ms.
                              reduce 17ms*/
-						  PD_T_SENDER_RESPONSE-(17*MSEC),
+						  PD_T_SENDER_RESPONSE-(5*MSEC),
 						  PD_STATE_HARD_RESET_SEND);
 			break;
 		case PD_STATE_SRC_ACCEPTED:
@@ -3672,8 +3786,10 @@ void pd_task(void *u)
                 !(pd[port].flags & PD_FLAGS_DISABLE_TX_BIST)) {
 				if (++snk_cap_count <= PD_SNK_CAP_RETRIES) {
 					/* Get sink cap to know if dual-role device */
+#ifdef CONFIG_USB_PD_DUAL_ROLE
 					send_control(port, PD_CTRL_GET_SINK_CAP);
 					set_state(port, PD_STATE_SRC_GET_SINK_CAP);
+#endif
 					break;
 				} else if (debug_level >= 2 &&
 					   snk_cap_count == PD_SNK_CAP_RETRIES+1) {
@@ -3718,6 +3834,12 @@ void pd_task(void *u)
 			    (pd[port].flags & PD_FLAGS_CHECK_IDENTITY) &&
 			    !(pd[port].flags & PD_FLAGS_DISABLE_TX_BIST)) {
 #ifndef CONFIG_USB_PD_SIMPLE_DFP
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				if (debug_level > 0) {
+					CPRINTF("C%d discovering\n", port);
+				}
+#endif
+				pd[port].vdm_timeout.val =  get_time().val + PD_T_SENDER_RESPONSE;
 				pd_send_vdm(port, USB_SID_PD,
 					    CMD_DISCOVER_IDENT, NULL, 0);
 #endif
@@ -4827,6 +4949,9 @@ void pd_task(void *u)
 			if (pd[port].polarity)
 				cc1 = cc2;
 			if (cc1 == TYPEC_CC_VOLT_OPEN) {
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				CPRINTS("C%d src disconnect", port);
+#endif
 				set_state(port, PD_STATE_SRC_DISCONNECTED);
 				/* Debouncing */
 				timeout = 10*MSEC;

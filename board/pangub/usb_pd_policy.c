@@ -158,10 +158,3 @@ void pd_check_dr_role(int port,
     if ((flags & PD_FLAGS_PARTNER_DR_DATA) && dr_role == PD_ROLE_UFP)
 		pd_request_data_swap(port);
 }
-
-/* Just for compile when ALT_MODE not supprot */
-uint16_t pd_get_identity_vid(int port)
-{
-	return 0x1234;
-}
-

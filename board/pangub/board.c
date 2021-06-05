@@ -34,6 +34,7 @@
 #include "flash.h"
 #include "espi.h"
 #include "peci.h"
+#include "usb_mux.h"
 
 #define CPRINTSUSB(format, args...) cprints(CC_USBCHARGE, format, ## args)
 #define CPRINTFUSB(format, args...) cprintf(CC_USBCHARGE, format, ## args)
@@ -718,3 +719,11 @@ void board_set_usb_output_voltage(int mv)
 
 	return;
 }
+
+const struct usb_mux usb_muxes[CONFIG_USB_PD_PORT_MAX_COUNT] = {
+	[0] = {
+		.usb_port = 0,
+		.driver = &virtual_usb_mux_driver,
+		.hpd_update = &virtual_hpd_update,
+	},
+};

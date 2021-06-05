@@ -46,6 +46,29 @@
 
 static int rw_flash_changed = 1;
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+static __maybe_unused const char * const vdm_cmd_names[] = {
+	"CMD_0",
+	"CMD_DISCOVER_IDENT",
+	"CMD_DISCOVER_SVID",
+	"CMD_DISCOVER_MODES",
+	"CMD_ENTER_MODE",
+	"CMD_EXIT_MODE",
+	"CMD_ATTENTION",
+	"CMD_7",
+	"CMD_8",
+	"CMD_9",
+	"CMD_10",
+	"CMD_11",
+	"CMD_12",
+	"CMD_13",
+	"CMD_14",
+	"CMD_15",
+	"CMD_DP_STATUS",
+	"CMD_DP_CONFIG",
+};
+#endif
+
 __overridable void pd_check_pr_role(int port,
 	enum pd_power_role pr_role, int flags)
 {
@@ -401,6 +424,10 @@ static int dfp_discover_modes(int port, uint32_t *payload)
 	struct pd_discovery *disc = pd_get_am_discovery(port, TCPC_TX_SOP);
 	uint16_t svid = disc->svids[disc->svid_idx].svid;
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d disc modes idx%d cnt%d svid%x\n", port, disc->svid_idx, disc->svid_cnt, svid);
+#endif
+
 	if (disc->svid_idx >= disc->svid_cnt)
 		return 0;
 
@@ -652,7 +679,18 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 	payload[0] &= ~VDO_CMDT_MASK;
 	*rpayload = payload;
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d type%d cmd%s\n", port, cmd_type, vdm_cmd_names[cmd]);
+#endif
+
 	if (cmd_type == CMDT_INIT) {
+#ifdef CONFIG_USB_PD_ALT_MODE_DFP
+		struct svdm_amode_data *modep;
+		uint8_t conn_dp = 0;
+		int rsize_dp = 0;
+		modep = pd_get_amode_data(port, TCPC_TX_SOP,
+				PD_VDO_VID(payload[0]));
+#endif
 		switch (cmd) {
 		case CMD_DISCOVER_IDENT:
 			func = svdm_rsp.identity;
@@ -684,7 +722,19 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 			 * (just goodCRC) return zero here.
 			 */
 			dfp_consume_attention(port, payload);
-			return 0;
+			if (modep && modep->opos)
+				rsize = modep->fx->config(port, payload);
+			else
+				rsize = 0;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+			CPRINTF("C%d init attention rsize%d payload0%x  payload1%x\n", port, rsize, payload[0], payload[1]);
+#endif
+			if (rsize) {
+				rsize_dp = rsize;
+				conn_dp = 1; // DisplayPort connected
+			}
+			break;
 #endif
 		default:
 			CPRINTF("ERR:CMD:%d\n", cmd);
@@ -694,6 +744,11 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 			rsize = func(port, payload);
 		else /* not supported : NACK it */
 			rsize = 0;
+
+		if (conn_dp) {
+			rsize = rsize_dp;
+		}
+
 		if (rsize >= 1)
 			payload[0] |= VDO_CMDT(CMDT_RSP_ACK);
 		else if (!rsize) {
@@ -707,6 +762,7 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 	} else if (cmd_type == CMDT_RSP_ACK) {
 #ifdef CONFIG_USB_PD_ALT_MODE_DFP
 		struct svdm_amode_data *modep;
+		uint8_t conn_dp = 0;
 
 		modep = pd_get_amode_data(port, TCPC_TX_SOP,
 				PD_VDO_VID(payload[0]));
@@ -733,6 +789,12 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 		case CMD_DISCOVER_SVID:
 			rsize = process_am_discover_svids(port, cnt, payload,
 							  sop, rtype);
+			if(rsize == 0) {
+				rsize =dfp_discover_svids(payload);
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+			CPRINTF("C%d discover continue %x\n", port, *payload);
+#endif
+			}
 			break;
 		case CMD_DISCOVER_MODES:
 			dfp_consume_modes(port, sop, cnt, payload);
@@ -784,10 +846,24 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 			/* DP status response & UFP's DP attention have same
 			   payload */
 			dfp_consume_attention(port, payload);
+
+			conn_dp = PD_VDO_DPSTS_CONN(payload[0]);
+			if (!conn_dp) {
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				CPRINTF("C%d warning display not connect, dp_status%x dp_flags%x\n", port, dp_status[port], dp_flags[port]);
+#endif
+				rsize = 0;
+				break;
+			}
+
 			if (modep && modep->opos)
 				rsize = modep->fx->config(port, payload);
 			else
 				rsize = 0;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+			CPRINTF("C%d rsp_ack attention rsize%d payload%x\n", port, rsize, payload[0]);
+#endif
 			break;
 		case CMD_DP_CONFIG:
 			if (modep && modep->opos && modep->fx->post_config)

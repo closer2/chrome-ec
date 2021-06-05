@@ -365,8 +365,13 @@ void dfp_consume_svids(int port, enum tcpm_transmit_type type, int cnt,
 	int i;
 	uint32_t *ptr = payload + 1;
 	int vdo = 1;
-	uint16_t svid0, svid1;
+	uint16_t svid0=0, svid1=0;
+	int j_modes;
 	struct pd_discovery *disc = pd_get_am_discovery(port, type);
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d disc cnt%d input%x\n", port, disc->svid_cnt, cnt);
+#endif
 
 	for (i = disc->svid_cnt; i < disc->svid_cnt + 12; i += 2) {
 		if (i >= SVID_DISCOVERY_MAX) {
@@ -383,14 +388,29 @@ void dfp_consume_svids(int port, enum tcpm_transmit_type type, int cnt,
 		svid0 = PD_VDO_SVID_SVID0(*ptr);
 		if (!svid0)
 			break;
-		disc->svids[i].svid = svid0;
-		disc->svid_cnt++;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		CPRINTF("C%d svid0%x\n", port, svid0);
+#endif
+		for (j_modes = 0; j_modes < supported_modes_cnt; j_modes++) {
+			if (svid0 == supported_modes[j_modes].svid) {
+				disc->svids[disc->svid_cnt].svid = svid0;
+				disc->svid_cnt++;
+			}
+		}
 
 		svid1 = PD_VDO_SVID_SVID1(*ptr);
 		if (!svid1)
 			break;
-		disc->svids[i + 1].svid = svid1;
-		disc->svid_cnt++;
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		CPRINTF("C%d svid1%x\n", port, svid1);
+#endif
+		for (j_modes = 0; j_modes < supported_modes_cnt; j_modes++) {
+			if (svid1 == supported_modes[j_modes].svid) {
+				disc->svids[disc->svid_cnt].svid = svid1;
+				disc->svid_cnt++;
+			}
+		}
 		ptr++;
 		vdo++;
 	}
@@ -399,6 +419,9 @@ void dfp_consume_svids(int port, enum tcpm_transmit_type type, int cnt,
 		CPRINTF("ERR:SVID+12\n");
 
 	pd_set_svids_discovery(port, type, PD_DISC_COMPLETE);
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d disc cnt%d\n", port, disc->svid_cnt);
+#endif	
 }
 
 void dfp_consume_modes(int port, enum tcpm_transmit_type type, int cnt,
@@ -409,8 +432,16 @@ void dfp_consume_modes(int port, enum tcpm_transmit_type type, int cnt,
 	struct pd_discovery *disc = pd_get_am_discovery(port, type);
 	uint16_t response_svid = (uint16_t) PD_VDO_VID(payload[0]);
 
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d response_svid%x\n", port, response_svid);
+#endif
+
 	for (svid_idx = 0; svid_idx < disc->svid_cnt; ++svid_idx) {
 		uint16_t svid = disc->svids[svid_idx].svid;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d response_svid%x\n", port, svid);
+#endif
 
 		if (svid == response_svid) {
 			mode_discovery = &disc->svids[svid_idx];
