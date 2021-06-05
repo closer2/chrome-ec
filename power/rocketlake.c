@@ -119,6 +119,7 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_PROM19_EN, 0); */
     gpio_set_level(GPIO_EC_1V8_AUX_EN, 0);
     /* gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 0); */
+    gpio_set_level(GPIO_EC_3VSBSW, 0);
 
     /*
      * 1. disable interrupt;
@@ -288,6 +289,7 @@ enum power_state power_handle_state(enum power_state state)
 
         /* Exit SOC G3 */
         gpio_set_level(GPIO_EC_3V_5V_ALW_EN, 1);
+        gpio_set_level(GPIO_EC_3VSBSW, 1);
         msleep(10);
         gpio_set_level(GPIO_DSW_PWROK_EN, 1);
         /* PCH send SLP_SUS# delay time(t > 95ms) max wait 2s */
