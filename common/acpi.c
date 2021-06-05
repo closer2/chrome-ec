@@ -155,8 +155,7 @@ static int acpi_read(uint8_t addr)
 static void acpi_write(uint8_t addr, int w_data)
 {
     uint8_t *memmap_addr = (uint8_t *)(lpc_get_memmap_range() + addr);
-    
-    CPRINTS("ACPI IO(6266) write [0x%02x] -> [0x%02x] (pass)", w_data, addr);
+
     *memmap_addr = w_data;
 }
 
@@ -175,7 +174,7 @@ static void oem_bios_to_ec_command(void)
     uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
     uint8_t *mptr = NULL;
     
-    if(0 == *bios_cmd)
+    if(0x0 == *bios_cmd)
     {
         return;
     }
@@ -183,15 +182,15 @@ static void oem_bios_to_ec_command(void)
     if(0xFF != (*(bios_cmd+0xF) + *(bios_cmd)))
     {
         CPRINTS("Invalid BIOS command =[0x%02x]", *bios_cmd);
-        *(bios_cmd) = 0;
-        *(bios_cmd+0xF) = 0;
+        *(bios_cmd) = 0x0;
+        *(bios_cmd+0xF) = 0x0;
         *(bios_cmd+1) = 0xFF; /* unknown command */
         return;
     }
-    *(bios_cmd+0xF) = 0;
-    
-    *(bios_cmd+1) = 0x00;
-    CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+
+    *(bios_cmd + 0xF) = 0x0;
+    *(bios_cmd + 1) = 0x0;
+
     switch (*bios_cmd) {
     case 0x01 : /* BIOS write ec reset flag*/
         mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
@@ -434,15 +433,13 @@ static void oem_bios_to_ec_command(void)
         break;
     }
 
-    if (0x00 == *(bios_cmd+1)) {
-        CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
-        *(bios_cmd+1) = *bios_cmd; /* set status */
+    if (*bios_cmd) {
+        CPRINTS("ACPI 62/66 easy command-[0x%02x], status-[0x%02x], data0-[0x%02x], data1-[0x%02x], data2-[0x%02x]",
+            *bios_cmd,  *(bios_cmd + 1),*(bios_cmd + 2),  *(bios_cmd + 3),*(bios_cmd + 4));
     }
-    
     *bios_cmd = 0;
 }
 /*DECLARE_HOOK(HOOK_MSEC, oem_bios_to_ec_command, HOOK_PRIO_DEFAULT);*/
-
 
 #ifdef CONFIG_BIOS_CMD_TO_EC
 static int console_command_to_ec(int argc, char **argv)
