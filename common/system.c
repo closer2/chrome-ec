@@ -784,10 +784,17 @@ int system_get_board_version(void)
 int system_get_project_version(void)
 {
 #if defined(CONFIG_BOARD_VERSION_GPIO)
-	return
-		(!!gpio_get_level(GPIO_PROJECT_VERSION1) << 0) |
-		(!!gpio_get_level(GPIO_PROJECT_VERSION2) << 1) |
-		(!!gpio_get_level(GPIO_PROJECT_VERSION3) << 2);
+#ifdef NPCX_FAMILY_DT03
+    return
+        (!!gpio_get_level(GPIO_PROJECT_VERSION1) << 0) |
+        (!!gpio_get_level(GPIO_PROJECT_VERSION2) << 1);
+#else
+return
+    (!!gpio_get_level(GPIO_PROJECT_VERSION1) << 0) |
+    (!!gpio_get_level(GPIO_PROJECT_VERSION2) << 1) |
+    (!!gpio_get_level(GPIO_PROJECT_VERSION3) << 2);
+
+#endif
 #else
 	return 0;
 #endif

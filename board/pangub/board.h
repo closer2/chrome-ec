@@ -273,8 +273,6 @@
 #define GPIO_BOARD_VERSION3             GPIO_EC_BRD_ID2
 #define GPIO_PROJECT_VERSION1           GPIO_EC_PROJECT_ID0
 #define GPIO_PROJECT_VERSION2           GPIO_EC_PROJECT_ID1
-#define GPIO_PROJECT_VERSION3           GPIO_EC_PROJECT_ID2
-
 /*------------------------------------------------------------------------------
  * shutdown log ID define.
  * uint32_t shutdown_id.

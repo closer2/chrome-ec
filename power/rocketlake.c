@@ -140,8 +140,8 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
 
     /* gpio_set_level(GPIO_KBRST_L, 0); */
-    gpio_set_level(GPIO_F22_VCCIO0_VID0, 0);
-    gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
+    /* gpio_set_level(GPIO_F22_VCCIO0_VID0, 0); */
+    /* gpio_set_level(GPIO_F23_VCCIO0_VID1, 0); */
 
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }
@@ -518,8 +518,8 @@ enum power_state power_handle_state(enum power_state state)
         gpio_set_level(GPIO_EC_SLP_S3_L, 0);
         gpio_set_level(GPIO_EC_SLP_S3_PQ9309_L, 0);
 
-        gpio_set_level(GPIO_F22_VCCIO0_VID0, 0);
-        gpio_set_level(GPIO_F23_VCCIO0_VID1, 0);
+        /* gpio_set_level(GPIO_F22_VCCIO0_VID0, 0); */
+        /* gpio_set_level(GPIO_F23_VCCIO0_VID1, 0); */
 
         /* Call hooks before we remove power rails */
         hook_notify(HOOK_CHIPSET_SUSPEND);
