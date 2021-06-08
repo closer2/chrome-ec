@@ -3313,10 +3313,10 @@ void pd_task(void *u)
 				task_set_event(PD_PORT_TO_TASK_ID(port),
 					       TASK_EVENT_WAKE);
 		}
-
+#ifdef CONFIG_USB_PD_DUAL_ROLE
 		if (pd[port].req_suspend_state)
 			set_state(port, PD_STATE_SUSPENDED);
-
+#endif
 		/* if nothing to do, verify the state of the world in 500ms */
 		this_state = pd[port].task_state;
 		timeout = 500*MSEC;
