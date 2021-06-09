@@ -466,7 +466,14 @@ static void board_chipset_suspend(void)
     return;
 }
 DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, board_chipset_suspend, HOOK_PRIO_DEFAULT);
- 
+
+static void shutdown_ID_deferred(void)
+{
+    shutdown_cause_record(LOG_ID_SHUTDOWN_0x01);
+}
+DECLARE_DEFERRED(shutdown_ID_deferred);
+
+
 static void board_chipset_shutdown(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
@@ -489,7 +496,7 @@ static void board_chipset_shutdown(void)
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x02);
     } else {
         if (!get_abnormal_shutdown()) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x01);
+            hook_call_deferred(&shutdown_ID_deferred_data, 3*SECOND);
         }
     }
 

@@ -1964,9 +1964,12 @@ static void update_cause_ram_ags(uint32_t *data, uint32_t size)
 static void abnormalPowerDownTimes(void)
 {
     uint32_t *mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
+    uint32_t regVal = 0x0;
 
-    if (*mptr & 0xFC) {
-        if (*(mptr + 2) & LOG_ID_SHUTDOWN_0x08) {
+    regVal = *mptr & 0xFF;
+    if (regVal == (LOG_ID_SHUTDOWN_0xFC & 0xFF)) {
+        regVal = *(mptr + 2) & 0xFF;
+        if (regVal == (LOG_ID_SHUTDOWN_0x08 & 0xFF)) {
             g_abnormalPowerDownTimes++;
             mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
         } else {
@@ -1974,7 +1977,7 @@ static void abnormalPowerDownTimes(void)
             mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
         }
     } else {
-        if (*mptr & LOG_ID_SHUTDOWN_0x08) {
+        if (regVal == (LOG_ID_SHUTDOWN_0x08 & 0xFF)) {
             g_abnormalPowerDownTimes++;
             mfg_data_write(MFG_ABNORMAL_POWER_DOWN_TIMES_OFFSET, g_abnormalPowerDownTimes);
         } else {
