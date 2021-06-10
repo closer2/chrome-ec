@@ -148,10 +148,6 @@ static void chipset_force_g3(void)
 
 void chipset_force_power_off(uint32_t shutdown_id)
 {
-    if (shutdown_id == LOG_ID_SHUTDOWN_0x07) {
-        update_Cause_id(BIT(0));
-    }
-
     shutdown_cause_record(shutdown_id);
     CPRINTS("PSW 10s EC power off......");
     chipset_force_g3();

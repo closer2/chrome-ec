@@ -48,6 +48,7 @@ enum power_signal {
 /* All inputs in the right state for S0 */
 #define IN_ALL_S0 (IN_PGOOD_S0 | IN_ALL_PM_SLP_DEASSERTED)
 
+void update_Cause_id(uint16_t value);
 void set_abnormal_shutdown(uint8_t value);
 uint8_t get_abnormal_shutdown(void);
 

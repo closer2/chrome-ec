@@ -312,6 +312,11 @@ const char *system_get_build_info(void);
  */
 #define SYSTEM_RESET_STAY_IN_RO         BIT(6)
 
+/*
+ * Indicate that this reset was triggered by an power button press 10s watchdog
+ */
+#define SYSTEM_RESET_10_SHUT_DOWN       BIT(7)
+
 /**
  * Reset the system.
  *
@@ -398,6 +403,7 @@ enum system_bbram_idx {
 	SYSTEM_BBRAM_IDX_PD2,
 	SYSTEM_BBRAM_IDX_TRY_SLOT,
 	SYSTEM_BBRAM_IDX_SYSTEM_RESET, 
+	SYSTEM_BBRAM_IDX_EC_RESET
 };
 
 /* Maximum number of bbram indexes allotted for PD port state data */

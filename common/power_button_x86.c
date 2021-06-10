@@ -224,8 +224,18 @@ static void auto_power_on_control(void)
 
 #ifdef CONFIG_SYSTEM_RESET_DELAY
         system_get_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, &mfg_mode);
+        CPRINTS("==============SYSTEM_BBRAM_IDX_SYSTEM_RESET = %X", mfg_mode);
+
         if (mfg_mode == EC_GENERAL_SIGNES) {
-            pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+            mfg_mode = 0;
+            system_get_bbram(SYSTEM_BBRAM_IDX_EC_RESET, &mfg_mode);
+            CPRINTS("==============SYSTEM_BBRAM_IDX_EC_RESET = %X", mfg_mode);
+            if (mfg_mode == EC_GENERAL_SIGNES) {
+                pwrbtn_state = PWRBTN_STATE_IDLE;    /* power off */
+                system_set_bbram(SYSTEM_BBRAM_IDX_EC_RESET, 0x00);
+            } else {
+               pwrbtn_state = PWRBTN_STATE_INIT_ON;    /* power on */
+            }
             system_set_bbram(SYSTEM_BBRAM_IDX_SYSTEM_RESET, 0x00);
             return;
         }
@@ -234,7 +244,7 @@ static void auto_power_on_control(void)
         mfg_mode = mfg_data_read(MFG_MODE_OFFSET);
         ac_recovery_state = mfg_data_read(MFG_AC_RECOVERY_OFFSET);
         power_last_state = mfg_data_read(MFG_POWER_LAST_STATE_OFFSET);
-    
+
         CPRINTS("MFG Mode=%X, AC Recovery state=%X, Last state=%X",
                 mfg_mode, ac_recovery_state, power_last_state);
     
@@ -467,7 +477,9 @@ static void state_machine(uint64_t tnow)
         break;
     case PWRBTN_STATE_HELD_1:
         if (tnow > tnext_state) {
-            chipset_force_power_off(LOG_ID_SHUTDOWN_0x07);
+            shutdown_cause_record(LOG_ID_SHUTDOWN_0x07);
+            update_Cause_id(BIT(0));
+            system_reset(SYSTEM_RESET_10_SHUT_DOWN);
         }
 	case PWRBTN_STATE_EAT_RELEASE:
 		/* Do nothing */
