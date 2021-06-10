@@ -90,6 +90,11 @@ static const char * const state_names[] = {
     "was-off",
 };
 
+#ifdef NPCX_FAMILY_DT01
+/* 0xaa: powerbtn press 4s */
+uint8_t powerbtn_press_4s_flag;
+#endif
+
 /*
  * Time for next state transition of power button state machine, or 0 if the
  * state doesn't have a timeout.
@@ -452,6 +457,9 @@ static void state_machine(uint64_t tnow)
         break;
 	case PWRBTN_STATE_HELD:
         if (tnow > tnext_state) {
+            #ifdef NPCX_FAMILY_DT01
+            powerbtn_press_4s_flag = 0xaa;
+            #endif
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x06);
             tnext_state = tnow + PWRBTN_DELAY_T3;
 		    pwrbtn_state = PWRBTN_STATE_HELD_1;

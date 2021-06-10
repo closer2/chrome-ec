@@ -131,6 +131,9 @@ static void chipset_force_g3(void)
     /* gpio_set_level(GPIO_EC_ALERT_L, 0); */
     gpio_set_level(GPIO_EC_FCH_PWR_BTN_L, 0);
     gpio_set_level(GPIO_KBRST_L, 0);
+
+    /* clear powerbtn press 4s flag after g3 */
+    powerbtn_press_4s_flag = 0x00;
     
     CPRINTS("%s -> %s, Power state in G3", __FILE__, __func__);
 }

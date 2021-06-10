@@ -40,6 +40,11 @@
 /* Timeout for dropping back from S5 to G3 */
 #define S5_INACTIVITY_TIMEOUT (10 * SECOND)
 
+#ifdef NPCX_FAMILY_DT01
+/* Powerbtn press 4s timeout for dropping back from S5 to G3 */
+#define SPECIAL_S5_INACTIVITY_TIMEOUT (2 * SECOND)
+#endif
+
 static const char * const state_names[] = {
 	"G3",
 	"S5",
@@ -561,6 +566,13 @@ static enum power_state power_common_state(enum power_state state)
             if (((*mptr) & EC_MEMMAP_DISABLE_G3) || (want_reboot_ap_at_g3)
                 || get_lan_wake_enable()) {
                 task_wait_event(-1); /* chipset task pause for wait wakeup */
+            #ifdef NPCX_FAMILY_DT01
+            } else if (0xaa == powerbtn_press_4s_flag) {
+                if (task_wait_event(SPECIAL_S5_INACTIVITY_TIMEOUT) == TASK_EVENT_TIMER) {
+                    /* Prepare to drop to G3; wake not requested yet */
+                    return POWER_S5G3;
+                }
+            #endif
             } else {
                 if (task_wait_event(S5_INACTIVITY_TIMEOUT) == TASK_EVENT_TIMER) {
             		/* Prepare to drop to G3; wake not requested yet */

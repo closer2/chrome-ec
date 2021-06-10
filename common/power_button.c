@@ -261,6 +261,12 @@ uint8_t get_lan_wake_enable(void)
 {
     uint8_t *mptr = host_get_memmap(EC_MEMMAP_SYS_MISC2);
 
+    #ifdef NPCX_FAMILY_DT01
+    if(0xaa == powerbtn_press_4s_flag) {
+        return 0;
+    }
+    #endif
+
     if (*mptr & (EC_MEMMAP_POWER_LAN_WAKE | EC_MEMMAP_POWER_WLAN_WAKE)) {
         return 1;
     }

@@ -41,6 +41,10 @@ enum power_button_state {
 	PWRBTN_STATE_WAS_OFF,
 };
 
+#ifdef NPCX_FAMILY_DT01
+extern uint8_t powerbtn_press_4s_flag;
+#endif
+
 /**
  * Return non-zero if power button is pressed.
  *
