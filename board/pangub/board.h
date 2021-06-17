@@ -137,7 +137,8 @@
 #undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
 #undef CONFIG_FINAL_RELEASE                 /* define it when final release */
 #define CONFIG_LAN_WAKE_SWITCH              /* support lan/wlan wake */
-#define CONFIG_AUDIO_HEADSET_VOLUME          /* support headset volume */
+#define CONFIG_AUDIO_TS3A227E               /* support headset volume */
+
 #define HAS_TASK_KEYPROTO
 #define CONFIG_KEYBOARD_PROTOCOL_8042
 
@@ -486,7 +487,7 @@ void board_print_temps(void);
 void cpu_plt_reset_interrupt(enum gpio_signal signal);
 #endif
 
-#ifdef CONFIG_AUDIO_HEADSET_VOLUME
+#ifdef CONFIG_AUDIO_TS3A227E
 void audio_ts3a227_interrupt(enum gpio_signal signal);
 #else
 static inline void audio_ts3a227_interrupt(enum gpio_signal signal) { }

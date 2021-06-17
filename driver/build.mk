@@ -200,5 +200,5 @@ driver-$(HAS_TASK_WPC) += wpc/p9221.o
 driver-$(CONFIG_MP4245)+=mp4245.o
 
 driver-$(CONFIG_AUDIO_SWITCH)+=audio_switch.o
-driver-$(CONFIG_AUDIO_HEADSET_VOLUME)+=heaset_scancode.o
+driver-$(CONFIG_AUDIO_TS3A227E)+=ts3a227e.o
 
