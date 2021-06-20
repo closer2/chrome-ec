@@ -31,4 +31,20 @@ void port_80_write(int data);
  */
 int port_80_read(void);
 
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+/**
+ * Init vdm sending.
+ *
+ * @return .
+ */
+void vdm_80_init(void);
+
+/**
+ * VDM get sending length.
+ *
+ * @return port80 buffer and length,
+ */
+int vdm_80_get(uint32_t *payload);
+#endif
+
 #endif  /* __CROS_EC_PORT80_H */

@@ -1248,7 +1248,12 @@ __overridable int svdm_gfu_status(int port, uint32_t *payload)
 	 * This is called after enter mode is successful, send unstructured
 	 * VDM to read info.
 	 */
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+	pd_send_vdm(port, USB_VID_GOOGLE, VDO_CMD_HUAWEI_GET_FUNCTIONS, NULL, 0);
+	return 0;
+#else
 	pd_send_vdm(port, USB_VID_GOOGLE, VDO_CMD_READ_INFO, NULL, 0);
+#endif
 	return 0;
 }
 

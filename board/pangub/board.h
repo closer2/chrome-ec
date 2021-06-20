@@ -216,6 +216,97 @@
 
 /* #define CONFIG_USB_PD_DEBUG_LEVEL  2 */
 
+#ifndef __ASSEMBLER__
+/*
+ * Supported Command
+ *
+ * Note: Function Code
+ * 1: EC Debug Function
+ * Others reserved: Reserved Function
+ * 25..31: Should not be used
+ */
+enum huawei_pd_command{
+    HUAWEI_COMMON_FUNCTION = 0,
+    HUAWEI_EC_DEBUG_FUNCTION,
+};
+
+/*
+ * Supported EC Debug Command
+ *
+ * Note: Command Code
+ * 0: Get support commands
+ * 1: EC sends 80H 81H POST Code
+ * 2: EC requires Debug Card to trigger NMI
+ * 3: 4:1 MUX contorl
+ */
+enum huawei_pd_ec_debug_command{
+    HUAWEI_EC_GET_SUPPORT = 0,
+    HUAWEI_EC_SEND_80,
+    HUAWEI_EC_NMI,
+    HUAWEI_EC_MUX,
+};
+
+/* debug code first 80*/
+union postcode_vdo1 {
+	struct {
+		unsigned short post_code : 16;
+		unsigned short send_cnt  : 8;
+		unsigned short reserved0 : 4;
+		unsigned short code_num  : 4;
+	};
+	unsigned int raw_value;
+};
+
+/* debug code remain 80*/
+union postcode_vdo2_6 {
+	struct {
+		unsigned short post_code1 : 16;
+		unsigned short post_code2 : 16;
+	};
+	unsigned int raw_value;
+};
+
+#endif
+
+#define CONFIG_USB_HUAWEI_DEBUG_CARD
+/*
+ * VDM Huawei Debug Card
+ * ----------
+ * <14:13>  :: Structured VDM version (00b == Rev 2.0, 01b == Rev 3.0 )
+ * <12:8>   :: 00 common function
+ * <7:1>    :: 1 Get the Supported Functions
+ * <0>      :: initial
+ */
+#define HUAWEI_GET_FUNCTIONS          BIT(1)
+#define VDO_CMD_HUAWEI_GET_FUNCTIONS  ((CMD_DP_CONFIG +1) + (HUAWEI_GET_FUNCTIONS << 5))
+#define HAWEI_VDO_DATA(vdo)           ((vdo) >> 5)
+
+#define HAWEI_VDO_FUNCTION(vdo)           (((vdo) >> 8) & 0x1f)
+#define HAWEI_VDO_COMMAND(vdo)            (((vdo) >> 1) & 0x7f)
+
+/*
+ * VDM Huawei EC Debug Function VDM Header
+ * ----------
+ * <14:13>  :: Structured VDM version (00b == Rev 2.0, 01b == Rev 3.0 )
+ * <12:8>   :: 01 EC Debug Function
+ * <7:1>    :: 0 Get Supported commands
+ * <0>      :: initial
+ */
+#define HUAWEI_CMD_EC_GET_SUPPORTED_FUNCTIONS        BIT(8)
+#define VDO_CMD_HUAWEI_GET_SUPPORTED  ((CMD_DP_CONFIG +2) + (HUAWEI_CMD_EC_GET_SUPPORTED_FUNCTIONS << 5))
+
+#define HUAWEI_CMD_EC_SEND_80                        (BIT(8) + (HUAWEI_EC_SEND_80 << 1))
+#define VDO_CMD_HUAWEI_EC_SEND_80H    ((CMD_DP_CONFIG +3) + (HUAWEI_CMD_EC_SEND_80 << 5))
+
+/*
+ * one port80 is uint16,  one vdo is uint32.  So one vdo can carry two port80
+ */
+#define HUAWEI_VDO_PORT80_NUM      2
+
+#define HUAWEI_VDO_PORT80_MAX(pdo_num)      (((pdo_num -1) *HUAWEI_VDO_PORT80_NUM) -1)
+
+#define HUAWEI_CMD_INTER_GAP  (500*MSEC)
+
 #define CONFIG_NUM_FIXED_BATTERIES  0           /* Used duing VIF generation*/
 #define CONFIG_USB_PD_MODEL_PART_NUMBER "DT01"  /* Used duing VIF generation*/
 #define CONFIG_USB_PD_PRODUCT_REVISION  "V02"   /* Used duing VIF generation*/

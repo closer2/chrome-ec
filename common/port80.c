@@ -18,12 +18,22 @@
 #include "wmi_port.h"
 #endif
 
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+#include "usb_pd.h"
+#endif
+
 #define CPRINTF(format, args...) cprintf(CC_PORT80, format, ## args)
 
 static uint16_t __bss_slow history[CONFIG_PORT80_HISTORY_LEN];
 static int __bss_slow writes;    /* Number of port 80 writes so far */
 static int last_boot; /* Last code from previous boot */
 static int __bss_slow scroll;
+
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+static int __bss_slow vdm_head;
+static int __bss_slow vdm_tail;
+static int __bss_slow vdm_send_cnt;
+#endif
 
 #ifdef CONFIG_BRINGUP
 #undef CONFIG_PORT80_PRINT_IN_INT
@@ -34,6 +44,68 @@ static int print_in_int = CONFIG_PORT80_PRINT_IN_INT;
 
 static void port80_dump_buffer(void);
 DECLARE_DEFERRED(port80_dump_buffer);
+
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+void vdm_80_init(void)
+{
+	vdm_send_cnt = 0;
+	vdm_head = writes;
+	if (vdm_head > ARRAY_SIZE(history))
+		vdm_tail = vdm_head - ARRAY_SIZE(history);
+	else
+		vdm_tail = 0;
+}
+int vdm_80_get(uint32_t *payload)
+{
+	union postcode_vdo1 pdo1 = {0};
+	union postcode_vdo2_6 pdo2_6;
+	int port80_len = vdm_head - vdm_tail;
+	int vdm_port80_max = HUAWEI_VDO_PORT80_MAX(VDO_MAX_SIZE);
+	int port80_head;
+	int vdm_len;
+
+	if (port80_len <=0) {
+		return 0;
+	}
+
+	if (port80_len > vdm_port80_max) {
+		port80_len = vdm_port80_max;
+	}
+
+	port80_head = vdm_tail + port80_len;
+	vdm_len = (port80_len + 1 +1)/2;
+
+	pdo1.code_num = port80_len;
+	pdo1.reserved0 = pdo1.code_num;
+	pdo1.send_cnt = ++vdm_send_cnt;
+	pdo1.post_code = history[vdm_tail++];
+	payload[0] = pdo1.raw_value;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("uvdm tail%d 80head%d head%d len%d vdm_len%d payload%x\n", vdm_tail, port80_head, vdm_head, port80_len, vdm_len, payload[0]);
+#endif
+
+	for (int i=1; vdm_tail < port80_head;) {
+		int e = history[vdm_tail++ % ARRAY_SIZE(history)];
+		if (e == PORT_80_EVENT_RESUME || e == PORT_80_EVENT_RESET) {
+			e = history[vdm_tail++ % ARRAY_SIZE(history)];
+		}
+		pdo2_6.post_code2 = e;
+		e = history[vdm_tail++ % ARRAY_SIZE(history)];
+		if (e == PORT_80_EVENT_RESUME || e == PORT_80_EVENT_RESET) {
+			e = history[vdm_tail++ % ARRAY_SIZE(history)];
+		}
+		pdo2_6.post_code1 = e;
+		payload[i++] = pdo2_6.raw_value;
+
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+		CPRINTF("single port80 payload%x\n", pdo2_6.raw_value);
+#endif
+	}
+
+	return 6;
+}
+#endif
 
 void port_80_write(int data)
 {

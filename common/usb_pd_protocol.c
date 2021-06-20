@@ -2205,14 +2205,25 @@ void pd_send_vdm(int port, uint32_t vid, int cmd, const uint32_t *data,
 	}
 
 	/* set VDM header with VID & CMD */
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+	if (cmd > CMD_DP_CONFIG) {
+		pd[port].vdo_data[0] = VDO(vid, 0, HAWEI_VDO_DATA(cmd));
+	} else {
+		pd[port].vdo_data[0] = VDO(vid, ((vid & USB_SID_PD) == USB_SID_PD) ?
+				   1 : (PD_VDO_CMD(cmd) <= CMD_ATTENTION), cmd);
+	}
+#else
 	pd[port].vdo_data[0] = VDO(vid, ((vid & USB_SID_PD) == USB_SID_PD) ?
 				   1 : (PD_VDO_CMD(cmd) <= CMD_ATTENTION), cmd);
+#endif
+
 #ifdef CONFIG_USB_PD_REV30
 	pd[port].vdo_data[0] |= VDO_SVDM_VERS(vdo_ver[pd[port].rev]);
 #endif
+
 #ifdef CONFIG_USB_PD_TCPMV1_DEBUG
 	if (debug_level > 0) {
-		CPRINTF("C%d send vdm vdo0x%x\n", port, pd[port].vdo_data[0]);
+		CPRINTF("C%d send vdm cmd%x vdo%x\n", port, cmd, pd[port].vdo_data[0]);
 	}
 #endif
 	queue_vdm(port, pd[port].vdo_data, data, count, TCPC_TX_SOP);
@@ -3155,7 +3166,7 @@ void pd_task(void *u)
 
 #ifdef CONFIG_USB_PD_TCPMV1_DEBUG
 		if (debug_level >= 2) {
-			if (pd[port].task_state > PD_STATE_SRC_DISCONNECTED) {
+			if (pd[port].task_state != this_state) {
 				CPRINTS("C%d current %s task wait %d", port, pd_state_names[pd[port].task_state], timeout);
 			}
 		}

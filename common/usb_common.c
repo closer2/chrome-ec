@@ -30,6 +30,10 @@
 #include "usbc_ppc.h"
 #include "util.h"
 
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+#include "port80.h"
+#endif
+
 #ifdef CONFIG_COMMON_RUNTIME
 #define CPRINTS(format, args...) cprints(CC_USBPD, format, ## args)
 #define CPRINTF(format, args...) cprintf(CC_USBPD, format, ## args)
@@ -635,6 +639,11 @@ __overridable int pd_custom_vdm(int port, int cnt, uint32_t *payload,
 	uint16_t dev_id = 0;
 	int is_rw, is_latest;
 
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+	int vdm_func = HAWEI_VDO_FUNCTION(payload[0]);
+	int vdm_comm = HAWEI_VDO_COMMAND(payload[0]);
+#endif
+
 	/* make sure we have some payload */
 	if (cnt == 0)
 		return 0;
@@ -642,6 +651,32 @@ __overridable int pd_custom_vdm(int port, int cnt, uint32_t *payload,
 	/* Only handle custom requests for SVID Google */
 	if (PD_VDO_VID(*payload) != USB_VID_GOOGLE)
 		return 0;
+
+#ifdef CONFIG_USB_HUAWEI_DEBUG_CARD
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+	CPRINTF("C%d uvdm vdm_func%d vdm_comm%d\n", port, vdm_func, vdm_comm);
+#endif
+	if (vdm_func == HUAWEI_COMMON_FUNCTION) {
+		vdm_80_init();
+		task_wait_event(HUAWEI_CMD_INTER_GAP);
+		pd_send_vdm(port, USB_VID_GOOGLE, VDO_CMD_HUAWEI_GET_SUPPORTED, NULL, 0);
+	} else if (vdm_func == HUAWEI_EC_DEBUG_FUNCTION) {
+		int vdm_80 = 0;
+		switch (vdm_comm) {
+		case HUAWEI_EC_GET_SUPPORT:
+			CPRINTF("C%d support%x\n", port, payload[1]);
+		case HUAWEI_EC_SEND_80:
+			vdm_80 = vdm_80_get(payload+1);
+			if (vdm_80) {
+				CPRINTF("C%d payload%x vdm_80%d\n", port, payload[1], vdm_80);
+				task_wait_event(HUAWEI_CMD_INTER_GAP);
+				pd_send_vdm(port, USB_VID_GOOGLE, VDO_CMD_HUAWEI_EC_SEND_80H, &payload[1], vdm_80);
+			}
+		break;
+		}
+	}
+	return 0;
+#endif
 
 	switch (cmd) {
 	case VDO_CMD_VERSION:

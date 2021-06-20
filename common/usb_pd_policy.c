@@ -680,7 +680,7 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 	*rpayload = payload;
 
 #ifdef CONFIG_USB_PD_TCPMV1_DEBUG
-	CPRINTF("C%d type%d cmd%s\n", port, cmd_type, vdm_cmd_names[cmd]);
+	CPRINTF("C%d svdm type%d cmd%s\n", port, cmd_type, vdm_cmd_names[cmd]);
 #endif
 
 	if (cmd_type == CMDT_INIT) {
@@ -831,6 +831,9 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 			} else if (!modep) {
 				rsize = 0;
 			} else {
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				CPRINTF("C%d enter mode ++, opos%x payload%x\n", port, modep->opos, payload[0]);
+#endif
 				if (!modep->opos)
 					pd_dfp_enter_mode(port, TCPC_TX_SOP, 0,
 							0);
@@ -840,6 +843,9 @@ int pd_svdm(int port, int cnt, uint32_t *payload, uint32_t **rpayload,
 								  payload);
 					payload[0] |= PD_VDO_OPOS(modep->opos);
 				}
+#ifdef CONFIG_USB_PD_TCPMV1_DEBUG
+				CPRINTF("C%d enter mode --, opos%x payload%x\n", port, modep->opos, payload[0]);
+#endif
 			}
 			break;
 		case CMD_DP_STATUS:
