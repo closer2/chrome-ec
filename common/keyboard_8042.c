@@ -710,6 +710,10 @@ static int handle_keyboard_data(uint8_t data, uint8_t *output)
 			reset_rate_and_delay();
 			keyboard_clear_buffer();
 			output[out_len++] = I8042_RET_ACK;
+        /* 2021.6.21 huangyuan 0xff Reset Keyboard,return AAh=Success, FCh=Failed. */
+        #ifdef CONFIG_8048_RESET_KEYBOARD
+            output[out_len++] = I8042_RET_KEYBOARD;
+        #endif
 			break;
 
 		case I8042_CMD_RESEND:

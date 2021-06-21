@@ -66,6 +66,7 @@
 #define I8042_PULSE_END         0xff
 
 /* port 0x60 return value */
+#define I8042_RET_KEYBOARD      0xaa
 #define I8042_RET_EMUL0         0xe0
 #define I8042_RET_EMUL1         0xe1
 #define I8042_RET_ECHO          0xee
