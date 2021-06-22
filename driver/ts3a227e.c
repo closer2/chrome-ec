@@ -253,10 +253,8 @@ static void ts3a227e_resume(void)
     regmap_update_bits(TS3A227E_REG_SETTING_3, MICBIAS_SETTING_MASK | BIT(0) | BIT(1),
         MICBIAS_SETTING_VALUE | BIT(0) | BIT(1));
 
-
     /* regmap_update_bits(TS3A227E_REG_SETTING_1, BIT(0) | BIT(1) | BIT(2),
         BIT(0)); */
-
 
     /* i2c_write8(NPCX_I2C_PORT1_0, TS3A227E_SLAVE_ADDRESS,
                     0x0D, 0x30); */
@@ -282,6 +280,8 @@ static void ts3a227e_resume(void)
     /* ts3a227e_jack_report(ts3a227e); */
 
     gpio_enable_interrupt(GPIO_EC_TS3A227_INT);
+
+    task_wake(TASK_ID_TS3A227E);
 
     CPRINTS("ts3a227e, Initialization successful");
 }
