@@ -19,6 +19,15 @@
 #include "uart.h"
 #include "util.h"
 
+#ifdef CONFIG_CONSOLE_COMMAND
+/* Console output macros */
+#define CPUTS(outstr) cputs(CC_UART, outstr)
+#define CPRINTF(format, args...) cprintf(CC_UART, format, ## args)
+#define CPRINTS(format, args...) cprints(CC_UART, format, ## args)
+
+uint8_t console_cmd_flag;
+#endif
+
 /* Macros to advance in the circular buffers */
 #define TX_BUF_NEXT(i) (((i) + 1) & (CONFIG_UART_TX_BUF_SIZE - 1))
 #define RX_BUF_NEXT(i) (((i) + 1) & (CONFIG_UART_RX_BUF_SIZE - 1))
@@ -109,7 +118,13 @@ static int __tx_char_raw(void *context, int c)
 	if (tx_buf_next == tx_next_snapshot_head)
 		tx_next_snapshot_head = tx_buf_new_tail;
 
-	tx_buf[tx_buf_head] = c;
+#ifdef CONFIG_CONSOLE_COMMAND
+    if(console_cmd_flag == 0x00) {
+        tx_buf[tx_buf_head] = c;
+    }
+#else
+    tx_buf[tx_buf_head] = c;
+#endif
 	tx_buf_head = tx_buf_next;
 
 	if (IS_ENABLED(CONFIG_PRESERVE_LOGS))
@@ -522,3 +537,45 @@ int uart_console_read_buffer(uint8_t type,
 
 	return EC_RES_SUCCESS;
 }
+
+/*****************************************************************************/
+#ifdef CONFIG_CONSOLE_COMMAND
+/* Console commands */
+static int command_console(int argc, char **argv)
+{
+    int rv;
+    uint16_t size = 128;
+    uint16_t index = 0;
+    char dest[size];
+    int *tail;
+
+    console_cmd_flag = 0x01;
+
+    rv = uart_console_read_buffer_init();
+    if (rv < 0)
+        return rv;
+
+    tail = &tx_last_snapshot_head;
+
+    while (*tail != tx_snapshot_head) {
+        index = 0;
+
+        while (*tail != tx_snapshot_head && index < size - 1) {
+            if (tx_buf[*tail]) {
+                dest[index++] = tx_buf[*tail];
+            }
+            *tail = TX_BUF_NEXT(*tail);
+        }
+        dest[index] = '\0';
+        CPRINTF("%s", dest);
+    }
+
+    console_cmd_flag = 0x00;
+    CPUTS("\r-----uart buffer read done!!!\n");
+
+    return EC_SUCCESS;
+}
+DECLARE_CONSOLE_COMMAND(console, command_console,
+            NULL,
+            "Show the last output to the EC debug console");
+#endif

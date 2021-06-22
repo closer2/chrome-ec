@@ -91,7 +91,7 @@
 
 /* Increase console output buffer since we have the RAM available. */
 #undef CONFIG_UART_TX_BUF_SIZE
-#define CONFIG_UART_TX_BUF_SIZE 4096
+#define CONFIG_UART_TX_BUF_SIZE 8192
 
 /*------------------------------------------------------------------------------
 * Board config
@@ -117,7 +117,8 @@
                         CC_MASK(CC_COMMAND)| \
                         CC_MASK(CC_SWITCH) | \
                         CC_MASK(CC_LPC) | \
-                        CC_MASK(CC_USBPD))
+                        CC_MASK(CC_USBPD) | \
+                        CC_MASK(CC_UART))
 
 
 #define CONFIG_IO800_WRITE_PROTECT          /* for IO/800-8CF write protection */
@@ -142,6 +143,8 @@
 #define HAS_TASK_KEYPROTO
 #define CONFIG_KEYBOARD_PROTOCOL_8042
 #define CONFIG_8048_RESET_KEYBOARD
+
+#define HAS_TASK_UART
 
 /* TODO: remove VBOOT option */
 /*#define CONFIG_VBOOT_EFS2
@@ -182,8 +185,9 @@
 #define FAN_DUTY_50_RPM                200   /* fan set duty 50%, check rpm > 200 */
 #define FAN_SET_RPM_TARGET             1200  /* fan set duty 50%, rpm =1200*/
 
-#undef CONFIG_CONSOLE_THERMAL_TEST           /* console thermal test */
+#undef CONFIG_CONSOLE_THERMAL_TEST          /* console thermal test */
 #undef CONFIG_CONSOLE_CHASSIS_TEST          /* console chassis test */
+#define CONFIG_CONSOLE_COMMAND              /* console cmd for debug */
 
 /*------------------------------------------------------------------------------
 * USB-C define for pangu-l

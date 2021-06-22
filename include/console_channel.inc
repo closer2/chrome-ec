@@ -97,6 +97,9 @@ CONSOLE_CHANNEL(CC_DPTF,         "dptf")
 CONSOLE_CHANNEL(CC_ALS,		 "als")
 #endif
 CONSOLE_CHANNEL(CC_THERMAL,      "thermal")
+#ifdef HAS_TASK_UART
+CONSOLE_CHANNEL(CC_UART,         "uart")
+#endif
 CONSOLE_CHANNEL(CC_USB,          "usb")
 CONSOLE_CHANNEL(CC_USBCHARGE,    "usbcharge")
 #if defined(CONFIG_USB_POWER_DELIVERY) || defined(CONFIG_USB_PD_TCPC)
