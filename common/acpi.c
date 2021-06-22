@@ -155,8 +155,7 @@ static int acpi_read(uint8_t addr)
 static void acpi_write(uint8_t addr, int w_data)
 {
     uint8_t *memmap_addr = (uint8_t *)(lpc_get_memmap_range() + addr);
-    
-    CPRINTS("ACPI IO(6266) write [0x%02x] -> [0x%02x] (pass)", w_data, addr);
+
     *memmap_addr = w_data;
 }
 
