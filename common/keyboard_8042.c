@@ -894,6 +894,22 @@ static void i8042_handle_from_host(void)
 	}
 }
 
+#ifdef NPCX_FAMILY_DT03
+static void keyboard_disable(void)
+{
+    uint8_t orig = 0x0;
+
+    /* Need to disable keyboard, when it is s5 */
+    keyboard_enable_irq(orig);
+    keyboard_enable(orig);
+
+    /* Need to disable aux when it is s5 */
+    aux_enable_irq(orig);
+    aux_enable(orig);
+}
+DECLARE_HOOK(HOOK_CHIPSET_SUSPEND, keyboard_disable, HOOK_PRIO_DEFAULT);
+#endif
+
 void keyboard_protocol_task(void *u)
 {
 	int wait = -1;

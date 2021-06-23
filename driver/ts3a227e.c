@@ -109,7 +109,7 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
             CPRINTS("**********************Play/stop--key0--press");
         } else {
             if (SND_JACK_BTN_0_R & ts3a227e->buttons_press) {
-                CPRINTS("**********************Play/stop--key0--repress ");
+                CPRINTS("**********************Play/stop--key0--release ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_PLAY, 0);
             }
         }
@@ -120,7 +120,7 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
             keyboard_update_button(KEYBOARD_BUTTON_VOLUME_UP, 1);
         } else {
             if (SND_JACK_BTN_2_R & ts3a227e->buttons_press) {
-                CPRINTS("**********************volume up--key2--repress ");
+                CPRINTS("**********************volume up--key2--release  ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_UP, 0);
             }
         }
@@ -131,7 +131,7 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
             keyboard_update_button(KEYBOARD_BUTTON_VOLUME_DOWN, 1);
         } else {
             if (SND_JACK_BTN_3_R & ts3a227e->buttons_press ) {
-                CPRINTS("**********************volume down--key3--repress ");
+                CPRINTS("**********************volume down--key3--release ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_DOWN, 0);
             }
         }
