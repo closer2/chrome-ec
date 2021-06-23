@@ -623,6 +623,11 @@ void host_register_init(void)
     /* Bank Select Enable */
     sib_write_reg(SIO_OFFSET, 0xF0,
 			sib_read_reg(SIO_OFFSET, 0xF0) | 0x82);
+
+    #ifdef NPCX_FAMILY_DT03
+    /* set SIOCF1.SPIRQ_MOD = 0x01 */
+    sib_write_reg(SIO_OFFSET, 0x21, 0x13);
+    #endif
 #endif    
 
 	/* enable ACPI*/
