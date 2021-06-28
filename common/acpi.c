@@ -174,23 +174,24 @@ static void oem_bios_to_ec_command(void)
     uint8_t *bios_cmd = host_get_memmap(EC_MEMMAP_BIOS_CMD);
     uint8_t *mptr = NULL;
     
-    if(0 == *bios_cmd)
+    if(0x00 == *bios_cmd)
     {
         return;
     }
 
-    if(0xFF != (*(bios_cmd+0xF) + *(bios_cmd)))
+    if(0xFF != (*(bios_cmd+0x0F) + *(bios_cmd)))
     {
         CPRINTS("Invalid BIOS command =[0x%02x]", *bios_cmd);
-        *(bios_cmd) = 0;
-        *(bios_cmd+0xF) = 0;
-        *(bios_cmd+1) = 0xFF; /* unknown command */
+        *(bios_cmd) = 0x00;
+        *(bios_cmd + 0x0F) = 0x00;
+        *(bios_cmd + 0x01) = 0xFF; /* unknown command */
         return;
     }
-    *(bios_cmd+0xF) = 0;
-    
-    *(bios_cmd+1) = 0x00;
-    CPRINTS("BIOS command start =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+
+    *(bios_cmd + 0x0F) = 0x00;
+    *(bios_cmd + 0x01) = 0x00;
+    CPRINTS("BIOS command start=[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+
     switch (*bios_cmd) {
     case 0x01 : /* BIOS write ec reset flag*/
         mptr = host_get_memmap(EC_MEMMAP_RESET_FLAG);
@@ -434,7 +435,7 @@ static void oem_bios_to_ec_command(void)
     }
 
     if (0x00 == *(bios_cmd+1)) {
-        CPRINTS("BIOS command end =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
+        CPRINTS("BIOS command end  =[0x%02x], data=[0x%02x]", *bios_cmd, *(bios_cmd+2));
         *(bios_cmd+1) = *bios_cmd; /* set status */
     }
     *bios_cmd = 0;
