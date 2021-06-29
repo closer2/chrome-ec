@@ -256,9 +256,9 @@ const struct thermal_level_s t_i5_uma_thermal_cpu_fan_cpu_ntc = {
 /* UMP sys fan sensor SSD1 NTC*/
 const struct thermal_level_ags i7_uma_thermal_sys_fan_ssd1_ntc[] = {
 /* level    RPM        HowTri       lowTri */
-    {0,     700,      43,   UMA_SYS_FAN_START_TEMP},
-    {1,     900,      47,   42},
-    {2,     1200,     51,   45},
+    {0,     700,      44,   UMA_SYS_FAN_START_TEMP},
+    {1,     900,      48,   43},
+    {2,     1200,     51,   46},
     {3,     1500,     55,   49},
     {4,     1800,     60,   53},
     {5,     2000,     65,   58},
@@ -274,8 +274,8 @@ const struct thermal_level_s t_i7_uma_thermal_sys_fan_ssd1_ntc = {
 const struct thermal_level_ags i7_uma_thermal_sys_fan_ssd2_ntc[] = {
 /* level    RPM        HowTri       lowTri */
     {0,     700,      44,   UMA_SYS_FAN_START_TEMP},
-    {1,     900,      47,   43},
-    {2,     1200,     51,   45},
+    {1,     900,      48,   43},
+    {2,     1200,     51,   46},
     {3,     1500,     55,   49},
     {4,     1800,     60,   53},
     {5,     2000,     65,   58},
@@ -291,11 +291,11 @@ const struct thermal_level_s t_i7_uma_thermal_sys_fan_ssd2_ntc = {
 const struct thermal_level_ags i7_uma_thermal_sys_fan_memory_ntc[] = {
 /* level    RPM        HowTri       lowTri */
     {0,     700,      40,   UMA_SYS_FAN_START_TEMP},
-    {1,     900,      55,   39},
-    {2,     1200,     58,   54},
-    {3,     1500,     60,   57},
-    {4,     1800,     62,   59},
-    {5,     2000,     70,   61},
+    {1,     900,      50,   39},
+    {2,     1200,     58,   48},
+    {3,     1500,     60,   56},
+    {4,     1800,     62,   58},
+    {5,     2000,     70,   60},
     {6,     2800,     70,   68}
 };
 const struct thermal_level_s t_i7_uma_thermal_sys_fan_memory_ntc = {
@@ -309,10 +309,10 @@ const struct thermal_level_ags  i7_uma_thermal_cpu_fan_cpu_dts[] = {
 /* level    RPM        HowTri       lowTri */
     {0,     700,      36,   UMA_CPU_FAN_START_TEMP},
     {1,     1000,     65,   35},
-    {2,     1200,     83,   63},
-    {3,     1500,     89,   81},
-    {4,     1700,     91,   87},
-    {5,     1900,     95,   89},
+    {2,     1200,     74,   63},
+    {3,     1500,     80,   72},
+    {4,     1700,     88,   78},
+    {5,     1900,     95,   86},
     {6,     2800,     95,   93}
 };
 const struct thermal_level_s t_i7_uma_thermal_cpu_fan_cpu_dts = {
@@ -326,11 +326,11 @@ const struct thermal_level_ags i7_uma_thermal_cpu_fan_cpu_ntc[] = {
 /* level    RPM        HowTri       lowTri */
     {0,     700,      36,   UMA_CPU_FAN_START_TEMP},
     {1,     1000,     60,   35},
-    {2,     1200,     75,   58},
-    {3,     1500,     79,   73},
-    {4,     1700,     81,   77},
-    {5,     1900,     86,   79},
-    {6,     2800,     86,   83}
+    {2,     1200,     74,   58},
+    {3,     1500,     80,   72},
+    {4,     1700,     88,   78},
+    {5,     1900,     95,   86},
+    {6,     2800,     95,   93}
 }; 
 const struct thermal_level_s t_i7_uma_thermal_cpu_fan_cpu_ntc = {
     .name = "CPU NTC",
