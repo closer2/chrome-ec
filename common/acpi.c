@@ -391,6 +391,8 @@ static void oem_bios_to_ec_command(void)
             *(bios_cmd+3) = getAbnormalPowerDownTimes();
         } else if (0x02 == *(bios_cmd+2)) {
             clearAbnormalPowerDownTimes();
+        } else if (0x03 == *(bios_cmd+2)) {
+            powerled_set_state_blink(POWERLED_STATE_BLINK, LED_BLINK_TIME_TYPE1);
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

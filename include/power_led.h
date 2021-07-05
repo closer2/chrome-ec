@@ -18,6 +18,11 @@ enum powerled_state {
     POWERLED_STATE_COUNT
 };
 
+enum powerled_state_blink {
+    LED_BLINK_TIME_TYPE = 0x1,
+    LED_BLINK_TIME_TYPE1 = 0x2,
+};
+
 #ifdef HAS_TASK_POWERLED
 
 /**
@@ -26,10 +31,11 @@ enum powerled_state {
  * @param state		Target state
  */
 void powerled_set_state(enum powerled_state state);
-
+void powerled_set_state_blink(enum powerled_state new_state, uint8_t type);
 #else
 
 static inline void powerled_set_state(enum powerled_state state) {}
+static inline void powerled_set_state_blink(enum powerled_state new_state, uint8_t type) {};
 
 #endif
 void set_area_Damage_flag(uint8_t value);

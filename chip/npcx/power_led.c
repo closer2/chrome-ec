@@ -37,6 +37,8 @@
 #define LED_STEP_PERCENT        2   /* Incremental value of each step */
 
 #define LED_BLINK_TIME          (200 * MSEC) /* hold for 200ms at on/off */
+#define LED_BLINK_TIME_1        (2 * SECOND) /* hold for 2s at on/off */
+static int g_ledBlinkTime = LED_BLINK_TIME;
 
 static enum powerled_state led_state = POWERLED_STATE_ON;
 static int power_led_percent = 100;
@@ -45,6 +47,26 @@ static uint8_t areaDamage = 0;
 void powerled_set_state(enum powerled_state new_state)
 {
     led_state = new_state;
+
+    /* Wake up the task */
+    task_wake(TASK_ID_POWERLED);
+}
+
+void powerled_set_state_blink(enum powerled_state new_state, uint8_t type)
+{
+    led_state = new_state;
+
+    /* led blink times choose */
+    switch (type) {
+        case LED_BLINK_TIME_TYPE:
+            g_ledBlinkTime = LED_BLINK_TIME;
+            break;
+        case LED_BLINK_TIME_TYPE1:
+            g_ledBlinkTime = LED_BLINK_TIME_1;
+            break;
+        default :
+            break;
+    }
     /* Wake up the task */
     task_wake(TASK_ID_POWERLED);
 }
@@ -116,7 +138,8 @@ static int power_led_blink(void)
     }
 
     power_led_set_duty(power_led_percent);
-    return LED_BLINK_TIME;
+    
+    return g_ledBlinkTime;
 }
 
 void set_area_Damage_flag(uint8_t value)
@@ -128,7 +151,7 @@ static void area_damage_deferred(void)
 {
     if (!areaDamage) {
         shutdown_cause_record(LOG_ID_SHUTDOWN_0xD1);
-        powerled_set_state(POWERLED_STATE_BLINK);
+        powerled_set_state_blink(POWERLED_STATE_BLINK, LED_BLINK_TIME_TYPE);
     }
 }
 DECLARE_DEFERRED(area_damage_deferred);
@@ -197,7 +220,12 @@ static int command_powerled(int argc, char **argv)
     else
         return EC_ERROR_INVAL;
 
-    powerled_set_state(state);
+    if (state == POWERLED_STATE_BLINK) {
+        powerled_set_state_blink(state, LED_BLINK_TIME_TYPE);
+    } else {
+        powerled_set_state(state);
+    }
+
     return EC_SUCCESS;
 }
 DECLARE_CONSOLE_COMMAND(powerled, command_powerled,
