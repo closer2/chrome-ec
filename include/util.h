@@ -274,6 +274,17 @@ int parse_offset_size(int argc, char **argv, int shift,
 			     int *offset, int *size);
 
 /**
+ * Parse offset, size, value,  from command line argv[shift] and argv[shift+1]
+ *  and argv[shift+2].  value should be hex.
+ *
+ * Default values: If argc<=shift, leaves offset unchanged, returning error if
+ * *offset<0.  If argc<shift+1, leaves size unchanged, returning error if
+ * *size<0.
+ */
+int parse_offset_size_value(int argc, char **argv, int shift,
+			     int *offset, int *size, char *val);
+
+/**
  * Print binary in hex and ASCII
  *
  * Sample output of hexdump(image_data.version, 30):

@@ -1061,7 +1061,7 @@ static int command_flash_erase(int argc, char **argv)
 		return rv;
 
 	ccprintf("Erasing %d bytes at 0x%x...\n", size, offset);
-	return flash_erase(offset, size);
+	return eflash_debug_physical_erase(offset, size);
 }
 DECLARE_CONSOLE_COMMAND(flasherase, command_flash_erase,
 			"offset size",
@@ -1074,11 +1074,12 @@ static int command_flash_write(int argc, char **argv)
 	int rv;
 	char *data;
 	int i;
+	char dst_var;
 
 	if (flash_get_protect() & EC_FLASH_PROTECT_ALL_NOW)
 		return EC_ERROR_ACCESS_DENIED;
 
-	rv = parse_offset_size(argc, argv, 1, &offset, &size);
+	rv = parse_offset_size_value(argc, argv, 1, &offset, &size, &dst_var);
 	if (rv)
 		return rv;
 
@@ -1094,10 +1095,15 @@ static int command_flash_write(int argc, char **argv)
 
 	/* Fill the data buffer with a pattern */
 	for (i = 0; i < size; i++)
-		data[i] = i;
+		data[i] = dst_var;
 
-	ccprintf("Writing %d bytes to 0x%x...\n", size, offset);
+	ccprintf("Writing %d bytes to 0x%x...:%02x, from:%x\n", size, offset, 
+		(unsigned char)dst_var, (unsigned int)data);
 	rv = flash_write(offset, size, data);
+	if (rv) {
+		ccprintf("flashwrite error:%d\n", rv);
+		return rv;
+	}
 
 	/* Free the buffer */
 	shared_mem_release(data);
@@ -1135,6 +1141,8 @@ static int command_flash_read(int argc, char **argv)
 		shared_mem_release(data);
 		return EC_ERROR_INVAL;
 	}
+
+	ccprintf("%08x: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f", offset);
 
 	/* Dump it */
 	for (i = 0; i < size; i++) {
@@ -1761,8 +1769,17 @@ void shutdown_cause_record(uint32_t data)
     // 8-byte alignment
     if(shutdown_write_index & (LOG_SIZE-1))
     {
-        write_index = LOG_SIZE - (shutdown_write_index&(LOG_SIZE-1));
-        shutdown_write_index += write_index;
+		ccprintf("====== shutdown index not aligned cause, adjust\n");
+		write_index = shutdown_write_index - (shutdown_write_index&(LOG_SIZE-1));
+		log_Data.log_timestamp = 01;
+		log_Data.log_id = LOG_ID_SHUTDOWN_0x08;
+		/* adjust not aligned cause, write */
+		if(flash_write(write_index, LOG_SIZE, (const char *)(&log_Data))) {
+			ccprintf("====== shutdown index not aligned cause, write fail\n");
+		}
+
+		write_index = LOG_SIZE - (shutdown_write_index&(LOG_SIZE-1));
+		shutdown_write_index += write_index;
     }
 
     ccprintf("====== shutdown log [%02x] -> [%x]\n", (uint16_t)data, shutdown_write_index);
@@ -2006,6 +2023,9 @@ static void update_cause_ram(void)
     int32_t tmp = 0;
     uint32_t *mptr = NULL;
     int status = EC_SUCCESS;
+	uint32_t shutdown_write_index_curr = 0;
+	uint32_t shutdown_write_index_align_log = 0;
+	struct ec_params_flash_log *log_Data = NULL;
 
     eflash_debug_init();
     /* update shutdown cause to ram */
@@ -2013,19 +2033,38 @@ static void update_cause_ram(void)
         eFlash_Data[i] = 0;
     }
     mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
-    if(shutdown_write_index > (SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
+
+	shutdown_write_index_curr = shutdown_write_index;
+
+    if(shutdown_write_index_curr & (LOG_SIZE-1)) {
+		ccprintf("====== chipset resume, adjust shutdown index:0x%08x\n", shutdown_write_index_curr);
+		shutdown_write_index_align_log = LOG_SIZE - (shutdown_write_index_curr&(LOG_SIZE-1));
+		shutdown_write_index_curr += shutdown_write_index_align_log;
+	}
+
+    if(shutdown_write_index_curr > (SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
         // read last 4
-        status = flash_read((shutdown_write_index-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+        status = flash_read((shutdown_write_index_curr-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
         if (status == EC_SUCCESS) {
+			if(shutdown_write_index_align_log) {
+				log_Data = (struct ec_params_flash_log *)(&eFlash_Data[LOG_SIZE -2]);
+				log_Data->log_timestamp = 1;
+				log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
+			}
             for (i = 0; i < LOG_SIZE; i++) {
                 *(mptr+i) = eFlash_Data[i];
             }
         }
     } else {
-        tmp = shutdown_write_index - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
+        tmp = shutdown_write_index_curr - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
         if ((tmp > 0) && (tmp < (LOG_SIZE * 4 + 1))) {
             status = flash_read((SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
             if (status == EC_SUCCESS) {
+				if(shutdown_write_index_align_log) {
+					log_Data = (struct ec_params_flash_log *)(&eFlash_Data[tmp / 4 -2]);
+					log_Data->log_timestamp = 1;
+					log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
+				}
                 for (i = 0; i < tmp / 4; i++) {
                     *(mptr+i) = eFlash_Data[i];
                 }

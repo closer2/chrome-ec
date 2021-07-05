@@ -663,6 +663,39 @@ int parse_offset_size(int argc, char **argv, int shift,
 	return EC_SUCCESS;
 }
 
+int parse_offset_size_value(int argc, char **argv, int shift,
+			     int *offset, int *size, char *val)
+{
+	char *e;
+	int i;
+
+	if (argc > shift) {
+		i = (uint32_t)strtoi(argv[shift], &e, 0);
+		if (*e)
+			return EC_ERROR_PARAM1;
+		*offset = i;
+	} else if (*offset < 0)
+		return EC_ERROR_PARAM_COUNT;
+
+	if (argc > shift + 1) {
+		i = (uint32_t)strtoi(argv[shift + 1], &e, 0);
+		if (*e)
+			return EC_ERROR_PARAM2;
+		*size = i;
+	} else if (*size < 0)
+		return EC_ERROR_PARAM_COUNT;
+
+	if (argc > shift + 2) {
+		i = (uint32_t)strtoi(argv[shift + 2], &e, 16);
+		if (*e)
+			return EC_ERROR_PARAM3;
+		*val = i;
+	} else
+		return EC_ERROR_PARAM_COUNT;
+
+	return EC_SUCCESS;
+}
+
 void hexdump(const uint8_t *data, int len)
 {
 	int i, j;
