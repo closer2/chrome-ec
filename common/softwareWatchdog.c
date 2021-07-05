@@ -169,13 +169,13 @@ void ShutdownWDtService(void)
         g_shutdownWDT.countTime = 0x00;
         /* TODO: trigger NMI or force shutdown */
         if(chipset_in_state(CHIPSET_STATE_ON) ) {
-            CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon",
-                        g_shutdownWDT.time);
     #ifdef  CONFIG_FINAL_RELEASE
             /* force shutdwon when release*/
             chipset_force_shutdown(LOG_ID_SHUTDOWN_0x44);
+            CPRINTS("Shutdown WDT timeout(%dsec), force shutdwon", g_shutdownWDT.time);
     #else
             /* trigger BSOD when development*/
+            g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
         #if (defined(NPCX_FAMILY_DT01) || defined(NPCX_FAMILY_DT02))
             gpio_set_level(GPIO_PCH_SMI_L, 0);
             msleep(300);
@@ -187,6 +187,7 @@ void ShutdownWDtService(void)
         #else
         #endif
         shutdown_cause_record(LOG_ID_SHUTDOWN_0xD0);
+        CPRINTS("Shutdown WDT timeout(%dsec), trigger BSOD when development", g_shutdownWDT.time);
     #endif
         }
     }
