@@ -1609,6 +1609,9 @@ DECLARE_HOST_COMMAND(EC_CMD_FLASH_SELECT,
 #define DATA_PAGE_NUM           0x20
 #define LOG_SIZE                0x08    // Must be 8-byte/16-byte/32-byte aligned
 
+#define CAUSE_LOG_CELL_SIZE     4           // cause id and timestamp, every one should be 4 bytes
+#define CAUSE_LOG_INVALID       0xffffffff  // flash after erase, initial value should be empty
+
 uint32_t shutdown_write_index;
 uint32_t wakeup_write_index;
 uint8_t g_abnormalPowerDownTimes;
@@ -1623,7 +1626,9 @@ static int shutdown_eflash_debug_init(void)
 {
     uint32_t data_index;
     uint32_t page_index;
-    uint8_t eflash_data_header[256];
+    __aligned(CAUSE_LOG_CELL_SIZE) uint8_t eflash_data_header[256];
+    uint32_t *shutdown_cause_p = (uint32_t *)eflash_data_header;
+    uint32_t shutdown_cause_data;
     int status = EC_SUCCESS;
 
     //------------------------------------------------------------------
@@ -1647,11 +1652,12 @@ static int shutdown_eflash_debug_init(void)
         return status;
     }
 
-    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++) {
-        if(0xFF == eflash_data_header[data_index]) {
+    for(data_index=0; data_index<(DATA_PAGE_SIZE/CAUSE_LOG_CELL_SIZE); data_index++) {
+        shutdown_cause_data = shutdown_cause_p[data_index];
+        if(CAUSE_LOG_INVALID == shutdown_cause_data) {
             shutdown_write_index = (uint32_t)(SHUTDOWN_HEADER_OFFSET +
                                    (page_index*DATA_PAGE_SIZE) +
-                                   data_index);
+                                   (data_index*CAUSE_LOG_CELL_SIZE));
             
             ccprintf("====== page_index = [%x], shutdown_write_index = [%x]\n",
                         page_index, shutdown_write_index);
@@ -1769,7 +1775,7 @@ void shutdown_cause_record(uint32_t data)
     // 8-byte alignment
     if(shutdown_write_index & (LOG_SIZE-1))
     {
-		ccprintf("====== shutdown index not aligned cause, adjust\n");
+		ccprintf("====== shutdown index(%08x) not aligned cause, adjust\n", shutdown_write_index);
 		write_index = shutdown_write_index - (shutdown_write_index&(LOG_SIZE-1));
 		log_Data.log_timestamp = 01;
 		log_Data.log_id = LOG_ID_SHUTDOWN_0x08;
@@ -2037,7 +2043,7 @@ static void update_cause_ram(void)
 	shutdown_write_index_curr = shutdown_write_index;
 
     if(shutdown_write_index_curr & (LOG_SIZE-1)) {
-		ccprintf("====== chipset resume, adjust shutdown index:0x%08x\n", shutdown_write_index_curr);
+		ccprintf("====== chipset resume, shutdown index(0x%08x), report aligned data\n", shutdown_write_index_curr);
 		shutdown_write_index_align_log = LOG_SIZE - (shutdown_write_index_curr&(LOG_SIZE-1));
 		shutdown_write_index_curr += shutdown_write_index_align_log;
 	}
