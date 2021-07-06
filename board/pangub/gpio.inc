@@ -70,7 +70,7 @@ GPIO(F23_VCCIO0_VID1,	    PIN(A, 3), GPIO_OUT_LOW)        /* power sequence VCCI
 /* Phase PVT use */
 GPIO(EC_3VSBSW,	            PIN(0, 6), GPIO_OUT_LOW)       /* Control EC_3VSBSW power, EC_3VSBSW */
 /* Phase EVT DVT use */
-GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_HIGH)       /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
+GPIO(EC_3V_5V_ALW_EN,	    PIN(A, 0), GPIO_OUT_LOW)       /* Control 3V/5V ALW power, EC_3V_5V_ALW_EN */
 GPIO(EC_1V8_AUX_EN,	        PIN(7, 0), GPIO_OUT_LOW)        /* 1.8V AUX Enable, EC_1.8V_AUX_EN */
 
 /* SYS_RST# as gpio */
