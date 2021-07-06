@@ -478,7 +478,6 @@ static void state_machine(uint64_t tnow)
     case PWRBTN_STATE_HELD_1:
         if (tnow > tnext_state) {
             shutdown_cause_record(LOG_ID_SHUTDOWN_0x07);
-            update_Cause_id(BIT(0));
             system_reset(SYSTEM_RESET_10_SHUT_DOWN);
         }
 	case PWRBTN_STATE_EAT_RELEASE:

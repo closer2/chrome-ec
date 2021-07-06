@@ -33,8 +33,8 @@
 static int forcing_shutdown; /* Forced shutdown in progress? */
 static int g_abnormal_shutdown;
 
-/* BIT0:LOG_ID_SHUTDOWN_0x07 */
-static uint16_t g_cause_id;
+/* Record shutdown cause id flag .h */
+static uint16_t g_cause_flag;
 
 uint8_t get_abnormal_shutdown(void)
 {
@@ -46,13 +46,13 @@ void set_abnormal_shutdown(uint8_t value)
     g_abnormal_shutdown = value;
 }
 
-void update_Cause_id(uint16_t value)
+void update_cause_flag(uint16_t value)
 {
-    g_cause_id = value;
+    g_cause_flag |= value;
 }
-uint16_t get_Cause_id(void)
+uint16_t get_cause_flag(void)
 {
-    return g_cause_id;
+    return g_cause_flag;
 }
 
 void chipset_force_shutdown(uint32_t shutdown_id)
@@ -133,9 +133,21 @@ static void chipset_force_g3(void)
 
 void chipset_force_power_off(uint32_t shutdown_id)
 {
-    shutdown_cause_record(shutdown_id);
-    CPRINTS("PSW 10s EC power off......");
-    chipset_force_g3();
+    if (!chipset_in_state(CHIPSET_STATE_ANY_OFF)) {
+        shutdown_cause_record(shutdown_id);
+        CPRINTS("EC force power off......");
+        chipset_force_g3();
+    }
+}
+
+static void thermal_shutdown_cause(void)
+{
+    /* Required rail went away */
+    if (!(get_cause_flag() & FORCE_POWER_OFF_THERMAL)) {
+        shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+    } else {
+        update_cause_flag(get_cause_flag() & (~ FORCE_POWER_OFF_THERMAL));
+    }
 }
 
 /* Can we use SYSRST# to do this? */
@@ -315,11 +327,7 @@ enum power_state power_handle_state(enum power_state state)
     case POWER_S5:
         if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
-            if (!(get_Cause_id() & BIT(0))) {
-                shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
-            } else {
-                update_Cause_id(get_Cause_id() & (~ BIT(0)));
-            }
+            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 1) {
             /* PCH SLP_S5 turn on, Power up to next state */
@@ -329,7 +337,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S5S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         }
@@ -355,7 +363,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
@@ -396,7 +404,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3S0:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         }
@@ -453,7 +461,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S0:
     if (!power_has_signals(IN_PGOOD_S5)) {
-        shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+        thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
         ccprintf("ERROR: system Alw PG Abnormal\n");
         /* Required rail went away */
         return POWER_S5G3;

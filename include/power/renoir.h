@@ -41,6 +41,6 @@ enum power_signal {
 
 void set_abnormal_shutdown(uint8_t value);
 uint8_t get_abnormal_shutdown(void);
-void update_Cause_id(uint16_t value);
+void update_cause_flag(uint16_t value);
 
 #endif

@@ -38,7 +38,7 @@ static int forcing_shutdown; /* Forced shutdown in progress? */
 static int g_abnormal_shutdown;
 
 /* BIT0:LOG_ID_SHUTDOWN_0x07 */
-static uint16_t g_cause_id;
+static uint16_t g_cause_flag;
 
 uint8_t get_abnormal_shutdown(void)
 {
@@ -50,13 +50,13 @@ void set_abnormal_shutdown(uint8_t value)
     g_abnormal_shutdown = value;
 }
 
-void update_Cause_id(uint16_t value)
+void update_cause_flag(uint16_t value)
 {
-    g_cause_id = value;
+    g_cause_flag |= value;
 }
-uint16_t get_Cause_id(void)
+uint16_t get_cause_flag(void)
 {
-    return g_cause_id;
+    return g_cause_flag;
 }
 
 void chipset_force_shutdown(uint32_t shutdown_id)
@@ -350,10 +350,10 @@ enum power_state power_handle_state(enum power_state state)
     case POWER_S5:
         if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
-            if (!(get_Cause_id() & BIT(0))) {
+            if (!(get_cause_flag() & BIT(0))) {
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             } else {
-                update_Cause_id(get_Cause_id() & (~ BIT(0)));
+                update_cause_flag(get_cause_flag() & (~ FORCE_SHUTDOWN_10S));
             }
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 1) {

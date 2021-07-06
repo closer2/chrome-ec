@@ -315,6 +315,10 @@ enum ec_error_list {
 
 #define EC_GENERAL_SIGNES  0xAA
 
+/* static uint16_t g_cause_id; */
+#define FORCE_SHUTDOWN_10S           BIT(0)
+#define FORCE_POWER_OFF_THERMAL      BIT(1)
+
 /*
  * Define test_mockable and test_mockable_static for mocking
  * functions.
