@@ -312,8 +312,8 @@ union postcode_vdo2_6 {
 #define HUAWEI_CMD_INTER_GAP  (500*MSEC)
 
 #define CONFIG_NUM_FIXED_BATTERIES  0           /* Used duing VIF generation*/
-#define CONFIG_USB_PD_MODEL_PART_NUMBER "DT01"  /* Used duing VIF generation*/
-#define CONFIG_USB_PD_PRODUCT_REVISION  "V02"   /* Used duing VIF generation*/
+#define CONFIG_USB_PD_MODEL_PART_NUMBER "DT03"  /* Used duing VIF generation*/
+#define CONFIG_USB_PD_PRODUCT_REVISION  "V03"   /* Used duing VIF generation*/
 #define CONFIG_USB_PD_MANUFACTURER_INFO         /* Used duing VIF generation*/
 
 /* #define CONFIG_USB_PD_SIMPLE_DFP
