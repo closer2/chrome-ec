@@ -1677,7 +1677,9 @@ static int wakeup_eflash_debug_init(void)
 {
     uint32_t data_index;
     uint32_t page_index;
-    uint8_t eflash_data_header[256];
+    __aligned(CAUSE_LOG_CELL_SIZE) uint8_t eflash_data_header[256];
+    uint32_t *wakeup_cause_p = (uint32_t *)eflash_data_header;
+    uint32_t wakeup_cause_data;
     int status = EC_SUCCESS;
 
     //------------------------------------------------------------------
@@ -1700,11 +1702,12 @@ static int wakeup_eflash_debug_init(void)
         return status;
     }
 
-    for(data_index=0; data_index<DATA_PAGE_SIZE; data_index++) {
-        if(0xFF == eflash_data_header[data_index]) {
+    for(data_index=0; data_index < (DATA_PAGE_SIZE / CAUSE_LOG_CELL_SIZE); data_index++) {
+        wakeup_cause_data = wakeup_cause_p[data_index];
+        if(CAUSE_LOG_INVALID == wakeup_cause_data) {
             wakeup_write_index = (uint32_t)(WAKEUP_HEADER_OFFSET +
-                                   (page_index*DATA_PAGE_SIZE) +
-                                   data_index);
+                                   (page_index * DATA_PAGE_SIZE) +
+                                   data_index * CAUSE_LOG_CELL_SIZE);
             ccprintf("====== page_index = [%x], wakeup_write_index = [%x]\n",
                         page_index, wakeup_write_index);
             break;
