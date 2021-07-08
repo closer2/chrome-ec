@@ -136,7 +136,7 @@
 #define CONFIG_WMI_PORT                     /* os to ec wmi port */
 #define CONFIG_MFG_MODE_FORBID_WRITE        /* MFG mode default mode, when it's no mode, forbid write mode */
 #undef CONFIG_MFG_FACTORY_MODE              /* MFG mode Factory Special Version */
-#undef CONFIG_FINAL_RELEASE                 /* define it when final release */
+#define CONFIG_FINAL_RELEASE                 /* define it when final release */
 #define CONFIG_LAN_WAKE_SWITCH              /* support lan/wlan wake */
 #define CONFIG_AUDIO_TS3A227E               /* support headset volume */
 
