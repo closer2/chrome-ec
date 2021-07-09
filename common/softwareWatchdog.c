@@ -82,7 +82,6 @@ void ClearWakeupWdtdata(void)
     }
 
     g_wakeupWDT.wdtEn = SW_WDT_DISENABLE;
-    g_wakeupWDT.time = 0;
     g_wakeupWDT.timeoutNum = 0;
     CPRINTS("========Wakeup WDT disable, it need to clear WDt data zero");
 }
@@ -150,8 +149,6 @@ static void WakeUpWdtPowerOn(void)
 void clearShutdownWDtdata(void)
 {
     g_shutdownWDT.wdtEn = SW_WDT_DISENABLE;
-    g_shutdownWDT.countTime = 0;
-    g_shutdownWDT.time = 0;
     CPRINTS("Shutdown WDT disable, it need to clear WDt data zero");
 }
 
