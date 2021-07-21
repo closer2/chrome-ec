@@ -26,6 +26,11 @@ struct ts3a227e {
     uint8_t buttons_press;
 };
 
+/* Microsecond timestamp. */
+static uint64_t history_key_time;
+/* history key */
+static uint8_t history_key;
+
 #define TS3A227E_NUM_BUTTONS 4
 uint8_t data_init[TS3A227E_NUM_BUTTONS] = {0};
 
@@ -94,42 +99,78 @@ uint8_t data_init[TS3A227E_NUM_BUTTONS] = {0};
 #define TYPE_4_POLE_STANDARD 0x04
 #define JACK_INSERTED 0x08
 #define EITHER_MIC_MASK (TYPE_4_POLE_OMTP | TYPE_4_POLE_STANDARD)
-
+#define MUTEX_time  500*MSEC
 static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
 {
+    uint64_t t;
+
     if (!ts3a227e->mic_present) {
         return;
     }
 
+    t = get_time().val;
+    if (t == 0x0) {
+        history_key = 0x0;
+    }
+    CPRINTS("**********************%lld", t);
+
     /* update volume stop/play key */
     if (SND_JACK_BTN_0_FIELD & ts3a227e->buttons_press) {
+        /* key mutex */
+        if(history_key != SND_JACK_BTN_0_R) {
+            if ((t - history_key_time) < MUTEX_time) {
+                return;
+            }
+        }
+
+        /* update Play/stop key */
+        history_key = SND_JACK_BTN_0_R;
         if (ts3a227e->buttons_press & SND_JACK_BTN_0_P) {
             keyboard_update_button(KEYBOARD_BUTTON_VOLUME_PLAY, 1);
             CPRINTS("**********************Play/stop--key0--press");
         } else {
             if (SND_JACK_BTN_0_R & ts3a227e->buttons_press) {
+                history_key_time = get_time().val;
                 CPRINTS("**********************Play/stop--key0--release ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_PLAY, 0);
             }
         }
     } else if (SND_JACK_BTN_2_FIELD & ts3a227e->buttons_press) {
+        /* key mutex */
+        if(history_key != SND_JACK_BTN_2_R) {
+            if ((t - history_key_time) < MUTEX_time) {
+                return;
+            }
+        }
+
         /* update volume up key */
+        history_key = SND_JACK_BTN_2_R;
         if (SND_JACK_BTN_2_P & ts3a227e->buttons_press) {
             CPRINTS("**********************volume up--key2--press ");
             keyboard_update_button(KEYBOARD_BUTTON_VOLUME_UP, 1);
         } else {
             if (SND_JACK_BTN_2_R & ts3a227e->buttons_press) {
+                history_key_time = get_time().val;
                 CPRINTS("**********************volume up--key2--release  ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_UP, 0);
             }
         }
     } else if (SND_JACK_BTN_3_FIELD & ts3a227e->buttons_press) {
+        /* key mutex */
+        if(history_key != SND_JACK_BTN_3_R) {
+            if ((t - history_key_time) < MUTEX_time) {
+                return;
+            }
+        }
+
         /* update volume down key */
+        history_key = SND_JACK_BTN_3_R;
         if (SND_JACK_BTN_3_P & ts3a227e->buttons_press) {
             CPRINTS("**********************volume down--key3--press ");
             keyboard_update_button(KEYBOARD_BUTTON_VOLUME_DOWN, 1);
         } else {
             if (SND_JACK_BTN_3_R & ts3a227e->buttons_press ) {
+                history_key_time = get_time().val;
                 CPRINTS("**********************volume down--key3--release ");
                 keyboard_update_button(KEYBOARD_BUTTON_VOLUME_DOWN, 0);
             }
