@@ -112,7 +112,6 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
     if (t == 0x0) {
         history_key = 0x0;
     }
-    CPRINTS("**********************%lld", t);
 
     /* update volume stop/play key */
     if (SND_JACK_BTN_0_FIELD & ts3a227e->buttons_press) {
