@@ -110,7 +110,7 @@ static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
 
     t = get_time().val;
     if (t == 0x0) {
-        history_key = 0x0;
+        history_key_time = 0x0;
     }
 
     /* update volume stop/play key */
