@@ -99,7 +99,7 @@ uint8_t data_init[TS3A227E_NUM_BUTTONS] = {0};
 #define TYPE_4_POLE_STANDARD 0x04
 #define JACK_INSERTED 0x08
 #define EITHER_MIC_MASK (TYPE_4_POLE_OMTP | TYPE_4_POLE_STANDARD)
-#define MUTEX_time  500*MSEC
+#define MUTEX_time  300*MSEC
 static void ts3a227e_jack_report(struct ts3a227e *ts3a227e)
 {
     uint64_t t;
@@ -289,8 +289,8 @@ static void ts3a227e_resume(void)
     unsigned int acc_reg;
 
     /* MICBIAS Setting, 2.65V */
-    regmap_update_bits(TS3A227E_REG_SETTING_3, MICBIAS_SETTING_MASK | BIT(0) | BIT(1),
-        MICBIAS_SETTING_VALUE | BIT(0) | BIT(1));
+    regmap_update_bits(TS3A227E_REG_SETTING_3, MICBIAS_SETTING_MASK,
+        MICBIAS_SETTING_VALUE);
 
     /* regmap_update_bits(TS3A227E_REG_SETTING_1, BIT(0) | BIT(1) | BIT(2),
         BIT(0)); */
