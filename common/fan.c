@@ -619,7 +619,8 @@ uint8_t check_CPU_fan_fault(void)
     
     /* Fan in duty mode still want rpm_actual being updated. */
     g_fan_parameter.rpm_actual[ch] = fan_get_rpm_actual(ch);
-    ccprints("PWM_CH_CPU_FAN***************%d", g_fan_parameter.rpm_actual[PWM_CH_CPU_FAN]);
+    ccprints("PWM_CH_CPU_FAN***************%d, Duty %d", g_fan_parameter.rpm_actual[PWM_CH_CPU_FAN],
+        fan_get_duty(PWM_CH_CPU_FAN));
 
     /* Upate fan fault status to ram */
     if (g_fan_parameter.rpm_actual[ch] < FAN_DUTY_50_RPM) {
@@ -635,10 +636,11 @@ uint8_t check_SYS_fan_fault(void)
 
     ch = PWM_CH_SYS_FAN;
     g_fan_parameter.fan_fault[ch] = 0x0;
-    
+
     /* Fan in duty mode still want rpm_actual being updated. */
     g_fan_parameter.rpm_actual[ch] = fan_get_rpm_actual(ch);
-    ccprints("PWM_CH_SYS_FAN***************%d", g_fan_parameter.rpm_actual[PWM_CH_SYS_FAN]);
+    ccprints("PWM_CH_SYS_FAN***************%d, Duty %d", g_fan_parameter.rpm_actual[PWM_CH_SYS_FAN],
+        fan_get_duty(PWM_CH_SYS_FAN));
 
     /* Upate fan fault status to ram */
     if (g_fan_parameter.rpm_actual[ch] < FAN_DUTY_50_RPM) {
