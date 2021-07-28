@@ -349,6 +349,8 @@ union postcode_vdo2_6 {
 #define I2C_PORT_TS3A227E       NPCX_I2C_PORT1_0
 #define I2C_PORT_TCPC0          NPCX_I2C_PORT4_1
 
+#define CONFIG_CMD_I2CWEDGE
+#define I2C_PORT_HOST I2C_PORT_TCPC0
 
 /* TODO: need confirm with real hardware */
 /* GPIO mapping from board specific name to EC common name. */
