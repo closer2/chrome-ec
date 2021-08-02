@@ -64,6 +64,12 @@ void post_last_code(int postcode)
     g_dfxValue.timestamp[0] = NPCX_TTC;
 }
 
+static uint32_t reversebytes_uint32t(uint32_t value)
+{
+    return (((value & 0xFF) << 24) | ((value & 0xFF00) << 8)
+    | ((value & 0xFF0000) >> 8) | ((value & 0xFF000000) >> 24));
+}
+
 static enum ec_status
 WMI_get_dfx_log(struct host_cmd_handler_args *args)
 {
@@ -87,7 +93,7 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
         /* last post code */
         p->postCode[i].code1= wmi_byteid(g_dfxValue.forntcode[i]);
         /* post code timestamp */
-        p->postCode[i].time = g_dfxValue.timestamp[i];
+        p->postCode[i].time = reversebytes_uint32t(g_dfxValue.timestamp[i]);
     }
 
     /* shoutdownCase, New information comes before old information */
@@ -97,8 +103,10 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
             | wmi_halfwordid_s(*(smptr + i * 2), g_dfxValue.sAbnormalcode << 8);    /* 23~31 byte */
         p->shutdownCause[i].value = wmi_halfwordid(*(smptr + i * 2));
         p->shutdownCause[i].reserve = 0xFF;
-        p->shutdownCause[i].time = wmi_wordid(*(smptr + i * 2),*(smptr + i * 2 + 1));
+        p->shutdownCause[i].time = wmi_wordid(*(smptr + i * 2), reversebytes_uint32t(*(smptr+ i * 2 + 1)));
     }
+
+    /* CPRINTS("0x%02x 0x%02x 0x%02x 0x%02x",, args->response_size)*/
 
     /* wakeupCause, New information comes before old information */
     for (i = 0; i < 4; i++) {
@@ -107,7 +115,7 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
             | wmi_halfwordid_s(*(wmptr + i * 2), g_dfxValue.wAbnormalcode << 8);       /* 59~67  byte */
         p->wakeupCause[i].value = wmi_byteid(*(wmptr + i * 2));
         p->wakeupCause[i].reserve = 0xFFFF;
-        p->wakeupCause[i].time = wmi_wordid(*(wmptr + i * 2),*(wmptr + i * 2 + 1));
+        p->wakeupCause[i].time = wmi_wordid(*(wmptr + i * 2), reversebytes_uint32t(*(wmptr + i * 2 + 1)));
     }
 
     args->response_size = sizeof(*p);
@@ -135,14 +143,14 @@ WMI_get_cause_log(struct host_cmd_handler_args *args)
     p->shutdownCause.type = wmi_byteid_s(*smptr, g_dfxValue.sAbnormalcode);       /* 1~8 byte */
     p->shutdownCause.value = wmi_halfwordid(*smptr);
     p->shutdownCause.reserve = 0xFF;
-    p->shutdownCause.time = wmi_wordid(*smptr,*(smptr + 1));
+    p->shutdownCause.time = wmi_wordid(*smptr, reversebytes_uint32t(*(smptr + 1)));
 
     /* wakeupCase */
     g_dfxValue.wAbnormalcode = wAbnormalcode((uint32_t)(*(wmptr)), *(wmptr) >> 16);
     p->wakeupCause.type = wmi_byteid_s(*wmptr, g_dfxValue.wAbnormalcode);       /* 9~16 byte */
     p->wakeupCause.value = wmi_byteid(*wmptr);
     p->wakeupCause.reserve = 0xFFFF;
-    p->wakeupCause.time = wmi_wordid(*wmptr,*(wmptr + 1));
+    p->wakeupCause.time = wmi_wordid(*wmptr, reversebytes_uint32t(*(wmptr + 1)));
     args->response_size = sizeof(*p);
 
     CPRINTS("%s -> %s(), response_size=[%d]", __FILE__, __func__, args->response_size);
