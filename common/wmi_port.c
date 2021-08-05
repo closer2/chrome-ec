@@ -106,8 +106,6 @@ WMI_get_dfx_log(struct host_cmd_handler_args *args)
         p->shutdownCause[i].time = wmi_wordid(*(smptr + i * 2), reversebytes_uint32t(*(smptr+ i * 2 + 1)));
     }
 
-    /* CPRINTS("0x%02x 0x%02x 0x%02x 0x%02x",, args->response_size)*/
-
     /* wakeupCause, New information comes before old information */
     for (i = 0; i < 4; i++) {
         g_dfxValue.wAbnormalcode = wAbnormalcode((uint16_t)(*(wmptr + i * 2)), *(wmptr + i * 2) >> 16);
