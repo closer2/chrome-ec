@@ -303,8 +303,14 @@ static void oem_bios_to_ec_command(void)
     case 0x0A : /* Notify EC GraphicCard */
         if (0x01 == *(bios_cmd+2)) {        /* exist */
            thermal_type(THERMAL_WITH_GFX);
+           #ifdef NPCX_FAMILY_DT03
+           set_ambient_ntc_prtection_value(70);
+           #endif
         } else if(0x02 == *(bios_cmd+2)) {  /* inexistence */
             thermal_type(THERMAL_UMA);
+            #ifdef NPCX_FAMILY_DT03
+            set_ambient_ntc_prtection_value(80);
+            #endif
         } else {
             *(bios_cmd+1) = 0xFF; /* unknown command */
             break;

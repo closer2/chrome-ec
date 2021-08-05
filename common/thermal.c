@@ -74,18 +74,30 @@ static void thermal_control(void)
         temperature_protection_mechanism();
     }
 
-    /* cpu thermal control */
-    fan = PWM_CH_CPU_FAN;
-    rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
-    if (is_thermal_control_enabled(fan)) {
-        fan_set_rpm_target(fan, rpm_target[fan]);
-    }
+#ifdef NPCX_FAMILY_DT03
+    if (FAN_STATUS_FAULT == get_fan_fault(PWM_CH_SYS_FAN)) {
+        /* cpu thermal control */
+        fan = PWM_CH_CPU_FAN;
+        rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
+        if (is_thermal_control_enabled(fan)) {
+            fan_set_rpm_target(fan, rpm_target[fan]);
+        }
+    } else
+#endif
+    {
+        /* cpu thermal control */
+        fan = PWM_CH_CPU_FAN;
+        rpm_target[fan] = cpu_fan_check_RPM(g_thermalMode);
+        if (is_thermal_control_enabled(fan)) {
+            fan_set_rpm_target(fan, rpm_target[fan]);
+        }
 
-    /* sys thermal control */
-    fan = PWM_CH_SYS_FAN;
-    rpm_target[fan] = sys_fan_check_RPM(g_thermalMode);
-    if (is_thermal_control_enabled(fan)) {
-        fan_set_rpm_target(fan, rpm_target[fan]);
+        /* sys thermal control */
+        fan = PWM_CH_SYS_FAN;
+        rpm_target[fan] = sys_fan_check_RPM(g_thermalMode);
+        if (is_thermal_control_enabled(fan)) {
+            fan_set_rpm_target(fan, rpm_target[fan]);
+        }
     }
 }
 /* Wait until after the sensors have been read */
