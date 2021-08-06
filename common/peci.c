@@ -9,7 +9,10 @@
 #include "console.h"
 #include "peci.h"
 #include "util.h"
+#include "system.h"
 
+#define CPU_TJMAX_PERIOD   60      /* output tjmax warning, 60 seconds*/
+unsigned char cpu_tjmax_cnt = 0;
 static int peci_get_cpu_temp(int *cpu_temp)
 {
 	int rv;
@@ -42,8 +45,16 @@ static int peci_get_cpu_temp(int *cpu_temp)
 	 */
 	if (*cpu_temp >= CONFIG_PECI_TJMAX) {
         *cpu_temp = 0x0;
-		 ccprintf(" PECI *cpu_temp > Tjamx \n");
-    }
+        if (cpu_tjmax_cnt == 0) {
+            print_system_rtc(CC_CHIPSET);
+            ccprintf("Tjmax\n");
+        }
+        cpu_tjmax_cnt++;
+        if (cpu_tjmax_cnt >= CPU_TJMAX_PERIOD)
+            cpu_tjmax_cnt = 0;
+    } else {
+        cpu_tjmax_cnt = 0;
+	}
 
 	/* temperature in K */
 	*cpu_temp = CONFIG_PECI_TJMAX - *cpu_temp + 273;
