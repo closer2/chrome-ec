@@ -39,6 +39,7 @@ int sys_fan_check_RPM(uint8_t thermalMode);
 
 #ifdef NPCX_FAMILY_DT03
 void set_cpu_model(uint8_t value);
+void set_ambient_ntc_prtection_value(int value);
 #endif
 
 #endif  /* __CROS_EC_THERMAL_H */
