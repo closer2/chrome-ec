@@ -144,6 +144,7 @@ static void thermal_shutdown_cause(void)
 {
     /* Required rail went away */
     if (!(get_cause_flag() & FORCE_POWER_OFF_THERMAL)) {
+        set_abnormal_shutdown((uint8_t)LOG_ID_SHUTDOWN_0x08);
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
     } else {
         update_cause_flag(get_cause_flag() & (~ FORCE_POWER_OFF_THERMAL));
