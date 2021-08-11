@@ -11,7 +11,7 @@
 #include "util.h"
 #include "system.h"
 
-#define CPU_TJMAX_PERIOD   60      /* output tjmax warning, 60 seconds*/
+#define CPU_TJMAX_PERIOD   10      /* output tjmax warning, 10 seconds intergap*/
 unsigned char cpu_tjmax_cnt = 0;
 static int peci_get_cpu_temp(int *cpu_temp)
 {
