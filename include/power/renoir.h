@@ -41,6 +41,11 @@ enum power_signal {
 
 void set_abnormal_shutdown(uint8_t value);
 uint8_t get_abnormal_shutdown(void);
-void update_cause_flag(uint16_t value);
+
+/* Cause mask operation 1, set; 0, clear */
+void update_cause_flag(uint16_t value, int set_clear);
+
+/* Cause mask for power state */
+uint16_t get_cause_flag(void);
 
 #endif

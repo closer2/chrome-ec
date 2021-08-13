@@ -46,10 +46,15 @@ void set_abnormal_shutdown(uint8_t value)
     g_abnormal_shutdown = value;
 }
 
-void update_cause_flag(uint16_t value)
+void update_cause_flag(uint16_t value, int set_clear)
 {
-    g_cause_flag |= value;
+    if (set_clear) {
+        g_cause_flag |= value;
+    } else {
+        g_cause_flag &= ~value;
+    }
 }
+
 uint16_t get_cause_flag(void)
 {
     return g_cause_flag;
@@ -147,7 +152,7 @@ static void thermal_shutdown_cause(void)
         set_abnormal_shutdown((uint8_t)LOG_ID_SHUTDOWN_0x08);
         shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
     } else {
-        update_cause_flag(get_cause_flag() & (~ FORCE_POWER_OFF_THERMAL));
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 0);
     }
 }
 

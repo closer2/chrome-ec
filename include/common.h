@@ -318,6 +318,7 @@ enum ec_error_list {
 /* static uint16_t g_cause_id; */
 #define FORCE_SHUTDOWN_10S           BIT(0)
 #define FORCE_POWER_OFF_THERMAL      BIT(1)
+#define POWER_ON_S5_TO_S3            BIT(2)
 
 /*
  * Define test_mockable and test_mockable_static for mocking

@@ -50,10 +50,15 @@ void set_abnormal_shutdown(uint8_t value)
     g_abnormal_shutdown = value;
 }
 
-void update_cause_flag(uint16_t value)
+void update_cause_flag(uint16_t value, int set_clear)
 {
-    g_cause_flag |= value;
+    if (set_clear) {
+        g_cause_flag |= value;
+    } else {
+        g_cause_flag &= ~value;
+    }
 }
+
 uint16_t get_cause_flag(void)
 {
     return g_cause_flag;
@@ -353,7 +358,7 @@ enum power_state power_handle_state(enum power_state state)
             if (!(get_cause_flag() & BIT(0))) {
                 shutdown_cause_record(LOG_ID_SHUTDOWN_0x45);
             } else {
-                update_cause_flag(get_cause_flag() & (~ FORCE_SHUTDOWN_10S));
+                update_cause_flag(FORCE_SHUTDOWN_10S, 0);
             }
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S5_L) == 1) {

@@ -434,7 +434,12 @@ static void board_chipset_resume(void)
     }
 
     hook_call_deferred(&pd_reset_deferred_data, (500 * MSEC));
-    wakeup_cause_record(LOG_ID_WAKEUP_0x04);
+    if (!(get_cause_flag() & POWER_ON_S5_TO_S3)) {
+        wakeup_cause_record(LOG_ID_WAKEUP_0x04);
+    } else {
+        update_cause_flag(POWER_ON_S5_TO_S3, 0);
+    }
+
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }
@@ -507,6 +512,7 @@ static void board_chipset_startup(void)
     mfg_data_write(MFG_POWER_LAST_STATE_OFFSET, 0xAA);  /* Record last power state */
 
     wakeup_cause_record(LOG_ID_WAKEUP_0x06);
+    update_cause_flag(POWER_ON_S5_TO_S3, 1);
     ccprints("%s -> %s", __FILE__, __func__);
     return;
 }

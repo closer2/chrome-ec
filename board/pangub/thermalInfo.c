@@ -1007,7 +1007,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_CPU_DTS].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x30);
         g_fanProtect[TEMP_SENSOR_CPU_DTS].time = 0;
     }
@@ -1021,7 +1021,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_CPU_NTC].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x31);
         g_fanProtect[TEMP_SENSOR_CPU_NTC].time = 0;
     }
@@ -1035,7 +1035,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_SSD1_NTC].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x38);
         g_fanProtect[TEMP_SENSOR_SSD1_NTC].time = 0;
     }
@@ -1049,7 +1049,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x35);
         g_fanProtect[TEMP_SENSOR_MEMORY_NTC].time = 0;
     }
@@ -1063,7 +1063,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x37);
         g_fanProtect[TEMP_SENSOR_AMBIENCE_NTC].time = 0;
     }
@@ -1077,7 +1077,7 @@ void temperature_protection_mechanism(void)
         }
     }
     if (g_fanProtect[TEMP_SENSOR_SSD2_NTC].time >= TEMP_PROTECTION_COUNT) {
-        update_cause_flag(FORCE_POWER_OFF_THERMAL);
+        update_cause_flag(FORCE_POWER_OFF_THERMAL, 1);
         chipset_force_power_off(LOG_ID_SHUTDOWN_0x49);
         g_fanProtect[TEMP_SENSOR_SSD2_NTC].time = 0;
     }

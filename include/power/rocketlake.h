@@ -48,7 +48,12 @@ enum power_signal {
 /* All inputs in the right state for S0 */
 #define IN_ALL_S0 (IN_PGOOD_S0 | IN_ALL_PM_SLP_DEASSERTED)
 
-void update_cause_flag(uint16_t value);
+/* Cause mask operation 1, set; 0, clear */
+void update_cause_flag(uint16_t value, int set_clear);
+
+/* Cause mask for power state */
+uint16_t get_cause_flag(void);
+
 void set_abnormal_shutdown(uint8_t value);
 uint8_t get_abnormal_shutdown(void);
 
