@@ -33,6 +33,10 @@
 static int forcing_shutdown; /* Forced shutdown in progress? */
 static int g_abnormal_shutdown;
 
+#ifdef NPCX_FAMILY_DT03
+static uint8_t rtc_reset_cnt;
+#endif
+
 /* Record shutdown cause id flag .h */
 static uint16_t g_cause_flag;
 
@@ -74,12 +78,18 @@ static void chipset_force_g3(void)
      * system will enter G3,
      */
 
+    /* turn off PCH power OK */
+    gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
+
+    /* RSMRST# must go low with DPWROK.*/
+    gpio_set_level(GPIO_DSW_PWROK_EN, 0);
+    gpio_set_level(GPIO_PCH_RSMRST_L, 0);
+
     /* Power-on Led turn off */
     powerled_set_state(POWERLED_STATE_OFF);
 
     /* trun off S0/S3 power */
     gpio_set_level(GPIO_PWRGD_140MS, 0);
-    gpio_set_level(GPIO_EC_PCH_PWRGD, 0);
     gpio_set_level(GPIO_EC_SLP_S3_L, 0);
     gpio_set_level(GPIO_EC_SLP_S4_L, 0);
     gpio_set_level(GPIO_EC_SLP_S5_L, 0);
@@ -87,7 +97,6 @@ static void chipset_force_g3(void)
     gpio_set_level(GPIO_VCCST_PWRGD, 0);
 
     gpio_set_level(GPIO_EC_PSON_L, 1);
-    gpio_set_level(GPIO_PCH_RSMRST_L, 0);
 
     /* Fingerprint keyboard USB port power always trun on*/
     gpio_set_level(GPIO_USB_FING_BLUE_EN_L, 1);
@@ -118,7 +127,6 @@ static void chipset_force_g3(void)
 
     /* pull down EC gpio, To prevent leakage*/
     gpio_set_level(GPIO_PROCHOT_ODL, 0);
-    gpio_set_level(GPIO_DSW_PWROK_EN, 0);
     gpio_set_level(GPIO_CPU_NMI_L, 0);
     /*gpio_set_level(GPIO_EC_ALERT_L, 0);*/
 
@@ -445,6 +453,10 @@ enum power_state power_handle_state(enum power_state state)
 
         /* clear abnormal shutdown flag */
         g_abnormal_shutdown = 0;
+        
+    #ifdef NPCX_FAMILY_DT03
+        rtc_reset_cnt = 0x0;
+    #endif
 
         /* Call hooks now that rails are up */
         hook_notify(HOOK_CHIPSET_RESUME);
@@ -461,16 +473,16 @@ enum power_state power_handle_state(enum power_state state)
         return POWER_S0;
 
     case POWER_S0:
-    if (!power_has_signals(IN_PGOOD_S5)) {
-        thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
-        ccprintf("ERROR: system Alw PG Abnormal\n");
-        /* Required rail went away */
-        return POWER_S5G3;
-    } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 0) {
-        /* PCH SLP_S3 turn off, Power down to next state */
-        return POWER_S0S3;
-    }
-    break;
+        if ((!power_has_signals(IN_PGOOD_S5)) || check_12V_voltage()) {
+            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            ccprintf("ERROR: system Alw PG Abnormal\n");
+            /* Required rail went away */
+            return POWER_S5G3;
+        } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 0) {
+            /* PCH SLP_S3 turn off, Power down to next state */
+            return POWER_S0S3;
+        }
+        break;
 
     case POWER_S0S3:
         /* Power-on Led suspend*/
@@ -570,6 +582,51 @@ enum power_state power_handle_state(enum power_state state)
 
     return state;
 }
+
+#ifdef NPCX_FAMILY_DT03
+/*
+ *Workaronud abnormalpower down don't turn off
+ */
+static void rtc_reset_delay_deferred(void)
+{
+    if (!chipset_in_state(CHIPSET_STATE_HARD_OFF)) {
+        return;
+    }
+
+    gpio_set_level(GPIO_EC_RTC_RST, 1);
+    msleep(200);
+    gpio_set_level(GPIO_EC_RTC_RST, 0);
+    msleep(100);
+    power_button_pch_pulse(PWRBTN_STATE_LID_OPEN);
+    rtc_reset_cnt++;
+    CPRINTS("-----Power on error, rtc reset-----");
+}
+ DECLARE_DEFERRED(rtc_reset_delay_deferred);
+
+static void rtc_reset_deferred(void)
+{
+     if (chipset_in_state(CHIPSET_STATE_ON)) {
+         return;
+     }
+
+     chipset_force_g3();
+     hook_call_deferred(&rtc_reset_delay_deferred_data, (400 * MSEC));
+}
+DECLARE_DEFERRED(rtc_reset_deferred);
+
+static void power_on_error_rtc_reset(void)
+{
+    if (!chipset_in_state(CHIPSET_STATE_ANY_OFF)
+        || (rtc_reset_cnt >= 0x02)) {
+        return;
+    }
+
+    CPRINTS("-----HOOK:  HOOK_CHIPSET_RTCRST-----");
+    hook_call_deferred(&rtc_reset_deferred_data, (2 * SECOND));
+
+}
+DECLARE_HOOK(HOOK_CHIPSET_RTCRST, power_on_error_rtc_reset, HOOK_PRIO_DEFAULT);
+#endif
 
 /* initialize, when LAN/WLAN wake enable, need to exit G3, keep S5 */
 static void lan_wake_init_exit_G3(void)

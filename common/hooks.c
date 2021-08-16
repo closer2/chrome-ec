@@ -55,6 +55,9 @@ static const struct hook_ptrs hook_list[] = {
 	{__hooks_ac_change, __hooks_ac_change_end},
 	{__hooks_lid_change, __hooks_lid_change_end},
     {__hooks_lan_wake, __hooks_lan_wake_end},
+#ifdef NPCX_FAMILY_DT03
+    {__hooks_rtc_reset, __hooks_rtc_reset_end},
+#endif
 	{__hooks_tablet_mode_change, __hooks_tablet_mode_change_end},
 	{__hooks_base_attached_change, __hooks_base_attached_change_end},
 	{__hooks_pwrbtn_change, __hooks_pwrbtn_change_end},

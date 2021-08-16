@@ -64,6 +64,10 @@ extern const struct hook_data __hooks_lid_change[];
 extern const struct hook_data __hooks_lid_change_end[];
 extern const struct hook_data __hooks_lan_wake[];
 extern const struct hook_data __hooks_lan_wake_end[];
+#ifdef NPCX_FAMILY_DT03
+extern const struct hook_data __hooks_rtc_reset[];
+extern const struct hook_data __hooks_rtc_reset_end[];
+#endif
 extern const struct hook_data __hooks_tablet_mode_change[];
 extern const struct hook_data __hooks_tablet_mode_change_end[];
 extern const struct hook_data __hooks_base_attached_change[];
