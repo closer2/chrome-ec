@@ -321,6 +321,12 @@ static void set_initial_pwrbtn_state(void)
     /* Set initial power on auto control */
     auto_power_on_control();
 
+#ifdef NPCX_FAMILY_DT03
+    if (pwrbtn_state == PWRBTN_STATE_INIT_ON) {
+        hook_notify(HOOK_CHIPSET_RTCRST);
+    }
+#endif
+
     CPRINTS("PB %s", pwrbtn_state == PWRBTN_STATE_INIT_ON ? "init-on" : "idle");
 }
 
@@ -353,6 +359,9 @@ static void state_machine(uint64_t tnow)
 			tnext_state = tnow + PWRBTN_INITIAL_US;
 			pwrbtn_state = PWRBTN_STATE_WAS_OFF;
 			set_pwrbtn_to_pch(0, 0);
+        #ifdef NPCX_FAMILY_DT03
+            hook_notify(HOOK_CHIPSET_RTCRST);
+        #endif
 		} else {
 			if (power_button_pulse_enabled) {
 				/* Chipset is on, so send the chipset a pulse */
@@ -562,6 +571,11 @@ static void powerbtn_x86_lan_wake(void)
         && (chipset_in_state(CHIPSET_STATE_SUSPEND) 
         || chipset_in_state(CHIPSET_STATE_SOFT_OFF))) {
         power_button_pch_pulse(PWRBTN_STATE_LAN_WAKE);
+
+        #ifdef NPCX_FAMILY_DT03
+            hook_notify(HOOK_CHIPSET_RTCRST);
+        #endif
+
         CPRINTS("powerbtn x86 lan/wlan wake up, when system is s0 state.");
     }
 }

@@ -304,6 +304,16 @@ int power_wait_voltage()
     CPRINTS("power voltage 12V wait fail Voltage=%d", ret);
     return EC_ERROR_TIMEOUT;
 }
+uint8_t check_12V_voltage(void)
+{
+    int ret = adc_read_channel(ADC_12V);
+
+    if(ret > 1800) {
+        return EC_SUCCESS;
+    } else {
+        return EC_ERROR_TIMEOUT;
+    }
+}
 
 void power_set_state(enum power_state new_state)
 {
@@ -580,7 +590,7 @@ static enum power_state power_common_state(enum power_state state)
             	}
             }
         }
-		break;
+        break;
 
 	case POWER_S3:
 		/* Wait for a message */

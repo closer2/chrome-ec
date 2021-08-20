@@ -198,6 +198,15 @@ enum hook_type {
      */
     HOOK_LAN_WAKE,
 
+#ifdef NPCX_FAMILY_DT03
+    /*
+     * Workaronud abnormalpower down don't turn off
+     *
+     * Hook routines are called from the chipset task.
+     */
+    HOOK_CHIPSET_RTCRST,
+#endif
+
 	/*
 	 * Device in tablet mode (base behind lid).
 	 *

@@ -162,7 +162,7 @@ int power_wait_mask_signals_timeout(uint32_t want, uint32_t mask, int timeout);
  * @return EC_SUCCESS
  */
 int power_wait_voltage(void);
-
+uint8_t check_12V_voltage(void);
 
 /**
  * Set the low-level power chipset state.

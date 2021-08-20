@@ -289,6 +289,12 @@ SECTIONS
 		KEEP(*(.rodata.HOOK_LAN_WAKE))
 		__hooks_lan_wake_end = .;
 		
+#ifdef NPCX_FAMILY_DT03
+		__hooks_rtc_reset = .;
+		KEEP(*(.rodata.HOOK_CHIPSET_RTCRST))
+		__hooks_rtc_reset_end = .;
+#endif
+
 		__hooks_tablet_mode_change = .;
 		KEEP(*(.rodata.HOOK_TABLET_MODE_CHANGE))
 		__hooks_tablet_mode_change_end = .;
