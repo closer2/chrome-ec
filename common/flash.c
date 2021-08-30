@@ -1612,9 +1612,10 @@ DECLARE_HOST_COMMAND(EC_CMD_FLASH_SELECT,
 #define CAUSE_LOG_CELL_SIZE     4           // cause id and timestamp, every one should be 4 bytes
 #define CAUSE_LOG_INVALID       0xffffffff  // flash after erase, initial value should be empty
 
-uint32_t shutdown_write_index;
-uint32_t wakeup_write_index;
-uint8_t g_abnormalPowerDownTimes;
+static uint32_t shutdown_write_index;
+static uint32_t wakeup_write_index;
+static uint8_t g_abnormalPowerDownTimes;
+static bool g_abnormalPowerDowninit;
 
 /**
  * shutdown cause eFlash debug init
@@ -1717,26 +1718,6 @@ static int wakeup_eflash_debug_init(void)
 }
 
 /**
- * eFlash debug init
- *
- * Read header data makes it easy to find the next write location.
- *
- */
-static void eflash_debug_init(void)
-{
-    /* shutdown cause eFlash debug init */
-    if (EC_ERROR(shutdown_eflash_debug_init())) {
-        ccprintf("====== ERROR: shutdown cause eFlash debug init");
-    }
-
-    /* wakeup cause eFlash debug init */
-    if (EC_ERROR(wakeup_eflash_debug_init())) {
-        ccprintf("====== ERROR: wakeup cause eFlash debug init");
-    }
-}
-DECLARE_HOOK(HOOK_INIT, eflash_debug_init, HOOK_PRIO_DEFAULT);
-
-/**
  * shutdown cause record
  *
  * write shutdown cause 16-bytes to eFlash, and look for the location of 
@@ -1758,13 +1739,15 @@ void shutdown_cause_record(uint32_t data)
         set_abnormal_shutdown(0x01);
     }
 
-    // check shutdown cause write index
+    // check shutdown cause write index, shutdown cause eFlash debug init
     base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
     end_address = (uint32_t)(SHUTDOWN_DATA_OFFSET+SHUTDOWN_DATA_SIZE);
     if((shutdown_write_index<base_address) ||
-       (shutdown_write_index>=end_address))
-    {
-        eflash_debug_init();
+       (shutdown_write_index>=end_address)) {
+        if (EC_ERROR(shutdown_eflash_debug_init())) {
+            ccprintf("====== ERROR: shutdown cause eFlash debug init");
+        }
+
     }
 
     if((shutdown_write_index<base_address) ||
@@ -1857,13 +1840,14 @@ void wakeup_cause_record(uint32_t data)
     uint32_t write_index;
     struct ec_params_flash_log log_Data;
 
-    // check wakeup cause write index
+    /* check wakeup cause write index,wakeup cause eFlash debug init */
     base_address = (uint32_t)WAKEUP_DATA_OFFSET;
     end_address = (uint32_t)(WAKEUP_DATA_OFFSET+WAKEUP_DATA_SIZE);
     if((wakeup_write_index<base_address) ||
-       (wakeup_write_index>=end_address))
-    {
-        eflash_debug_init();
+       (wakeup_write_index>=end_address)) {
+        if (EC_ERROR(wakeup_eflash_debug_init())) {
+            ccprintf("====== ERROR: wakeup cause eFlash debug init");
+        }
     }
 
     if((wakeup_write_index<base_address) ||
@@ -2025,62 +2009,25 @@ void clearAbnormalPowerDownTimes(void)
     ccprintf("clear abnormal power down times\n");
 }
 
-static void update_cause_ram(void)
+static void update_wake_up_cause_ram(void)
 {
     uint32_t eFlash_Data[8]={0};
     uint32_t i;
     int32_t tmp = 0;
     uint32_t *mptr = NULL;
     int status = EC_SUCCESS;
-	uint32_t shutdown_write_index_curr = 0;
-	uint32_t shutdown_write_index_align_log = 0;
-	struct ec_params_flash_log *log_Data = NULL;
+    uint32_t base_address;
+    uint32_t end_address;
 
-    eflash_debug_init();
-    /* update shutdown cause to ram */
-    for (i = 0; i < LOG_SIZE; i++) {
-        eFlash_Data[i] = 0;
-    }
-    mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
-
-	shutdown_write_index_curr = shutdown_write_index;
-
-    if(shutdown_write_index_curr & (LOG_SIZE-1)) {
-		ccprintf("====== chipset resume, shutdown index(0x%08x), report aligned data\n", shutdown_write_index_curr);
-		shutdown_write_index_align_log = LOG_SIZE - (shutdown_write_index_curr&(LOG_SIZE-1));
-		shutdown_write_index_curr += shutdown_write_index_align_log;
-	}
-
-    if(shutdown_write_index_curr > (SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
-        // read last 4
-        status = flash_read((shutdown_write_index_curr-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
-        if (status == EC_SUCCESS) {
-			if(shutdown_write_index_align_log) {
-				log_Data = (struct ec_params_flash_log *)(&eFlash_Data[LOG_SIZE -2]);
-				log_Data->log_timestamp = 1;
-				log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
-			}
-            for (i = 0; i < LOG_SIZE; i++) {
-                *(mptr+i) = eFlash_Data[i];
-            }
-        }
-    } else {
-        tmp = shutdown_write_index_curr - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
-        if ((tmp > 0) && (tmp < (LOG_SIZE * 4 + 1))) {
-            status = flash_read((SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
-            if (status == EC_SUCCESS) {
-				if(shutdown_write_index_align_log) {
-					log_Data = (struct ec_params_flash_log *)(&eFlash_Data[tmp / 4 -2]);
-					log_Data->log_timestamp = 1;
-					log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
-				}
-                for (i = 0; i < tmp / 4; i++) {
-                    *(mptr+i) = eFlash_Data[i];
-                }
-            }
+    /* check wakeup cause write index,wakeup cause eFlash debug init */
+    base_address = (uint32_t)WAKEUP_DATA_OFFSET;
+    end_address = (uint32_t)(WAKEUP_DATA_OFFSET+WAKEUP_DATA_SIZE);
+    if((wakeup_write_index < base_address) ||
+       (wakeup_write_index >= end_address)) {
+        if (EC_ERROR(wakeup_eflash_debug_init())) {
+            ccprintf("====== ERROR: wakeup cause eFlash debug init");
         }
     }
-    update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
 
     /* update wakeup cause to ram */
     for (i = 0; i < LOG_SIZE; i++) {
@@ -2107,10 +2054,108 @@ static void update_cause_ram(void)
         }
     }
     update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
-
-    abnormalPowerDownTimes();
 }
-DECLARE_HOOK(HOOK_CHIPSET_RESUME, update_cause_ram, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, update_wake_up_cause_ram, HOOK_PRIO_DEFAULT);
+
+static void update_shutdown_cause_ram(void)
+{
+    uint32_t eFlash_Data[8]={0};
+    uint32_t i;
+    int32_t tmp = 0;
+    uint32_t *mptr = NULL;
+    int status = EC_SUCCESS;
+    uint32_t shutdown_write_index_curr = 0;
+    uint32_t shutdown_write_index_align_log = 0;
+    struct ec_params_flash_log *log_Data = NULL;
+    uint32_t base_address;
+    uint32_t end_address;
+
+    /* check shutdown cause write index, shutdown cause eFlash debug init */
+    base_address = (uint32_t)SHUTDOWN_DATA_OFFSET;
+    end_address = (uint32_t)(SHUTDOWN_DATA_OFFSET+SHUTDOWN_DATA_SIZE);
+    if((shutdown_write_index < base_address) ||
+       (shutdown_write_index >= end_address)) {
+        if (EC_ERROR(shutdown_eflash_debug_init())) {
+            ccprintf("====== ERROR: shutdown cause eFlash debug init");
+        }
+    }
+
+    /* update shutdown cause to ram */
+    for (i = 0; i < LOG_SIZE; i++) {
+        eFlash_Data[i] = 0;
+    }
+    mptr = (uint32_t *)host_get_memmap(EC_MEMMAP_SHUTDOWN_CAUSE);
+
+    shutdown_write_index_curr = shutdown_write_index;
+
+    if(shutdown_write_index_curr & (LOG_SIZE-1)) {
+        ccprintf("====== chipset resume, shutdown index(0x%08x), report aligned data\n", shutdown_write_index_curr);
+        shutdown_write_index_align_log = LOG_SIZE - (shutdown_write_index_curr&(LOG_SIZE-1));
+        shutdown_write_index_curr += shutdown_write_index_align_log;
+    }
+
+    if(shutdown_write_index_curr > (SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE + 4*LOG_SIZE)) {
+        // read last 4
+        status = flash_read((shutdown_write_index_curr-(4*LOG_SIZE)), (4*LOG_SIZE), (char *)eFlash_Data);
+        if (status == EC_SUCCESS) {
+            if(shutdown_write_index_align_log) {
+                log_Data = (struct ec_params_flash_log *)(&eFlash_Data[LOG_SIZE -2]);
+                log_Data->log_timestamp = 1;
+                log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
+            }
+            for (i = 0; i < LOG_SIZE; i++) {
+                *(mptr+i) = eFlash_Data[i];
+            }
+        }
+    } else {
+        tmp = shutdown_write_index_curr - SHUTDOWN_HEADER_OFFSET - DATA_PAGE_SIZE;
+        if ((tmp > 0) && (tmp < (LOG_SIZE * 4 + 1))) {
+            status = flash_read((SHUTDOWN_HEADER_OFFSET + DATA_PAGE_SIZE), tmp, (char *)eFlash_Data);
+            if (status == EC_SUCCESS) {
+                if(shutdown_write_index_align_log) {
+                    log_Data = (struct ec_params_flash_log *)(&eFlash_Data[tmp / 4 -2]);
+                    log_Data->log_timestamp = 1;
+                    log_Data->log_id = LOG_ID_SHUTDOWN_0x08;
+                }
+                for (i = 0; i < tmp / 4; i++) {
+                    *(mptr+i) = eFlash_Data[i];
+                }
+            }
+        }
+    }
+    update_cause_ram_ags((uint32_t *)mptr, LOG_SIZE);
+}/* priority lower than board_init_config*/
+
+static void update_shutdown_cause_ram_resume(void)
+{
+    /* resume: update shutdown cause to acpi ram */
+    update_shutdown_cause_ram();
+
+    /* resume: abnormal Power Down Times */
+    if (!g_abnormalPowerDowninit) {
+        abnormalPowerDownTimes();
+    } else {
+        g_abnormalPowerDowninit = false;
+    }
+}
+DECLARE_HOOK(HOOK_CHIPSET_RESUME, update_shutdown_cause_ram_resume, HOOK_PRIO_DEFAULT);
+#ifdef NPCX_FAMILY_DT03
+DECLARE_HOOK(HOOK_CHIPSET_SHUTDOWN_COMPLETE, update_shutdown_cause_ram_resume, HOOK_PRIO_DEFAULT);
+#endif
+
+#ifdef NPCX_FAMILY_DT03
+static void update_shutdown_cause_ram_init(void)
+{
+    /* resume: update shutdown cause to acpi ram */
+    update_shutdown_cause_ram();
+
+    /* resume: abnormal Power Down Times */
+    abnormalPowerDownTimes();
+
+    g_abnormalPowerDowninit = true;
+}
+DECLARE_HOOK(HOOK_INIT, update_shutdown_cause_ram_init, HOOK_PRIO_DEFAULT);
+#endif
 
 static enum ec_status host_command_write_flash_log(struct host_cmd_handler_args *args)
 {
@@ -2290,7 +2335,7 @@ static void mfg_data_init(void)
     }
 #endif
 }
-DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_INIT, mfg_data_init, HOOK_PRIO_MEDIUM);
 
 static int console_command_mfg_data(int argc, char **argv)
 {

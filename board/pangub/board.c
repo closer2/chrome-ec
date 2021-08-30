@@ -554,7 +554,7 @@ static void board_init_config(void)
         wakeup_cause_record(LOG_ID_WAKEUP_0x44);
     }
 }
-DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_INIT, board_init_config, HOOK_PRIO_INIT_CAUSE_ID);
 #if 0
 void cpu_plt_reset_interrupt(enum gpio_signal signal)
 {

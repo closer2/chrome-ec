@@ -153,12 +153,12 @@ void chipset_force_power_off(uint32_t shutdown_id)
     }
 }
 
-static void thermal_shutdown_cause(void)
+static void thermal_shutdown_cause(uint32_t data)
 {
     /* Required rail went away */
     if (!(get_cause_flag() & FORCE_POWER_OFF_THERMAL)) {
-        set_abnormal_shutdown((uint8_t)LOG_ID_SHUTDOWN_0x08);
-        shutdown_cause_record(LOG_ID_SHUTDOWN_0x08);
+        set_abnormal_shutdown((uint8_t)data);
+        shutdown_cause_record(data);
     } else {
         update_cause_flag(FORCE_POWER_OFF_THERMAL, 0);
     }
@@ -341,7 +341,7 @@ enum power_state power_handle_state(enum power_state state)
     case POWER_S5:
         if (!power_has_signals(IN_PGOOD_S5)) {
             /* Required rail went away */
-            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            thermal_shutdown_cause(LOG_ID_SHUTDOWN_0xFC); /* Record LOG_ID_SHUTDOWN_0x08 */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S4_L) == 1) {
             /* PCH SLP_S5 turn on, Power up to next state */
@@ -351,7 +351,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S5S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            thermal_shutdown_cause(LOG_ID_SHUTDOWN_0x08); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         }
@@ -377,7 +377,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            thermal_shutdown_cause(LOG_ID_SHUTDOWN_0x08); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         } else if (gpio_get_level(GPIO_PCH_SLP_S3_L) == 1) {
@@ -418,7 +418,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S3S0:
         if (!power_has_signals(IN_PGOOD_S5)) {
-            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            thermal_shutdown_cause(LOG_ID_SHUTDOWN_0x08); /* Record LOG_ID_SHUTDOWN_0x08 */
             /* Required rail went away */
             return POWER_S5G3;
         }
@@ -479,7 +479,7 @@ enum power_state power_handle_state(enum power_state state)
 
     case POWER_S0:
         if ((!power_has_signals(IN_PGOOD_S5)) || check_12V_voltage()) {
-            thermal_shutdown_cause(); /* Record LOG_ID_SHUTDOWN_0x08 */
+            thermal_shutdown_cause(LOG_ID_SHUTDOWN_0x08); /* Record LOG_ID_SHUTDOWN_0x08 */
             ccprintf("ERROR: system Alw PG Abnormal\n");
             /* Required rail went away */
             return POWER_S5G3;
@@ -622,7 +622,7 @@ DECLARE_DEFERRED(rtc_reset_deferred);
 static void power_on_error_rtc_reset(void)
 {
     if (!chipset_in_state(CHIPSET_STATE_ANY_OFF)
-        || (rtc_reset_cnt >= 0x02)) {
+        || !getAbnormalPowerDownTimes() || (rtc_reset_cnt >= 0x02)) {
         return;
     }
 
@@ -630,7 +630,7 @@ static void power_on_error_rtc_reset(void)
     hook_call_deferred(&rtc_reset_deferred_data, (2 * SECOND));
 
 }
-DECLARE_HOOK(HOOK_CHIPSET_RTCRST, power_on_error_rtc_reset, HOOK_PRIO_DEFAULT);
+DECLARE_HOOK(HOOK_CHIPSET_RTCRST, power_on_error_rtc_reset, HOOK_PRIO_DEFAULT + 5);
 #endif
 
 /* initialize, when LAN/WLAN wake enable, need to exit G3, keep S5 */

@@ -13,6 +13,7 @@
 enum hook_priority {
 	/* Generic values across all hooks */
 	HOOK_PRIO_FIRST = 1,       /* Highest priority */
+    HOOK_PRIO_MEDIUM = 4900,   /* medium priority */
 	HOOK_PRIO_DEFAULT = 5000,  /* Default priority */
 	HOOK_PRIO_LAST = 9999,     /* Lowest priority */
 
@@ -48,6 +49,9 @@ enum hook_priority {
 	HOOK_PRIO_INIT_VBOOT_HASH = HOOK_PRIO_FIRST + 11,
 	/* Init charge manager before usage in board init */
 	HOOK_PRIO_CHARGE_MANAGER_INIT = HOOK_PRIO_FIRST + 12,
+
+    /* Init wakeup/shutcause ID in board init */
+    HOOK_PRIO_INIT_CAUSE_ID = HOOK_PRIO_MEDIUM + 1,
 
     HOOK_PRIO_INIT_ADC = HOOK_PRIO_DEFAULT,
     HOOK_PRIO_INIT_DAC = HOOK_PRIO_DEFAULT,
